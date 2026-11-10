@@ -32,7 +32,7 @@ Present a compact proposal listing each stage, its folder name, the conditions t
 
 ## Apply the approved workflow
 
-1. Create one folder under `kanban/` per approved stage and add `.gitkeep` to each empty folder. If cards already exist, inventory them and agree on their destination before moving them. Preserve filenames and IDs and update affected links.
-2. Create `kanban/workflow.json`. Set `stages` to the ordered folder names, `active` to those that count toward WIP, `completed` to the finished stage, `wip_limit` to a positive integer, and `timezone` to the agreed IANA time zone. Folder names use lowercase letters, numbers, and hyphens.
+1. Preview the approved template with `python3 tools/board.py init --template standard --wip-limit 1 --timezone Europe/Paris`. Substitute the agreed template, limit, and time zone. For a custom workflow, write the proposal to a separate JSON file and preview it with `python3 tools/board.py init --config approved-workflow.json`. Set `stages` to the ordered folder names, `active` to the stages counted toward WIP, `completed` to the completion stage, `wip_limit` to a positive integer, and `timezone` to the agreed IANA time zone.
+2. Confirm the preview with the user and rerun the same command with `--apply`. The tool creates the stage folders, adds `.gitkeep` to empty folders, and writes `kanban/workflow.json`. If a different workflow exists or cards would fall outside the proposed stages, agree on a migration before moving any cards. Preserve filenames and IDs and update affected links.
 3. Record the approved transition and evidence rules in the project's Kanban guide. Adapt links and examples to the chosen folders, and record ownership and Git permissions in the project instructions.
 4. Run `python3 tools/board.py validate` and `python3 tools/board.py show`. Verify that each approved stage appears in order and that capacity matches the agreement. Record the approved workflow and verification in Rememory.

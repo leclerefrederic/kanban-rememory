@@ -23,7 +23,7 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 
 ## Adopt the kit
 
-Copy the instructions, guides, templates, and board script into the target Git repository. Merge the instructions into any existing `AGENTS.md`. Start with the [guided adoption interview](agents/adoption.md), then create the approved stage folders and project configuration. The workflow file, stage folders, cards, and dated journal in this repository describe this project's own setup.
+Copy the instructions, guides, templates, and board script into the target Git repository. Merge the instructions into any existing `AGENTS.md`. Start with the [guided adoption interview](agents/adoption.md), then use `python3 tools/board.py init` to preview and apply the approved stage folders and project configuration. The workflow file, stage folders, cards, and dated journal in this repository describe this project's own setup.
 
 Kanban shows the official task status. Rememory records decisions, what was verified, and where to resume. Git preserves the history of both.
 
