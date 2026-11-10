@@ -49,7 +49,18 @@ class AdoptionTests(unittest.TestCase):
         self.assertEqual(self.run_board("show").splitlines()[:-1], stages)
         card = self.board / stages[0] / "TASK-00000001-example.md"
         card.write_text("# TASK-00000001 — Example\n\n## Acceptance criteria\n\n- [ ] Verified\n")
+        journal = self.root / "Rememory/journal.md"
+        journal.write_text(
+            f"[Criteria](../kanban/{stages[0]}/{card.name}#acceptance-criteria)\n"
+            "`[Example](../kanban/backlog/TASK-00000001-example.md)`\n"
+            "[External](https://example.com/kanban/backlog/TASK-00000001-example.md)\n"
+        )
+        sibling = card.parent / "TASK-00000002-sibling.md"
+        sibling.write_text("# TASK-00000002 — Sibling\n")
+        with card.open("a") as stream:
+            stream.write(f"\n[Related]({sibling.name})\n")
         self.run_board(*options, "--apply")
+        self.run_board("validate")
         for stage in stages[1:stages.index("completion") + 1]:
             if stage == "completion":
                 self.assertIn("acceptance checklist", self.run_board(
@@ -58,6 +69,11 @@ class AdoptionTests(unittest.TestCase):
             self.run_board("move", "TASK-00000001", stage)
             card = self.board / stage / card.name
             self.assertIn(f"kanban/{stage}/{card.name}", self.run_board("show"))
+            self.assertIn(f"../kanban/{stage}/{card.name}#acceptance-criteria", journal.read_text())
+            self.assertIn("`[Example](../kanban/backlog/TASK-00000001-example.md)`", journal.read_text())
+            self.assertIn("https://example.com/kanban/backlog/TASK-00000001-example.md", journal.read_text())
+            self.assertIn(f"[Related](../backlog/{sibling.name})", card.read_text())
+            self.run_board("validate")
         self.run_board("validate")
 
     def test_short(self):

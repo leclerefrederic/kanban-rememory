@@ -4,11 +4,12 @@ import argparse
 from collections import defaultdict
 from datetime import date, datetime
 import json
+import os
 from zoneinfo import ZoneInfo
 from pathlib import Path
 import re
 import subprocess
-from urllib.parse import unquote, urlsplit
+from urllib.parse import quote, unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-[0-9]{8})(?:-|$)")
@@ -27,9 +28,9 @@ def cards(stage):
     return sorted((path for path in paths if CARD_ID.match(path.stem)), key=card_order)
 
 
-def markdown_lines(source):
+def prose_lines(lines):
     fence = ""
-    for line in source.splitlines():
+    for index, line in enumerate(lines):
         marker = FENCE.match(line)
         if fence:
             if line.strip().startswith(fence) and set(line.strip()) == {fence[0]}:
@@ -37,7 +38,12 @@ def markdown_lines(source):
         elif marker:
             fence = marker[1]
         else:
-            yield line
+            yield index, line
+
+
+def markdown_lines(source):
+    for _, line in prose_lines(source.splitlines()):
+        yield line
 
 
 def anchors(source):
@@ -65,6 +71,17 @@ def acceptance_checks(source):
             yield line.strip()
 
 
+def markdown_files():
+    listed = subprocess.check_output(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"],
+        cwd=ROOT,
+    )
+    for name in sorted(set(os.fsdecode(listed).split("\0")) - {""}):
+        path = ROOT / name
+        if path.is_file() and not path.is_symlink():
+            yield path
+
+
 def validate(workflow):
     findings = []
     by_id = defaultdict(list)
@@ -83,14 +100,8 @@ def validate(workflow):
         if len(paths) > 1:
             findings.append(f"duplicate {task_id}: {', '.join(map(str, paths))}")
 
-    listed = subprocess.check_output(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"],
-        cwd=ROOT,
-    )
-    for name in sorted(set(listed.decode().split("\0")) - {""}):
-        path = ROOT / name
-        if not path.is_file():
-            continue
+    for path in markdown_files():
+        name = path.relative_to(ROOT)
         for line in markdown_lines(path.read_text(encoding="utf-8")):
             prose = re.sub(r"`+[^\x60]*`+", "", line)
             for match in LINK.finditer(prose):
@@ -207,6 +218,62 @@ def starter_transitions(delivery, active):
     return transitions
 
 
+def rewrite_card_links(source, document, card, target):
+    new_document = target if document == card else document
+    lines = source.splitlines(keepends=True)
+    for index, line in prose_lines(lines):
+        code_spans = [match.span() for match in re.finditer(r"`+[^`]*`+", line)]
+
+        def rewrite(match):
+            if any(start <= match.start() < end for start, end in code_spans):
+                return match[0]
+            href = match[1] or match[2]
+            url = urlsplit(href)
+            if url.scheme or url.netloc or not url.path or url.path.startswith("/"):
+                return match[0]
+            old_destination = (document.parent / unquote(url.path)).resolve()
+            if old_destination == card:
+                destination = target
+            elif document == card:
+                destination = old_destination
+                if (target.parent / unquote(url.path)).resolve() == destination:
+                    return match[0]
+            else:
+                return match[0]
+            relative = quote(os.path.relpath(destination, new_document.parent), safe="/")
+            if url.path.endswith("/"):
+                relative += "/"
+            group = 1 if match[1] is not None else 2
+            start = match.start(group) - match.start()
+            return match[0][:start] + relative + match[0][start + len(url.path):]
+
+        lines[index] = LINK.sub(rewrite, line)
+    return "".join(lines)
+
+
+def relocate_card(card, target):
+    updates = {}
+    for document in set(markdown_files()) | {card}:
+        original = document.read_bytes()
+        source = original.decode("utf-8")
+        updated = rewrite_card_links(source, document, card, target)
+        if source != updated:
+            updates[target if document == card else document] = (original, updated.encode("utf-8"))
+
+    card.rename(target)
+    attempted = []
+    try:
+        for document, (original, updated) in updates.items():
+            attempted.append((document, original))
+            document.write_bytes(updated)
+    except OSError:
+        for document, original in reversed(attempted):
+            if document.read_bytes() != original:
+                document.write_bytes(original)
+        target.rename(card)
+        raise
+
+
 def move_card(workflow, task_id, destination):
     matches = [(stage, card) for stage in workflow["stages"] for card in cards(stage)
                if CARD_ID.match(card.stem)[1] == task_id]
@@ -228,7 +295,7 @@ def move_card(workflow, task_id, destination):
     target = ROOT / "kanban" / destination / card.name
     if target.exists() or target.is_symlink():
         raise ValueError(f"Destination already exists: {target.relative_to(ROOT)}")
-    card.rename(target)
+    relocate_card(card, target)
     print(f"Moved {task_id} from {stage} to {destination}.")
     return 0
 
