@@ -11,7 +11,7 @@ Track a feature, fix, or maintenance change as a card with an observable outcome
 | `backlog` | Ready when eligible | The outcome and acceptance checks are understood, prerequisites are met, and execution is authorized before pull. |
 | [implementation](implementation/) | Implementing | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
 | [review](review/) | In review | Record the PR or revision and required checks. Return to implementation if changes are requested, keeping the original start date. |
-| [ready-to-release](ready-to-release/) | Ready to release, if applicable | Required checks and approvals have passed. Keep the card here when release or deployment is required for closure. |
+| [ready-to-release](ready-to-release/) | Ready to release, if applicable | Checks and approvals required before release have passed. Keep the card here while release or delivery verification is pending. |
 | `done` | Delivered | Acceptance criteria and the agreed delivery point are verified. Record the revision and evidence. |
 | `discarded` | Withdrawn | Record the reason and exclude the card from completed throughput. |
 

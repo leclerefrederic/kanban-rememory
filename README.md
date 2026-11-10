@@ -13,7 +13,7 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 
 ## Adopt the kit
 
-Copy `AGENTS.md`, the Kanban guide, template and empty columns, and the Rememory guide and template into the target repository. Merge the instructions into any existing `AGENTS.md`. Define the workflow, limits on work in progress, and selection rules in the Kanban guide. In the project instructions, specify the task prefix, journal time zone, and Git permissions. If several owners share the repository, specify where each keeps their journal.
+Copy `AGENTS.md`, the Kanban guide, software development profile, task template, and empty stage folders, and the Rememory guide and template into the target repository. Merge the instructions into any existing `AGENTS.md` and adapt the section specific to this repository. Define the workflow, limits on work in progress, and selection rules in the Kanban guide. In the project instructions, specify the task prefix, journal time zone, and Git permissions. If several owners share the repository, specify where each keeps their journal.
 
 Kanban shows the official task status. Rememory records decisions, what was verified, and where to resume. Git preserves the history of both.
 
