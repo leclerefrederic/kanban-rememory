@@ -1,4 +1,4 @@
-# TASK-0006 — Ignore macOS metadata
+# TASK-00000006 — Ignore macOS metadata
 
 - Owner: requester
 - Dependencies: none

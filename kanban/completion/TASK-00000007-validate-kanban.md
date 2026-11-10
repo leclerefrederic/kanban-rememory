@@ -1,4 +1,4 @@
-# TASK-0007 — Add a read-only Kanban validator
+# TASK-00000007 — Add a read-only Kanban validator
 
 - Owner: Kanban Rememory maintainers
 - Priority: first eligible change by task ID

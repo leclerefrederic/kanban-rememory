@@ -1,7 +1,7 @@
-# TASK-0005 — Verify documentation and links
+# TASK-00000005 — Verify documentation and links
 
 - Owner: requester
-- Dependencies: TASK-0004
+- Dependencies: TASK-00000004
 
 ## Acceptance criteria
 

@@ -1,7 +1,7 @@
-# TASK-0012 — Define software workflow stages and task cards
+# TASK-00000012 — Define software workflow stages and task cards
 
 - Owner: Kanban Rememory maintainers
-- Dependencies: TASK-0011
+- Dependencies: TASK-00000011
 
 ## Expected outcome
 

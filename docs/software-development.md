@@ -9,9 +9,9 @@ Track a feature, fix, or maintenance change as a card with an observable outcome
 | Folder | Example stage | Entry or exit policy |
 | --- | --- | --- |
 | `backlog` | Backlog | The outcome and acceptance checks are understood, prerequisites are met, and execution is authorized before pull. |
-| [development](development/) | Development | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
-| [code-review](code-review/) | Code Review | Record the PR or revision and required checks. Return to Development if changes are requested, keeping the original start date. |
-| [deployment](deployment/) | Deployment, if applicable | Checks and approvals required before release have passed. Keep the card here while release or delivery verification is pending. |
+| [development](../kanban/development/) | Development | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
+| [code-review](../kanban/code-review/) | Code Review | Record the PR or revision and required checks. Return to Development if changes are requested, keeping the original start date. |
+| [deployment](../kanban/deployment/) | Deployment, if applicable | Checks and approvals required before release have passed. Keep the card here while release or delivery verification is pending. |
 | `completion` | Completion | Acceptance criteria and the agreed delivery point are verified. Record the revision and evidence. |
 | `archive` | Archive | Record the reason and exclude the card from completed throughput. |
 
@@ -21,7 +21,7 @@ Agree on what delivery means for each kind of work. A documentation change may f
 
 Set an overall limit and add stage limits where queues need control. Count cards waiting in review or for release, including blocked cards. Pull the highest-ranked eligible card only when the relevant capacity is available. If review is full, help review or unblock work before pulling another change. If the team allows urgent exceptions, record who authorized them, why, and how the team will return within the limit.
 
-During replenishment, order eligible work and clarify the next items. During flow reviews, start with blocked and aging cards and look at the queues nearest delivery. Use the [flow measures](README.md#measure-and-improve-flow) to identify recurring delays. Keep the original start date through handoffs, rework, and blockers.
+During replenishment, order eligible work and clarify the next items. During flow reviews, start with blocked and aging cards and look at the queues nearest delivery. Use the [flow measures](kanban.md#measure-and-improve-flow) to identify recurring delays. Keep the original start date through handoffs, rework, and blockers.
 
 ## Use feedback to improve the workflow
 

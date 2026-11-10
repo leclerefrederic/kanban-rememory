@@ -1,7 +1,7 @@
-# TASK-0008 — Generate a board view from stage folders
+# TASK-00000008 — Generate a board view from stage folders
 
 - Owner: Kanban Rememory maintainers
-- Priority: follows TASK-0007 in backlog order
+- Priority: follows TASK-00000007 in backlog order
 - Dependencies: none. Both tools read the same repository layout and can ship independently.
 - Backlog approval: requester, 2026-11-10
 

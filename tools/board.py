@@ -11,15 +11,20 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-\d+)(?:-|$)")
+CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-[0-9]{8})(?:-|$)")
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,}).*$")
 HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)\s*#*\s*$")
 LINK = re.compile(r"(?<!\\)\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+\"[^\"]*\")?\s*\)")
 
 
+def card_order(path):
+    prefix, _, number = CARD_ID.match(path.stem)[1].rpartition("-")
+    return prefix, int(number), path.name
+
+
 def cards(stage):
-    return sorted(path for path in (ROOT / "kanban" / stage).glob("*.md")
-                  if CARD_ID.match(path.stem))
+    paths = (ROOT / "kanban" / stage).glob("*.md")
+    return sorted((path for path in paths if CARD_ID.match(path.stem)), key=card_order)
 
 
 def markdown_lines(source):
@@ -54,7 +59,11 @@ def validate(workflow):
     findings = []
     by_id = defaultdict(list)
     for stage in workflow["stages"]:
-        for path in cards(stage):
+        for path in sorted((ROOT / "kanban" / stage).glob("*.md")):
+            match = CARD_ID.match(path.stem)
+            if not match or match[1].endswith("-00000000"):
+                findings.append(f"{path.relative_to(ROOT)}: expected a task ID with eight digits from 00000001 to 99999999")
+                continue
             by_id[CARD_ID.match(path.stem)[1]].append(path.relative_to(ROOT))
             if stage == workflow["completed"]:
                 section_level = None
@@ -135,7 +144,7 @@ def show_board(workflow, limit, today):
 def load_workflow():
     path = ROOT / "kanban/workflow.json"
     if not path.is_file():
-        raise ValueError("No workflow configured. Follow kanban/adoption.md before using the board.")
+        raise ValueError("No workflow configured. Follow agents/adoption.md before using the board.")
     workflow = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(workflow, dict):
         raise ValueError("workflow.json must contain an object.")

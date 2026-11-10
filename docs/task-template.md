@@ -1,4 +1,4 @@
-# TASK-NNNN — Short title
+# TASK-NNNNNNNN — Short title
 
 - Owner: application, team, or domain
 - Priority: according to project policy

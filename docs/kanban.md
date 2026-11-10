@@ -2,19 +2,19 @@
 
 | Column | Entry condition |
 | --- | --- |
-| [backlog](backlog/) | Defined and accepted work awaiting execution |
-| [development](development/) | Authorized work being implemented |
-| [code-review](code-review/) | Work awaiting or undergoing review |
-| [deployment](deployment/) | Reviewed work awaiting release or delivery verification |
-| [completion](completion/) | Acceptance criteria verified and evidence recorded |
-| [archive](archive/) | Decision to abandon the work and its rationale recorded |
+| [backlog](../kanban/backlog/) | Defined and accepted work awaiting execution |
+| [development](../kanban/development/) | Authorized work being implemented |
+| [code-review](../kanban/code-review/) | Work awaiting or undergoing review |
+| [deployment](../kanban/deployment/) | Reviewed work awaiting release or delivery verification |
+| [completion](../kanban/completion/) | Acceptance criteria verified and evidence recorded |
+| [archive](../kanban/archive/) | Decision to abandon the work and its rationale recorded |
 
 The folder determines the stage. The optional card state describes whether work is waiting, in progress, or blocked within that stage. See the [task card guide](card-guide.md). Keep each card in one column and preserve its filename and ID when moving it. Link external tickets as references where useful.
 
 ## Define and execute work
 
 1. Search all columns for duplicates. Reuse the relevant card or define the new task with the requester. Clarify questions that affect scope or decisions.
-2. Once the backlog entry is approved, copy the [template](task-template.md) to `backlog/TASK-0001-topic.md`, using the next ID after the highest one across all columns. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
+2. Once the backlog entry is approved, copy the [template](task-template.md) to `kanban/backlog/TASK-00000001-topic.md`, using the next number after the highest numeric suffix across all stages for the configured prefix. Use exactly eight digits with leading zeros, from `TASK-00000001` to `TASK-99999999`. After `TASK-00009999`, use `TASK-00010000`. Stop and agree on a numbering migration before exceeding the range. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
 3. Check prerequisites before starting. Unmet dependencies block affected cards, including through intermediate dependencies. Keep work that has yet to start in the backlog and document the dependency chain.
 4. When execution is authorized and capacity is available, move the card to the first active stage. Keep interrupted work in its current stage and record the blocker and next action.
 5. Verify every criterion before moving a card to Completion. Link the journal and evidence. If user validation is required for closure, keep the card in its current active stage until that validation is recorded. If the work is abandoned, record the reason and move the card to Archive.
@@ -50,10 +50,14 @@ For the flow measures, see [The Kanban Guide](https://kanbanguides.org/the-kanba
 
 ## Validate the repository
 
-Run `python3 kanban/board.py validate` from the repository root with Python 3.9 or later and Git available. The command reads card filenames and local Markdown without changing files. It returns exit code 1 for duplicate task IDs, missing local link targets or Markdown heading anchors, and unchecked items under **Acceptance criteria** on cards in `completion/`. Older cards without checklist criteria are accepted.
+Run `python3 tools/board.py validate` from the repository root with Python 3.9 or later and Git available. The command reads card filenames and local Markdown without changing files. It returns exit code 1 for invalid task filenames, duplicate task IDs, missing local link targets or Markdown heading anchors, and unchecked items under **Acceptance criteria** on cards in `completion/`. Older cards without checklist criteria are accepted.
 
 Link checks cover inline relative Markdown links and ATX heading anchors (headings written with `#`). External URLs, reference-style links, and HTML anchors are outside this check.
 
 ## Show the board
 
-Run `python3 kanban/board.py show` from the repository root with Python 3.9 or later. The limit of one applies to this repository. Set the project limit in `workflow.json` after [guided adoption](adoption.md). Pass `--wip-limit` to override it for a single run. The board lists each stage, counts all active stages toward WIP, and reads age and blockers from the `Actual start` and `Blocker` fields. Write start dates as `YYYY-MM-DD`. Age uses calendar days in the configured time zone. Pass `--timezone` with the project's IANA time zone when needed.
+Run `python3 tools/board.py show` from the repository root with Python 3.9 or later. The limit of one applies to this repository. Set the project limit in `kanban/workflow.json` after [guided adoption](../agents/adoption.md). Pass `--wip-limit` to override it for a single run. The board lists each stage, counts all active stages toward WIP, and reads age and blockers from the `Actual start` and `Blocker` fields. Write start dates as `YYYY-MM-DD`. Age uses calendar days in the configured time zone. Pass `--timezone` with the project's IANA time zone when needed.
+
+## Legacy task references
+
+To look up a reference published before the eight-digit migration, left-pad its numeric suffix to eight digits. For example, the former `TASK-0015` is now `TASK-00000015`. The numeric value and filename slug stay the same.
