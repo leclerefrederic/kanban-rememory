@@ -2,12 +2,12 @@
 
 | Column | Entry condition |
 | --- | --- |
-| [backlog](../kanban/backlog/) | Defined and accepted work awaiting execution |
-| [development](../kanban/development/) | Authorized work being implemented |
-| [code-review](../kanban/code-review/) | Work awaiting or undergoing review |
-| [deployment](../kanban/deployment/) | Reviewed work awaiting release or delivery verification |
-| [completion](../kanban/completion/) | Acceptance criteria verified and evidence recorded |
-| [archive](../kanban/archive/) | Decision to abandon the work and its rationale recorded |
+| `backlog` | Defined and accepted work awaiting execution |
+| `development` | Authorized work being implemented |
+| `code-review` | Work awaiting or undergoing review |
+| `deployment` | Reviewed work awaiting release or delivery verification |
+| `completion` | Acceptance criteria verified and evidence recorded |
+| `archive` | Decision to abandon the work and its rationale recorded |
 
 The folder determines the stage. The optional card state describes whether work is waiting, in progress, or blocked within that stage. See the [task card guide](card-guide.md). Keep each card in one column and preserve its filename and ID when moving it. Link external tickets as references where useful.
 

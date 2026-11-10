@@ -9,9 +9,9 @@ Track a feature, fix, or maintenance change as a card with an observable outcome
 | Folder | Example stage | Entry or exit policy |
 | --- | --- | --- |
 | `backlog` | Backlog | The outcome and acceptance checks are understood, prerequisites are met, and execution is authorized before pull. |
-| [development](../kanban/development/) | Development | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
-| [code-review](../kanban/code-review/) | Code Review | Record the PR or revision and required checks. Return to Development if changes are requested, keeping the original start date. |
-| [deployment](../kanban/deployment/) | Deployment, if applicable | Checks and approvals required before release have passed. Keep the card here while release or delivery verification is pending. |
+| `development` | Development | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
+| `code-review` | Code Review | Record the PR or revision and required checks. Return to Development if changes are requested, keeping the original start date. |
+| `deployment` | Deployment, if applicable | Checks and approvals required before release have passed. Keep the card here while release or delivery verification is pending. |
 | `completion` | Completion | Acceptance criteria and the agreed delivery point are verified. Record the revision and evidence. |
 | `archive` | Archive | Record the reason and exclude the card from completed throughput. |
 

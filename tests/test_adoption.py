@@ -7,7 +7,13 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "tools/board.py"
+KIT = Path(__file__).resolve().parents[1]
+INSTALL_FILES = (
+    "agents/adoption.md", "agents/working-instructions.md",
+    "docs/kanban.md", "docs/software-development.md",
+    "docs/card-guide.md", "docs/task-template.md",
+    "tools/board.py", "Rememory/README.md", "Rememory/daily-template.md",
+)
 
 
 class AdoptionTests(unittest.TestCase):
@@ -16,8 +22,14 @@ class AdoptionTests(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name)
         self.board = self.root / "kanban"
-        (self.root / "tools").mkdir()
-        shutil.copy(SCRIPT, self.root / "tools")
+        for name in INSTALL_FILES:
+            destination = self.root / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(KIT / name, destination)
+        (self.root / "AGENTS.md").write_text(
+            "Read the [shared working instructions](agents/working-instructions.md) "
+            "before adopting the kit or working on cards.\n", encoding="utf-8",
+        )
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)
 
     def run_board(self, *args, expected=0):
@@ -33,6 +45,7 @@ class AdoptionTests(unittest.TestCase):
         self.assertIn("Preview only", self.run_board(*options))
         self.assertFalse(self.board.exists())
         self.run_board(*options, "--apply")
+        self.run_board("validate")
         self.assertEqual(self.run_board("show").splitlines()[:-1], stages)
         card = self.board / stages[0] / "TASK-00000001-example.md"
         card.write_text("# TASK-00000001 — Example\n\n## Acceptance criteria\n\n- [ ] Verified\n")
