@@ -3,6 +3,7 @@
 import argparse
 from collections import defaultdict
 from datetime import date, datetime
+import json
 from zoneinfo import ZoneInfo
 from pathlib import Path
 import re
@@ -10,8 +11,6 @@ import subprocess
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-STAGES = ("backlog", "implementation", "review", "ready-to-release", "done", "discarded")
-ACTIVE = STAGES[1:4]
 CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-\d+)(?:-|$)")
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,}).*$")
 HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)\s*#*\s*$")
@@ -51,13 +50,13 @@ def anchors(source):
     return result
 
 
-def validate():
+def validate(workflow):
     findings = []
     by_id = defaultdict(list)
-    for stage in STAGES:
+    for stage in workflow["stages"]:
         for path in cards(stage):
             by_id[CARD_ID.match(path.stem)[1]].append(path.relative_to(ROOT))
-            if stage == "done":
+            if stage == workflow["completed"]:
                 section_level = None
                 for line in markdown_lines(path.read_text(encoding="utf-8")):
                     heading = HEADING.match(line)
@@ -105,9 +104,9 @@ def field(source, label):
     return match[1].strip() if match else ""
 
 
-def show_board(limit, today):
+def show_board(workflow, limit, today):
     wip = 0
-    for stage in STAGES:
+    for stage in workflow["stages"]:
         print(stage)
         for path in cards(stage):
             source = path.read_text(encoding="utf-8")
@@ -116,21 +115,55 @@ def show_board(limit, today):
             task_id = CARD_ID.match(path.stem)[1]
             title = heading.removeprefix(task_id).lstrip(" —-")
             print(f"  {task_id} | {title} | {path.relative_to(ROOT)}")
-            if stage in ACTIVE:
+            if stage in workflow["active"]:
                 wip += 1
                 try:
                     age = f"{(today - date.fromisoformat(field(source, 'Actual start'))).days} days"
                 except ValueError:
                     age = "unknown"
                 print(f"    Age: {age}")
+                state = field(source, "State")
+                if state:
+                    print(f"    State: {state}")
                 blocker = field(source, "Blocker")
                 if blocker:
                     print(f"    Blocker: {blocker}")
-    if limit is None:
-        print(f"WIP: {wip} | Limit: unknown | Available slots: unknown")
-    else:
-        print(f"WIP: {wip}/{limit} | Available slots: {max(0, limit - wip)}")
+    print(f"WIP: {wip}/{limit} | Available slots: {max(0, limit - wip)}")
     return 0
+
+
+def load_workflow():
+    path = ROOT / "kanban/workflow.json"
+    if not path.is_file():
+        raise ValueError("No workflow configured. Follow kanban/adoption.md before using the board.")
+    workflow = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(workflow, dict):
+        raise ValueError("workflow.json must contain an object.")
+    stages = workflow.get("stages")
+    if (not isinstance(stages, list) or not stages
+            or any(not isinstance(stage, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", stage)
+                   for stage in stages)
+            or len(stages) != len(set(stages))):
+        raise ValueError("stages must contain unique folder names.")
+    active = workflow.get("active")
+    completed = workflow.get("completed")
+    if (not isinstance(active, list) or not active or any(stage not in stages for stage in active)
+            or completed not in stages or completed in active):
+        raise ValueError("Define active stages and a distinct completed stage.")
+    limit = workflow.get("wip_limit")
+    if type(limit) is not int or limit < 1:
+        raise ValueError("wip_limit must be a positive integer.")
+    timezone = workflow.get("timezone")
+    if not isinstance(timezone, str) or not timezone:
+        raise ValueError("timezone must be an IANA time zone.")
+    try:
+        ZoneInfo(timezone)
+    except (KeyError, ValueError):
+        raise ValueError(f"Unknown time zone: {timezone}") from None
+    missing = [stage for stage in stages if not (ROOT / "kanban" / stage).is_dir()]
+    if missing:
+        raise ValueError(f"Missing stage folders: {', '.join(missing)}")
+    return workflow
 
 
 def main():
@@ -139,17 +172,21 @@ def main():
     commands.add_parser("validate")
     board = commands.add_parser("show")
     board.add_argument("--wip-limit", type=int, help="Overall WIP limit for this board")
-    board.add_argument("--timezone", default="Europe/Paris", help="IANA time zone for age")
+    board.add_argument("--timezone", help="IANA time zone for age")
     args = parser.parse_args()
+    try:
+        workflow = load_workflow()
+    except (OSError, ValueError) as error:
+        parser.exit(1, f"{error}\n")
     if args.command == "validate":
-        return validate()
+        return validate(workflow)
     if args.wip_limit is not None and args.wip_limit < 1:
         board.error("--wip-limit must be positive")
     try:
-        today = datetime.now(ZoneInfo(args.timezone)).date()
-    except KeyError:
+        today = datetime.now(ZoneInfo(args.timezone or workflow["timezone"])).date()
+    except (KeyError, ValueError):
         board.error(f"unknown time zone: {args.timezone}")
-    return show_board(args.wip_limit, today)
+    return show_board(workflow, args.wip_limit or workflow["wip_limit"], today)
 
 
 if __name__ == "__main__":

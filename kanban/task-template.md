@@ -2,7 +2,7 @@
 
 - Owner: application, team, or domain
 - Priority: according to project policy
-- Dependencies: IDs and readiness conditions
+- Dependencies: IDs and readiness conditions, or none
 - Approval to add and authorization to execute: references and dates, once established
 
 ## Expected outcome
@@ -25,6 +25,7 @@ Describe the need and the deliverable.
 
 ## Execution and evidence
 
+- State:
 - Actual start:
 - Actual finish:
 - Verified revision or PR, checks run, and results.

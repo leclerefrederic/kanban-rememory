@@ -1,5 +1,9 @@
 # Working instructions
 
+## First access
+
+Check for `kanban/workflow.json` before resuming or creating cards. If it is missing, follow the [guided adoption interview](kanban/adoption.md). Offer express setup with a short, standard, or long software template or custom setup with a guided interview. Present the resulting stage folders and policies and wait for approval before wiring the board. Resume normal work once the approved configuration and folders pass validation.
+
 ## Resume work
 
 1. Read the [Kanban guide](kanban/README.md), review the cards in progress, then check the relevant backlog.
@@ -19,4 +23,4 @@ Use the `TASK` prefix. For a single owner, keep the journal in the root `Rememor
 
 ## Rules for the Kanban Rememory repository
 
-This repository uses its own cards and journal to track changes to the kit. The journal uses Europe/Paris time, and work in progress is limited to one card across implementation, review, and ready to release. Select the oldest eligible backlog card by ID unless an agreed priority is documented on the card. Review blockers and flow at closure or before resuming interrupted work. Adapt this section for the target repository.
+This repository uses its own cards and journal to track changes to the kit. The journal uses Europe/Paris time, and work in progress is limited to one card across Development, Code Review, and Deployment. Select the oldest eligible backlog card by ID unless an agreed priority is documented on the card. Review blockers and flow at closure or before resuming interrupted work. Adapt this section for the target repository.

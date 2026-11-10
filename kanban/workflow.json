@@ -1,0 +1,7 @@
+{
+  "stages": ["backlog", "development", "code-review", "deployment", "completion", "archive"],
+  "active": ["development", "code-review", "deployment"],
+  "completed": "completion",
+  "wip_limit": 1,
+  "timezone": "Europe/Paris"
+}
