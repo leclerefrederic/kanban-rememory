@@ -16,3 +16,7 @@
 ## Conventions par défaut
 
 Préfixe des cartes : `TASK`. Journal : `Rememory/` à la racine pour un seul propriétaire. Utiliser la date du projet et préciser son fuseau à l’adoption.
+
+## Application dans le dépôt Kanban Rememory
+
+Ce dépôt utilise ses propres cartes et son journal pour suivre les évolutions du kit. Pour ce dépôt, le journal utilise le fuseau Europe/Paris et le travail en cours est limité à une carte. Sélectionner la plus ancienne carte admissible du backlog par identifiant, sauf priorité convenue et documentée sur la carte. Revoir les blocages et le flux à chaque clôture ou avant de reprendre un chantier interrompu. Adapter cette section au dépôt cible lors de l’adoption.

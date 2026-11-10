@@ -25,6 +25,9 @@ Décrire le besoin et le livrable.
 
 ## Exécution et preuves
 
+- Début réel :
+- Fin réelle :
+
 - Révision vérifiée, tests effectués et résultats.
-- Blocage éventuel et prochaine action autorisée.
+- Blocage éventuel : date, cause, personne ou condition de déblocage et prochaine action autorisée.
 - Lien vers l’entrée Rememory pertinente.

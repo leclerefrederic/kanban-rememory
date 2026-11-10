@@ -12,6 +12,8 @@ Une méthode de travail dans Git pour suivre les tâches, conserver les preuves 
 
 ## Adopter la méthode
 
-Copier `AGENTS.md`, `kanban/` et `Rememory/` dans le dépôt cible. Si un `AGENTS.md` existe, intégrer les consignes au fichier en place. Fixer le préfixe des cartes, le fuseau du journal et les autorisations Git du projet dans ses consignes. Pour un dépôt multi-applications, définir où chaque propriétaire tient son journal.
+Copier `AGENTS.md`, `kanban/` et `Rememory/` dans le dépôt cible. Si un `AGENTS.md` existe, intégrer les consignes au fichier en place. Adapter la section propre au dépôt Kanban Rememory et partir de colonnes et d’un journal vierges. Définir le flux, les limites de travail en cours et les règles de sélection dans le guide Kanban. Fixer le préfixe des cartes, le fuseau du journal et les autorisations Git du projet dans ses consignes. Pour un dépôt multi-applications, définir où chaque propriétaire tient son journal.
 
 Le Kanban donne l’état officiel d’une tâche. Rememory explique les décisions, ce qui a été vérifié et par où reprendre. Git conserve les changements des deux.
+
+Ce dépôt utilise le kit pour suivre ses propres évolutions. Les cartes et le journal daté retracent ce travail.
