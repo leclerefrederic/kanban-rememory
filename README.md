@@ -8,7 +8,7 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 | [Kanban guide](docs/kanban.md) | Workflow policies, columns, IDs, and transitions |
 | [Software development profile](docs/software-development.md) | Example delivery stages, engineering checks, and feedback loops |
 | [Task card guide](docs/card-guide.md) | Required card content and the distinction between stage and state |
-| [Board commands](tools/board.py) | Workflow setup, read-only validation, and stage view |
+| [Board commands](tools/board.py) | Workflow setup, validation, stage view, and guarded card moves |
 | [Task template](docs/task-template.md) | Outcome, scope, dependencies, and acceptance criteria |
 | [Rememory guide](Rememory/README.md) | Record of decisions, verification, and next steps |
 | [Daily log template](Rememory/daily-template.md) | Structure for a daily log entry |

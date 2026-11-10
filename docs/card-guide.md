@@ -14,3 +14,57 @@ The folder identifies the stage. The state describes the task within that stage 
 Keep the card short enough to act on. Link detailed requirements, design records, test output, PR discussions and Rememory entries. Keep credentials, personal data and copied logs out of the card.
 
 Use the [task template](task-template.md) and see the [software example](software-development.md#example).
+
+## Worked example
+
+At start, record the outcome, criteria, and authorization.
+
+```markdown
+# TASK-00000042 — Prevent duplicate invoice emails
+
+- Owner: Billing team
+- Dependencies: none
+- Approval to execute: Billing lead, 2026-11-10
+
+## Expected outcome
+
+A retry sends no second email for an invoice that was already sent.
+
+## Scope
+
+Invoice email retries. Other notification types are outside scope.
+
+## Acceptance criteria
+
+- [ ] The retry regression test confirms one email per invoice.
+- [ ] The merged revision passes the required review and checks.
+
+## Execution and evidence
+
+- State: in-progress
+- Actual start: 2026-11-10
+```
+
+In Code Review, keep the same card and update the execution fields when CI blocks review.
+
+```markdown
+- State: blocked
+- Actual start: 2026-11-10
+- Blocker: CI outage since 2026-11-11. Rerun the required check once CI recovers.
+- Evidence: PR #42 in the billing repository.
+```
+
+At completion, check the criteria and record the finish and evidence. In this example, merge is the agreed delivery point.
+
+```markdown
+## Acceptance criteria
+
+- [x] The retry regression test confirms one email per invoice.
+- [x] The merged revision passes the required review and checks.
+
+## Execution and evidence
+
+- Actual start: 2026-11-10
+- Actual finish: 2026-11-12
+- Delivery evidence: PR #42 merged at revision abc1234. Required review and retry regression test passed.
+```

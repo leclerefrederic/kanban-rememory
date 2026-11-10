@@ -1,4 +1,4 @@
-"""Initialize, validate, or display a Markdown Kanban board."""
+"""Initialize, validate, display, or move cards on a Markdown Kanban board."""
 
 import argparse
 from collections import defaultdict
@@ -55,6 +55,16 @@ def anchors(source):
     return result
 
 
+def acceptance_checks(source):
+    section_level = None
+    for line in markdown_lines(source):
+        heading = HEADING.match(line)
+        if heading and (section_level is None or len(heading[1]) <= section_level):
+            section_level = len(heading[1]) if heading[2].casefold() == "acceptance criteria" else None
+        if section_level and re.match(r"\s*[-*+]\s+\[[ xX]\]", line):
+            yield line.strip()
+
+
 def validate(workflow):
     findings = []
     by_id = defaultdict(list)
@@ -66,14 +76,9 @@ def validate(workflow):
                 continue
             by_id[CARD_ID.match(path.stem)[1]].append(path.relative_to(ROOT))
             if stage == workflow["completed"]:
-                section_level = None
-                for line in markdown_lines(path.read_text(encoding="utf-8")):
-                    heading = HEADING.match(line)
-                    if heading and (section_level is None or len(heading[1]) <= section_level):
-                        section_level = (len(heading[1])
-                                         if heading[2].casefold() == "acceptance criteria" else None)
-                    if section_level and re.match(r"\s*[-*+]\s+\[ \]", line):
-                        findings.append(f"{path.relative_to(ROOT)}: unchecked acceptance criterion: {line.strip()}")
+                for check in acceptance_checks(path.read_text(encoding="utf-8")):
+                    if re.match(r"[-*+]\s+\[ \]", check):
+                        findings.append(f"{path.relative_to(ROOT)}: unchecked acceptance criterion: {check}")
     for task_id, paths in by_id.items():
         if len(paths) > 1:
             findings.append(f"duplicate {task_id}: {', '.join(map(str, paths))}")
@@ -155,6 +160,13 @@ def check_workflow(workflow):
     if (not isinstance(active, list) or not active or any(stage not in stages for stage in active)
             or completed not in stages or completed in active):
         raise ValueError("Define active stages and a distinct completed stage.")
+    transitions = workflow.get("transitions", {})
+    if not isinstance(transitions, dict) or any(
+        source not in stages or not isinstance(destinations, list)
+        or any(destination not in stages or destination == source for destination in destinations)
+        for source, destinations in transitions.items()
+    ):
+        raise ValueError("Transitions must map stage names to lists of distinct destination stages.")
     limit = workflow.get("wip_limit")
     if type(limit) is not int or limit < 1:
         raise ValueError("wip_limit must be a positive integer.")
@@ -186,13 +198,50 @@ TEMPLATES = {
 }
 
 
+def starter_transitions(delivery, active):
+    transitions = {
+        stage: [following, "archive"] for stage, following in zip(delivery, delivery[1:])
+    }
+    for stage in active[1:]:
+        transitions[stage].append(active[0])
+    return transitions
+
+
+def move_card(workflow, task_id, destination):
+    matches = [(stage, card) for stage in workflow["stages"] for card in cards(stage)
+               if CARD_ID.match(card.stem)[1] == task_id]
+    if len(matches) != 1:
+        raise ValueError(f"Expected exactly one card for {task_id}, found {len(matches)}.")
+    stage, card = matches[0]
+    if "transitions" not in workflow:
+        raise ValueError("Configure transitions in kanban/workflow.json before moving cards.")
+    if destination not in workflow["transitions"].get(stage, []):
+        raise ValueError(f"Transition from {stage} to {destination} is not allowed.")
+    active = workflow["active"]
+    if destination in active and stage not in active:
+        if sum(len(cards(column)) for column in active) >= workflow["wip_limit"]:
+            raise ValueError("WIP limit reached. Finish active work before starting another card.")
+    if destination == workflow["completed"]:
+        checks = list(acceptance_checks(card.read_text(encoding="utf-8")))
+        if not checks or any(re.match(r"[-*+]\s+\[ \]", check) for check in checks):
+            raise ValueError("Completion requires a nonempty acceptance checklist with every item checked.")
+    target = ROOT / "kanban" / destination / card.name
+    if target.exists() or target.is_symlink():
+        raise ValueError(f"Destination already exists: {target.relative_to(ROOT)}")
+    card.rename(target)
+    print(f"Moved {task_id} from {stage} to {destination}.")
+    return 0
+
+
 def initialize(args):
     if args.config:
         workflow = json.loads(args.config.read_text(encoding="utf-8"))
     else:
         preparation, active = TEMPLATES[args.template]
+        delivery = ["backlog", *preparation, *active, "completion"]
         workflow = {
-            "stages": ["backlog", *preparation, *active, "completion", "archive"],
+            "stages": [*delivery, "archive"],
+            "transitions": starter_transitions(delivery, active),
             "active": active,
             "completed": "completion",
             "wip_limit": args.wip_limit if args.wip_limit is not None else 1,
@@ -243,6 +292,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("validate")
+    move = commands.add_parser("move")
+    move.add_argument("task_id")
+    move.add_argument("destination")
     init = commands.add_parser("init")
     source = init.add_mutually_exclusive_group(required=True)
     source.add_argument("--template", choices=TEMPLATES)
@@ -260,6 +312,8 @@ def main():
         if args.command == "init":
             return initialize(args)
         workflow = load_workflow()
+        if args.command == "move":
+            return move_card(workflow, args.task_id, args.destination)
     except (OSError, ValueError) as error:
         parser.exit(1, f"{error}\n")
     if args.command == "validate":

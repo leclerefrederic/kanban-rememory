@@ -61,3 +61,9 @@ Run `python3 tools/board.py show` from the repository root with Python 3.9 or la
 ## Legacy task references
 
 To look up a reference published before the eight-digit migration, left-pad its numeric suffix to eight digits. For example, the former `TASK-0015` is now `TASK-00000015`. The numeric value and filename slug stay the same.
+
+## Move a card
+
+Run `python3 tools/board.py move TASK-00000019 code-review` with the ID and destination for your card. Starter workflows include forward moves, returns to Development for rework, and withdrawal to Archive. For a custom or existing board, add a `transitions` object to `kanban/workflow.json`. Each key is a source stage and its value is the list of permitted destinations. Stages with no outgoing moves can be omitted.
+
+The command checks capacity when a card enters an active stage, and requires a nonempty, fully checked acceptance checklist before completion. It moves the same file and preserves its contents, including the original start date. Record authorization, dates, evidence, and state on the card as work progresses. Update any links that point to its former location, then run `python3 tools/board.py validate`. See the [worked card example](card-guide.md#worked-example).

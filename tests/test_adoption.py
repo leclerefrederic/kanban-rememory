@@ -51,10 +51,13 @@ class AdoptionTests(unittest.TestCase):
         card.write_text("# TASK-00000001 — Example\n\n## Acceptance criteria\n\n- [ ] Verified\n")
         self.run_board(*options, "--apply")
         for stage in stages[1:stages.index("completion") + 1]:
-            card = card.rename(self.board / stage / card.name)
+            if stage == "completion":
+                self.assertIn("acceptance checklist", self.run_board(
+                    "move", "TASK-00000001", stage, expected=1))
+                card.write_text(card.read_text().replace("[ ]", "[x]"))
+            self.run_board("move", "TASK-00000001", stage)
+            card = self.board / stage / card.name
             self.assertIn(f"kanban/{stage}/{card.name}", self.run_board("show"))
-        self.assertIn("unchecked acceptance criterion", self.run_board("validate", expected=1))
-        card.write_text(card.read_text().replace("[ ]", "[x]"))
         self.run_board("validate")
 
     def test_short(self):
@@ -81,3 +84,21 @@ class AdoptionTests(unittest.TestCase):
         self.assertEqual((self.board / "workflow.json").read_bytes(), config)
         self.assertFalse((self.board / "backlog").exists())
         self.run_board("validate")
+
+    def test_move_guards_and_rework(self):
+        self.run_board("init", "--template", "standard", "--apply")
+        name = "TASK-00000001-example.md"
+        source = self.board / "backlog" / name
+        content = "# TASK-00000001 — Example\n- Actual start: 2026-11-10\n"
+        source.write_text(content)
+        self.assertIn("not allowed", self.run_board("move", "TASK-00000001",
+                                                    "code-review", expected=1))
+        self.run_board("move", "TASK-00000001", "development")
+        second = self.board / "backlog/TASK-00000002-example.md"
+        second.touch()
+        self.assertIn("WIP limit reached", self.run_board("move", "TASK-00000002",
+                                                          "development", expected=1))
+        self.assertTrue(second.exists())
+        self.run_board("move", "TASK-00000001", "code-review")
+        self.run_board("move", "TASK-00000001", "development")
+        self.assertEqual((self.board / "development" / name).read_text(), content)
