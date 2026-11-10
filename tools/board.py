@@ -1,7 +1,8 @@
-"""Initialize, validate, display, or move cards on a Markdown Kanban board."""
+"""Initialize, validate, display, create, or move cards on a Markdown Kanban board."""
 
 import argparse
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import date, datetime
 import json
 import os
@@ -9,6 +10,7 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 import re
 import subprocess
+from unicodedata import normalize
 from urllib.parse import quote, unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -355,10 +357,72 @@ def initialize(args):
     return 0
 
 
+@contextmanager
+def board_write_lock():
+    lock = ROOT / "kanban/.write-lock"
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        raise ValueError("Another board write holds kanban/.write-lock. Retry after it finishes.") from None
+    try:
+        yield
+    finally:
+        lock.rmdir()
+
+
+def create_card(workflow, args):
+    title, owner = args.title.strip(), args.owner.strip()
+    if not title or not owner or len(title.splitlines()) != 1 or len(owner.splitlines()) != 1:
+        raise ValueError("Title and owner must each be a nonempty single line.")
+    entry = workflow.get("intake", workflow["stages"][0])
+    if entry not in workflow["stages"] or entry in workflow["active"] or entry == workflow["completed"]:
+        raise ValueError("Configure an intake stage outside active and completed work.")
+
+    template = (ROOT / "docs/task-template.md").read_text(encoding="utf-8")
+    slug = normalize("NFKD", title).encode("ascii", "ignore").decode().lower()
+    slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")[:80].rstrip("-") or "task"
+
+    def prepare():
+        highest = 0
+        seen = set()
+        for stage in workflow["stages"]:
+            for card in cards(stage):
+                task_id = CARD_ID.match(card.stem)[1]
+                if task_id in seen:
+                    raise ValueError(f"Duplicate {task_id}. Resolve the collision before creating a card.")
+                seen.add(task_id)
+                if task_id.startswith("TASK-"):
+                    highest = max(highest, int(task_id.split("-")[1]))
+        if highest >= 99999999:
+            raise ValueError("The eight-digit TASK range is exhausted.")
+        task_id = f"TASK-{highest + 1:08d}"
+        target = ROOT / "kanban" / entry / f"{task_id}-{slug}.md"
+        content = template.replace("# TASK-NNNNNNNN — Short title", f"# {task_id} — {title}", 1)
+        content = content.replace("- Owner: application, team, or domain", f"- Owner: {owner}", 1)
+        return target, content
+
+    if not args.apply:
+        target, content = prepare()
+        print(f"Preview {target.relative_to(ROOT)}:\n\n{content}")
+        print("Run again with --apply after backlog approval.")
+        return 0
+
+    with board_write_lock():
+        target, content = prepare()
+        with target.open("x", encoding="utf-8") as stream:
+            stream.write(content)
+    print(f"Created {target.relative_to(ROOT)}.")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("validate")
+    new = commands.add_parser("new")
+    new.add_argument("title")
+    new.add_argument("--owner", required=True)
+    new.add_argument("--apply", action="store_true", help="Create the approved card")
     move = commands.add_parser("move")
     move.add_argument("task_id")
     move.add_argument("destination")
@@ -379,8 +443,11 @@ def main():
         if args.command == "init":
             return initialize(args)
         workflow = load_workflow()
+        if args.command == "new":
+            return create_card(workflow, args)
         if args.command == "move":
-            return move_card(workflow, args.task_id, args.destination)
+            with board_write_lock():
+                return move_card(workflow, args.task_id, args.destination)
     except (OSError, ValueError) as error:
         parser.exit(1, f"{error}\n")
     if args.command == "validate":

@@ -67,3 +67,9 @@ To look up a reference published before the eight-digit migration, left-pad its 
 Run `python3 tools/board.py move TASK-00000019 code-review` with the ID and destination for your card. Starter workflows include forward moves, returns to Development for rework, and withdrawal to Archive. For a custom or existing board, add a `transitions` object to `kanban/workflow.json`. Each key is a source stage and its value is the list of permitted destinations. Stages with no outgoing moves can be omitted.
 
 The command checks capacity when a card enters an active stage, and requires a nonempty, fully checked acceptance checklist before completion. It moves the same file and preserves its original start date. It also updates relative inline Markdown links to the card, including section anchors, and adjusts relative links within the moved card. Record authorization, dates, evidence, and state on the card as work progresses. For links outside the repository or formats outside the inline Markdown check, update references separately. Then run `python3 tools/board.py validate`. See the [worked card example](card-guide.md#worked-example).
+
+## Create a card
+
+Preview a card with `python3 tools/board.py new "Verify retries" --owner "Billing team"`. After backlog approval, run the same command with `--apply`. The command uses the card template and assigns the next eight-digit `TASK` number across every stage, including Archive. The ID shown in a preview can change if another card is created first.
+
+The first configured stage is the intake folder by default. Set `intake` in `kanban/workflow.json` to use a different configured stage outside active and completed work. Fill in the outcome, scope, and acceptance criteria before starting the card with `move`.

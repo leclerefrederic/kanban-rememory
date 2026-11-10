@@ -48,7 +48,10 @@ class AdoptionTests(unittest.TestCase):
         self.run_board("validate")
         self.assertEqual(self.run_board("show").splitlines()[:-1], stages)
         card = self.board / stages[0] / "TASK-00000001-example.md"
-        card.write_text("# TASK-00000001 — Example\n\n## Acceptance criteria\n\n- [ ] Verified\n")
+        self.assertIn("Preview", self.run_board("new", "Example", "--owner", "Test team"))
+        self.assertFalse(card.exists())
+        self.run_board("new", "Example", "--owner", "Test team", "--apply")
+        self.assertIn("- Owner: Test team", card.read_text())
         journal = self.root / "Rememory/journal.md"
         journal.write_text(
             f"[Criteria](../kanban/{stages[0]}/{card.name}#acceptance-criteria)\n"
@@ -118,3 +121,20 @@ class AdoptionTests(unittest.TestCase):
         self.run_board("move", "TASK-00000001", "code-review")
         self.run_board("move", "TASK-00000001", "development")
         self.assertEqual((self.board / "development" / name).read_text(), content)
+
+    def test_new_uses_custom_intake_and_archived_ids(self):
+        source = self.root / "custom.json"
+        source.write_text(json.dumps({
+            "stages": ["queue", "build", "shipped", "archive"],
+            "active": ["build"], "completed": "shipped",
+            "wip_limit": 1, "timezone": "UTC",
+        }))
+        self.run_board("init", "--config", "custom.json", "--apply")
+        archived = self.board / "archive/TASK-00000009-archived.md"
+        archived.touch()
+        self.run_board("new", "Test adoption", "--owner", "Maintainers", "--apply")
+        self.assertTrue((self.board / "queue/TASK-00000010-test-adoption.md").is_file())
+        (self.board / "shipped" / archived.name).touch()
+        self.assertIn("Duplicate TASK-00000009", self.run_board(
+            "new", "Another card", "--owner", "Maintainers", "--apply", expected=1))
+        self.assertEqual(len(list((self.board / "queue").glob("*.md"))), 1)
