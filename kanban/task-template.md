@@ -25,7 +25,6 @@ Describe the need and the deliverable.
 
 ## Execution and evidence
 
-- Current stage, if the workflow tracks stages within a column:
 - Actual start:
 - Actual finish:
 - Verified revision or PR, checks run, and results.

@@ -4,14 +4,14 @@ This profile applies [Kanban University's Official Guide to the Kanban Method](h
 
 ## Visualize the work and make policies explicit
 
-Track a feature, fix, or maintenance change as a card with an observable outcome. Split large changes into independently verifiable slices where possible. Use the existing folders for official status and record the current delivery stage on cards in `in-progress`. Make queues and blockers visible, including work waiting for a reviewer or a release.
+Track a feature, fix, or maintenance change as a card with an observable outcome. Split large changes into independently verifiable slices where possible. Each stage has its own folder. Move the same card between folders as work advances or returns for rework. The folder identifies the current stage. Make queues and blockers visible, including work waiting for a reviewer or a release.
 
 | Folder | Example stage | Entry or exit policy |
 | --- | --- | --- |
 | `backlog` | Ready when eligible | The outcome and acceptance checks are understood, prerequisites are met, and execution is authorized before pull. |
-| `in-progress` | Implementing | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
-| `in-progress` | In review | Record the PR or revision and required checks. Return to implementation if changes are requested, keeping the original start date. |
-| `in-progress` | Ready to release, if applicable | Required checks and approvals have passed. Keep the card here when release or deployment is required for closure. |
+| [implementation](implementation/) | Implementing | Pull when there is capacity. Move to review when the change and its verification instructions are available. |
+| [review](review/) | In review | Record the PR or revision and required checks. Return to implementation if changes are requested, keeping the original start date. |
+| [ready-to-release](ready-to-release/) | Ready to release, if applicable | Required checks and approvals have passed. Keep the card here when release or deployment is required for closure. |
 | `done` | Delivered | Acceptance criteria and the agreed delivery point are verified. Record the revision and evidence. |
 | `discarded` | Withdrawn | Record the reason and exclude the card from completed throughput. |
 
@@ -29,4 +29,4 @@ Choose review intervals that fit the team. Review the board with the people doin
 
 ## Example
 
-A fix starts on Monday. On Tuesday, its PR awaits a required reviewer and occupies a WIP slot. A failed check sends it back to implementation with Monday as its start date. The fix merges on Wednesday, but the card stays open because its acceptance criteria require a production check. After deployment and that check on Thursday, record the evidence and move the card to `done`. It contributes one completed item and three calendar days of cycle time.
+A fix enters `implementation` on Monday. On Tuesday, move it to `review` when its PR is ready. It still occupies a WIP slot while awaiting a reviewer. A failed check sends it back to `implementation` with Monday as its start date. After re-review and merge on Wednesday, move it to `ready-to-release` because its acceptance criteria require a production check. After deployment and that check on Thursday, record the evidence and move the card to `done`. It contributes one completed item and three calendar days of cycle time.

@@ -3,7 +3,9 @@
 | Column | Entry condition |
 | --- | --- |
 | [backlog](backlog/) | Defined and accepted work awaiting execution |
-| [in-progress](in-progress/) | Authorized work that has started, including interrupted work with a clear next step |
+| [implementation](implementation/) | Authorized work being implemented |
+| [review](review/) | Work awaiting or undergoing review |
+| [ready-to-release](ready-to-release/) | Reviewed work awaiting release or delivery verification |
 | [done](done/) | Acceptance criteria verified and evidence recorded |
 | [discarded](discarded/) | Decision to abandon the work and its rationale recorded |
 
@@ -11,15 +13,15 @@ The folder determines the official status. Keep each card in one column and pres
 
 ## Define and execute work
 
-1. Search all four columns for duplicates. Reuse the relevant card or define the new task with the requester. Clarify questions that affect scope or decisions.
+1. Search all columns for duplicates. Reuse the relevant card or define the new task with the requester. Clarify questions that affect scope or decisions.
 2. Once the backlog entry is approved, copy the [template](task-template.md) to `backlog/TASK-0001-topic.md`, using the next ID after the highest one across all columns. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
 3. Check prerequisites before starting. Unmet dependencies block affected cards, including through intermediate dependencies. Keep work that has yet to start in the backlog and document the dependency chain.
-4. When execution is authorized and capacity is available, move the card to in progress. Keep interrupted work there and record the blocker and next action.
+4. When execution is authorized and capacity is available, move the card to the first active stage. Keep interrupted work in its current stage and record the blocker and next action.
 5. Verify every criterion before moving a card to done. Link the journal and evidence. Flag any outstanding user validation explicitly. If the work is abandoned, record the reason and move the card to discarded.
 
 ## Define the workflow at adoption
 
-The four folders above are a starting example. Document the types of work, stages, entry and exit criteria, and the points at which work counts as started and finished. In this example, entering `in-progress` marks the start and entering `done` marks the finish. Define the order for selecting eligible cards and the rules for exceptions. Record roles and permissions in the project instructions.
+The folders above are a starting example. Document the types of work, stages, entry and exit criteria, and the points at which work counts as started and finished. In this example, entering `implementation` marks the start and entering `done` marks the finish. Define the order for selecting eligible cards and the rules for exceptions. Record roles and permissions in the project instructions.
 
 ## Manage work in progress
 
