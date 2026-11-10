@@ -47,3 +47,13 @@ During reviews, look for aging cards, recurring blockers, and changes in through
 For software delivery, use the [software development profile](software-development.md) to adapt these rules to implementation, review, and release.
 
 For the flow measures, see [The Kanban Guide](https://kanbanguides.org/the-kanban-guide).
+
+## Validate the repository
+
+Run `python3 kanban/board.py validate` from the repository root with Python 3.9 or later and Git available. The command reads card filenames and local Markdown without changing files. It returns exit code 1 for duplicate task IDs, missing local link targets or Markdown heading anchors, and unchecked items under **Acceptance criteria** on cards in `done/`. Older cards without checklist criteria are accepted.
+
+Link checks cover inline relative Markdown links and ATX heading anchors (headings written with `#`). External URLs, reference-style links, and HTML anchors are outside this check.
+
+## Show the board
+
+Run `python3 kanban/board.py show --wip-limit 1` from the repository root with Python 3.9 or later. The limit of one applies to this repository. Pass your own overall limit for an adopted project, or omit the option to show unknown capacity. The board lists each stage, counts all active stages toward WIP, and reads age and blockers from the `Actual start` and `Blocker` fields. Write start dates as `YYYY-MM-DD`. Age uses calendar days in Europe/Paris by default. Pass `--timezone` with the project's IANA time zone when needed.

@@ -29,5 +29,7 @@ Describe the need and the deliverable.
 - Actual finish:
 - Verified revision or PR, checks run, and results.
 - Agreed delivery point and evidence, if applicable:
-- Blocker, if any: date, cause, person or condition that can unblock it, and next authorized action.
+- Blocker:
+
+If blocked, record the date, cause, condition or person who can unblock the card, and next authorized action.
 - Link to the relevant Rememory entry.
