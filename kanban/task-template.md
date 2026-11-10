@@ -1,33 +1,34 @@
-# TASK-NNNN — Titre court
+# TASK-NNNN — Short title
 
-- Propriétaire : application, équipe ou domaine
-- Priorité : selon la convention du projet
-- Dépendances : identifiants et conditions de disponibilité
-- Accord d’inscription et autorisation d’exécution : références et dates, dès qu’ils sont établis
+- Owner: application, team, or domain
+- Priority: according to project policy
+- Dependencies: IDs and readiness conditions
+- Approval to add and authorization to execute: references and dates, once established
 
-## Résultat attendu
+## Expected outcome
 
-Décrire le besoin et le livrable.
+Describe the need and the deliverable.
 
-## Périmètre
+## Scope
 
-- Inclus :
-- Exclu :
-- Points à préciser :
+- In scope:
+- Out of scope:
+- Open questions:
 
-## Critères d’acceptation
+## Acceptance criteria
 
-- [ ] Résultat observable et mode de vérification.
+- [ ] Observable outcome and how to verify it.
 
-## Sources et décisions
+## Sources and decisions
 
-- Lier les références faisant autorité.
+- Link to authoritative references.
 
-## Exécution et preuves
+## Execution and evidence
 
-- Début réel :
-- Fin réelle :
-
-- Révision vérifiée, tests effectués et résultats.
-- Blocage éventuel : date, cause, personne ou condition de déblocage et prochaine action autorisée.
-- Lien vers l’entrée Rememory pertinente.
+- Current stage, if the workflow tracks stages within a column:
+- Actual start:
+- Actual finish:
+- Verified revision or PR, checks run, and results.
+- Agreed delivery point and evidence, if applicable:
+- Blocker, if any: date, cause, person or condition that can unblock it, and next authorized action.
+- Link to the relevant Rememory entry.

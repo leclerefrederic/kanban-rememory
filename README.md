@@ -1,19 +1,20 @@
 # Kanban & Rememory
 
-Une méthode de travail dans Git pour suivre les tâches, conserver les preuves et reprendre un chantier entre personnes ou agents.
+A Git-based workflow for tracking tasks, recording evidence, and handing work over between people or agents.
 
-| Fichier | Rôle |
+| File | Purpose |
 | --- | --- |
-| [AGENTS.md](AGENTS.md) | Consignes de reprise, d’exécution et de transmission |
-| [Règles du Kanban](kanban/README.md) | Qualification, colonnes, identifiants et transitions |
-| [Modèle de carte](kanban/task-template.md) | Résultat attendu, périmètre, dépendances et critères |
-| [Guide Rememory](Rememory/README.md) | Journal des décisions, vérifications et suites |
-| [Modèle de journal](Rememory/daily-template.md) | Structure d’une entrée quotidienne |
+| [AGENTS.md](AGENTS.md) | Instructions for resuming, executing, and handing over work |
+| [Kanban guide](kanban/README.md) | Workflow policies, columns, IDs, and transitions |
+| [Software development profile](kanban/software-development.md) | Example delivery stages, engineering checks, and feedback loops |
+| [Task template](kanban/task-template.md) | Outcome, scope, dependencies, and acceptance criteria |
+| [Rememory guide](Rememory/README.md) | Record of decisions, verification, and next steps |
+| [Daily log template](Rememory/daily-template.md) | Structure for a daily log entry |
 
-## Adopter la méthode
+## Adopt the kit
 
-Copier `AGENTS.md`, `kanban/` et `Rememory/` dans le dépôt cible. Si un `AGENTS.md` existe, intégrer les consignes au fichier en place. Adapter la section propre au dépôt Kanban Rememory et partir de colonnes et d’un journal vierges. Définir le flux, les limites de travail en cours et les règles de sélection dans le guide Kanban. Fixer le préfixe des cartes, le fuseau du journal et les autorisations Git du projet dans ses consignes. Pour un dépôt multi-applications, définir où chaque propriétaire tient son journal.
+Copy `AGENTS.md`, the Kanban guide, template and empty columns, and the Rememory guide and template into the target repository. Merge the instructions into any existing `AGENTS.md`. Define the workflow, limits on work in progress, and selection rules in the Kanban guide. In the project instructions, specify the task prefix, journal time zone, and Git permissions. If several owners share the repository, specify where each keeps their journal.
 
-Le Kanban donne l’état officiel d’une tâche. Rememory explique les décisions, ce qui a été vérifié et par où reprendre. Git conserve les changements des deux.
+Kanban shows the official task status. Rememory records decisions, what was verified, and where to resume. Git preserves the history of both.
 
-Ce dépôt utilise le kit pour suivre ses propres évolutions. Les cartes et le journal daté retracent ce travail.
+This repository uses the kit to track its own changes. Its task cards and dated log record that work.

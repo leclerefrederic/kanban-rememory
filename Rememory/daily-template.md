@@ -1,8 +1,8 @@
 # YYYY-MM-DD
 
-## HH:MM — TASK-NNNN — Jalon
+## HH:MM — TASK-NNNN — Milestone
 
-- **Décision ou action** — Ce qui a été décidé ou fait et dans quel périmètre.
-- **Résultat vérifié** — Révision, vérification exécutée, résultat et lien vers la preuve.
-- **État de livraison** — Indiquer les étapes réellement atteintes et les validations encore ouvertes.
-- **Reprise** — Blocage éventuel et prochaine action autorisée.
+- **Decision or action** — What was decided or done and the scope it covered.
+- **Verified result** — Revision, check performed, result, and evidence link.
+- **Delivery status** — Stages reached and validations still open.
+- **Next step** — Any blocker and the next authorized action.

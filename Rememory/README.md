@@ -1,9 +1,9 @@
 # Rememory
 
-Tenir un fichier `YYYY-MM-DD.md` par date travaillée et par propriétaire, à partir du [modèle quotidien](daily-template.md). Insérer chaque nouveau jalon juste sous le titre du jour, au-dessus des entrées précédentes.
+Keep one `YYYY-MM-DD.md` file per working day and owner, using the [daily template](daily-template.md). Insert each new milestone below the date heading and above earlier entries.
 
-Tracer les décisions, intégrations, vérifications effectivement exécutées, changements de priorité et points de reprise. Pour chaque entrée, indiquer la carte, le résultat, son niveau de validation, les preuves et la prochaine action. Distinguer une décision proposée ou approuvée d’un changement testé, fusionné, publié ou déployé.
+Record decisions, integrations, checks actually run, changes in priority, and where to resume. For each entry, include the card, result, validation status, evidence, and next action. Distinguish proposed or approved decisions from changes that have been tested, merged, published, or deployed.
 
-Pour un chantier partagé, chaque propriétaire consigne son propre impact et renvoie aux autres journaux. Garder la coordination transverse dans le journal commun si le dépôt en prévoit un. Exclure les secrets et données personnelles.
+For shared work, each owner records their contribution and links to the other journals. Use a shared journal for cross-team coordination if the repository provides one. Keep secrets and personal data out of the journal.
 
-Avant de transmettre le travail, vérifier que le journal permet à une autre personne de retrouver les preuves et de reprendre. L’état officiel reste celui de la carte Kanban.
+Before handing work over, check that someone else can find the evidence and resume from the journal. The Kanban card remains the source of truth for task status.

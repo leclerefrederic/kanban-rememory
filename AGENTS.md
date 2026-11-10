@@ -1,22 +1,22 @@
-# Instructions de travail
+# Working instructions
 
-## Reprendre
+## Resume work
 
-1. Lire le [guide Kanban](kanban/README.md) et examiner les cartes en cours, puis le backlog pertinent.
-2. Identifier la carte et son propriétaire. Lire le dernier Rememory pertinent, les spécifications et l’état Git avant de poursuivre.
-3. Vérifier les dépendances et reprendre à la prochaine action autorisée. Signaler tout écart entre la carte, le journal et les preuves.
+1. Read the [Kanban guide](kanban/README.md), review the cards in progress, then check the relevant backlog.
+2. Identify the card and its owner. Read the latest relevant Rememory entry and specifications, and check the Git state.
+3. Verify dependencies and resume at the next authorized action. Report discrepancies between the card, journal, and evidence.
 
-## Exécuter
+## Execute work
 
-- Chercher une carte correspondante dans toutes les colonnes avant d’en proposer une. Qualifier le résultat, le périmètre, le propriétaire, les dépendances et les critères vérifiables.
-- Enregistrer en backlog après accord. Passer en cours avant de modifier les livrables, une fois l’exécution autorisée. Une carte ou une spécification approuvée ne vaut pas autorisation de développer ou de publier.
-- Mettre à jour le [journal du propriétaire](Rememory/README.md) à chaque jalon significatif. À la clôture, vérifier les critères et consigner les preuves, la révision et la suite. Distinguer les tests, la fusion, la publication, le déploiement et la validation utilisateur.
-- Suivre les autorisations Git du dépôt. En leur absence, conserver les modifications localement jusqu’à autorisation de publier. Signaler les traces qui n’ont pas pu être écrites.
+- Search every column for a matching card before proposing one. Define the expected outcome, scope, owner, dependencies, and verifiable criteria.
+- Add the card to the backlog after approval. Once execution is authorized, move it to in progress before changing deliverables. Approval of a card or specification does not by itself authorize implementation or publication.
+- Update the [owner's journal](Rememory/README.md) at each significant milestone. At closure, verify the criteria and record the evidence, revision, and next step. Distinguish testing, merging, publication, deployment, and user validation.
+- Follow the repository's Git permissions. Keep changes local until publication is authorized. Report any required records that could not be written.
 
-## Conventions par défaut
+## Default conventions
 
-Préfixe des cartes : `TASK`. Journal : `Rememory/` à la racine pour un seul propriétaire. Utiliser la date du projet et préciser son fuseau à l’adoption.
+Use the `TASK` prefix. For a single owner, keep the journal in the root `Rememory/` directory. Use the project date and specify its time zone at adoption.
 
-## Application dans le dépôt Kanban Rememory
+## Rules for the Kanban Rememory repository
 
-Ce dépôt utilise ses propres cartes et son journal pour suivre les évolutions du kit. Pour ce dépôt, le journal utilise le fuseau Europe/Paris et le travail en cours est limité à une carte. Sélectionner la plus ancienne carte admissible du backlog par identifiant, sauf priorité convenue et documentée sur la carte. Revoir les blocages et le flux à chaque clôture ou avant de reprendre un chantier interrompu. Adapter cette section au dépôt cible lors de l’adoption.
+This repository uses its own cards and journal to track changes to the kit. The journal uses Europe/Paris time, and work in progress is limited to one card. Select the oldest eligible backlog card by ID unless an agreed priority is documented on the card. Review blockers and flow at closure or before resuming interrupted work. Adapt this section for the target repository.
