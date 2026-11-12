@@ -1,3 +1,10 @@
+---
+type: card
+id: "TASK-NNNNNNNN"
+lot_id: null
+fiche_ids: []
+---
+
 # TASK-NNNNNNNN — Short title
 
 - Owner: application, team, or domain
@@ -21,8 +28,6 @@ Describe the need and the deliverable.
 
 ## Sources and decisions
 
-- Lot ID:
-- Fiche IDs:
 - Link to other authoritative references.
 
 ## Execution and evidence
@@ -36,3 +41,7 @@ Describe the need and the deliverable.
 
 If blocked, record the date, cause, condition or person who can unblock the card, and next authorized action.
 - Link to the relevant Rememory entry.
+
+## History
+
+The move command records stage changes here. Record state changes such as waiting or blocked with the date and reason.

@@ -1,5 +1,9 @@
 ---
-lot: Lot-001
+type: lot
+id: "Lot-001"
+tests_id: "Lot-001-Tests"
+report_id: "Lot-001-Report"
+fiches: [{"id":"FICHE-001","revision":"1","path":"specs/frozen/FICHE-001-r1.md","sha256":"SHA256_DIGEST"}]
 status: ready
 ---
 
@@ -7,14 +11,10 @@ status: ready
 
 ## Objective
 
-## Frozen Fiches
-
-- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md | SHA256_DIGEST
-
 ## Mission order
 
 List the selected Fiche IDs in priority order. Development Agent may sequence execution around technical dependencies.
 
 ## Related documents
 
-[UAT](UAT.md) · [Lot Journal](Report.md)
+[UAT](Tests.md) · [Lot Journal](Report.md)

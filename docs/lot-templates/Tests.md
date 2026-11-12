@@ -1,3 +1,10 @@
+---
+type: tests
+id: "Lot-001-Tests"
+lot_id: "Lot-001"
+report_id: "Lot-001-Report"
+---
+
 # User acceptance testing
 
 [Description](Description.md) · [Lot Journal](Report.md)

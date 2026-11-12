@@ -17,3 +17,7 @@ git log main --format='%H %(trailers:key=Lot-Closure,valueonly)' -- Lots/Lot-001
 Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Lot tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, report that closure is complete.
 
 When writing the Journal, record the closing trailer and the expected Git refs. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
+
+## Replay the pilot acceptance scenarios
+
+From a fresh kit clone, run `python3 tools/replay-lot-uat.py /tmp/lot-uat-replay` with a path that does not yet exist. The command creates a separate Git repository and prints the tested and closing commits. Use the three records at `uat-delivered` for the pending-decision scenario and those at `main` for the closed scenario. Compare each answer with the commits printed by the fixture and verify the closing trailer and tag in Git.

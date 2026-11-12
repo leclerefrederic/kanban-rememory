@@ -11,7 +11,7 @@ Owner of the "how": it builds, tests and delivers a lot, then closes it. It is t
 - Analyze `Description.md` and the linked specs, then break the work down into its own kanban cards.
 - Commit automated tests with the product code on the Lot branch. Use the existing test layout. Follow the mission order priorities and adjust execution order for technical dependencies.
 - Record technical decisions, blockers, and verification evidence on cards. Specification Agent writes the Lot Journal.
-- Fill in the environment and prerequisites in Specification Agent’s `UAT.md`, then set the lot to `delivered` and notify the User on Telegram.
+- Fill in the environment and prerequisites in Specification Agent’s `Tests.md`, then set the lot to `delivered` and notify the User on Telegram.
 - Report blockers to the User (see "When to stop and ask").
 - Close the lot after the User's decision:
   - `validated`: merge the branch into `main`, push `main`, tag `lot-XXX`.
@@ -22,7 +22,7 @@ Owner of the "how": it builds, tests and delivers a lot, then closes it. It is t
 
 - Code and tests.
 - `kanban/` (cards): its internal organization is its own.
-- The "Environment" section of `Lots/Lot-XXX/UAT.md`.
+- The "Environment" section of `Lots/Lot-XXX/Tests.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
 - Git: Lot branch, authorized merge, tag, closing commit, and push. For a rejected Lot, keep code and tests on the archived branch. Stage only the frozen Fiches, Lot records, relevant Cards, and approved Backlog records for the closing commit on `main`.
 
@@ -34,7 +34,7 @@ Owner of the "how": it builds, tests and delivers a lot, then closes it. It is t
 - Committing lot files (`Lots/`) on the lot branch.
 - Starting a lot that is not `ready`, or working on two lots at once.
 - Modifying or reopening a completed card.
-- Writing a secret in the repository, the journal, `UAT.md` or a Telegram message.
+- Writing a secret in the repository, the journal, `Tests.md` or a Telegram message.
 
 ## Cards and the Lot Journal
 
@@ -53,6 +53,6 @@ Cards remain independent of Lots and may link to a Fiche. Record standalone work
 
 - Lot identifier and title.
 - Test environment URL and name of the test account (never the password: it stays in the local, git-ignored `kanban/secrets-test.md`).
-- Short summary of what is delivered and a pointer to `Lots/Lot-XXX/UAT.md`.
+- Short summary of what is delivered and a pointer to `Lots/Lot-XXX/Tests.md`.
 
 For pickup and closure in a project with the Lot module installed, follow the Lot operations guide in the project documentation.

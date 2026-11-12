@@ -85,6 +85,38 @@ def markdown_files():
             yield path
 
 
+def header_value(source, key):
+    lines = source.splitlines()
+    if not lines or lines[0] != "---":
+        return None
+    if "---" not in lines[1:]:
+        raise ValueError("Unclosed YAML front matter.")
+    for line in lines[1:lines.index("---", 1)]:
+        name, separator, value = line.partition(":")
+        if separator and name == key:
+            raw = value.strip()
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                if raw.startswith(("[", "{", '"')):
+                    raise ValueError(f"Invalid front matter value for {key}. Use JSON flow syntax.")
+                return raw
+    return None
+
+
+def fiche_entries(source):
+    if header_value(source, "type") == "lot":
+        entries = header_value(source, "fiches")
+        if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
+            raise ValueError("Lot front matter requires a fiches list of mappings.")
+        for entry in entries:
+            yield [entry.get(key) for key in ("id", "revision", "path", "sha256")]
+        return
+    for line in markdown_lines(source):
+        if line.startswith("- Fiche:"):
+            yield [part.strip() for part in line.partition(":")[2].split("|")]
+
+
 def validate_lot_mapping(card_paths):
     findings = []
 
@@ -97,7 +129,8 @@ def validate_lot_mapping(card_paths):
         for path in (ROOT / "specs" / state).glob("*.md"):
             content = path.read_bytes()
             source = content.decode("utf-8")
-            fiche_id, revision = field(source, "Fiche ID"), field(source, "Revision")
+            fiche_id = header_value(source, "id") or field(source, "Fiche ID")
+            revision = str(header_value(source, "revision") or field(source, "Revision"))
             if not fiche_id:
                 continue
             fiches.add(fiche_id)
@@ -109,11 +142,25 @@ def validate_lot_mapping(card_paths):
         lot_id = path.parent.name
         selected = set()
         lots[lot_id] = selected
-        for line in markdown_lines(path.read_text(encoding="utf-8")):
-            if not line.startswith("- Fiche:"):
-                continue
-            parts = [part.strip() for part in line.partition(":")[2].split("|")]
-            if len(parts) != 4 or not all(parts) or not re.fullmatch(r"[0-9a-f]{64}", parts[3]):
+        source = path.read_text(encoding="utf-8")
+        if header_value(source, "type") == "lot":
+            if header_value(source, "id") != lot_id:
+                report(path, "Lot ID must match the directory name.")
+            if header_value(source, "tests_id") == header_value(source, "report_id"):
+                report(path, "Tests and Report must have distinct IDs.")
+            for name, kind, other in (("Tests.md", "tests", "report"), ("Report.md", "report", "tests")):
+                record = path.with_name(name)
+                record_source = record.read_text(encoding="utf-8") if record.is_file() else ""
+                record_id = header_value(source, f"{kind}_id")
+                if (not isinstance(record_id, str) or not record_id
+                        or header_value(record_source, "type") != kind
+                        or header_value(record_source, "id") != record_id
+                        or header_value(record_source, "lot_id") != lot_id
+                        or header_value(record_source, f"{other}_id") != header_value(source, f"{other}_id")):
+                    report(path, f"Inconsistent YAML references for {name}.")
+        for parts in fiche_entries(source):
+            if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts)
+                    or not re.fullmatch(r"[0-9a-f]{64}", parts[3])):
                 report(path, "Fiche entry requires an ID, revision, path, and SHA-256 digest.")
                 continue
             pinned = frozen.get(parts[2])
@@ -130,10 +177,22 @@ def validate_lot_mapping(card_paths):
 
     for path in card_paths:
         source = path.read_text(encoding="utf-8")
-        lot_id = field(source, "Lot ID")
+        if header_value(source, "type") == "card":
+            if header_value(source, "id") != CARD_ID.match(path.stem)[1]:
+                report(path, "Card ID must match the filename.")
+            lot_id = header_value(source, "lot_id")
+            fiche_ids = header_value(source, "fiche_ids")
+            if ((lot_id is not None and not isinstance(lot_id, str))
+                    or not isinstance(fiche_ids, list)
+                    or any(not isinstance(item, str) or not item for item in fiche_ids)):
+                report(path, "Card references require a Lot ID or null and a list of Fiche IDs.")
+                continue
+        else:
+            lot_id = field(source, "Lot ID")
+            fiche_ids = [item.strip() for item in field(source, "Fiche IDs").split(",")]
         if lot_id and lot_id not in lots:
             report(path, f"unknown Lot: {lot_id}")
-        for fiche_id in map(str.strip, field(source, "Fiche IDs").split(",")):
+        for fiche_id in fiche_ids:
             if not fiche_id:
                 continue
             if fiche_id not in fiches:
@@ -329,12 +388,17 @@ def is_closed_lot_report(document):
                for line in front_matter)
 
 
-def relocate_card(card, target, completed):
+def relocate_card(card, target, completed, transition):
     updates = {}
     for document in set(markdown_files()) | {card}:
         original = document.read_bytes()
         source = original.decode("utf-8")
         updated = rewrite_card_links(source, document, card, target)
+        if document == card and header_value(source, "type") == "card":
+            updated = updated.rstrip()
+            if not re.search(r"^## History$", updated, re.MULTILINE):
+                updated += "\n\n## History"
+            updated += f"\n\n- {transition}\n"
         if source != updated:
             if (document.parent == completed and CARD_ID.match(document.stem)) or is_closed_lot_report(document):
                 raise ValueError(f"Move would rewrite immutable history: {document.relative_to(ROOT)}")
@@ -377,7 +441,9 @@ def move_card(workflow, task_id, destination):
     target = ROOT / "kanban" / destination / card.name
     if target.exists() or target.is_symlink():
         raise ValueError(f"Destination already exists: {target.relative_to(ROOT)}")
-    relocate_card(card, target, ROOT / "kanban" / workflow["completed"])
+    timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
+    transition = f"{timestamp} — Stage moved from `{stage}` to `{destination}`."
+    relocate_card(card, target, ROOT / "kanban" / workflow["completed"], transition)
     print(f"Moved {task_id} from {stage} to {destination}.")
     return 0
 
@@ -477,7 +543,8 @@ def create_card(workflow, args):
             raise ValueError("The eight-digit TASK range is exhausted.")
         task_id = f"TASK-{highest + 1:08d}"
         target = ROOT / "kanban" / entry / f"{task_id}-{slug}.md"
-        content = template.replace("# TASK-NNNNNNNN — Short title", f"# {task_id} — {title}", 1)
+        content = template.replace('id: "TASK-NNNNNNNN"', f'id: "{task_id}"', 1)
+        content = content.replace("# TASK-NNNNNNNN — Short title", f"# {task_id} — {title}", 1)
         content = content.replace("- Owner: application, team, or domain", f"- Owner: {owner}", 1)
         return target, content
 
@@ -522,10 +589,8 @@ def verify_approval(lot_id, revision):
     findings = validate_lot_mapping(())
     if findings:
         raise ValueError("\n".join(findings))
-    for line in markdown_lines(approved):
-        if line.startswith("- Fiche:"):
-            path = line.split("|")[2].strip()
-            compare(ROOT / path)
+    for entry in fiche_entries(approved):
+        compare(ROOT / entry[2])
     print(f"Approval verified for {lot_id}.")
     return 0
 

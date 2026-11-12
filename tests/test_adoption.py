@@ -74,6 +74,7 @@ class AdoptionTests(unittest.TestCase):
             self.run_board("move", "TASK-00000001", stage)
             card = self.board / stage / card.name
             self.assertIn(f"kanban/{stage}/{card.name}", self.run_board("show"))
+            self.assertIn(f"to `{stage}`.", card.read_text())
             self.assertIn(f"../kanban/{stage}/{card.name}#acceptance-criteria", journal.read_text())
             self.assertIn("`[Example](../kanban/backlog/TASK-00000001-example.md)`", journal.read_text())
             self.assertIn("https://example.com/kanban/backlog/TASK-00000001-example.md", journal.read_text())
@@ -242,3 +243,23 @@ class AdoptionTests(unittest.TestCase):
         self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
         description.write_text(approved)
         self.run_board(*command)
+
+    def test_yaml_lot_cross_references(self):
+        self.run_board("init", "--template", "short", "--apply")
+        fiche = self.root / "specs/frozen/FICHE-001-r1.md"
+        fiche.parent.mkdir(parents=True)
+        fiche.write_text('---\ntype: fiche\nid: "FICHE-001"\nrevision: "1"\n---\n')
+        lot = self.root / "Lots/Lot-001"
+        lot.mkdir(parents=True)
+        templates = KIT / "docs/lot-templates"
+        for name in ("Description.md", "Tests.md", "Report.md"):
+            source = (templates / name).read_text()
+            (lot / name).write_text(source.replace("SHA256_DIGEST", sha256(fiche.read_bytes()).hexdigest()))
+        self.run_board("new", "Check Lot", "--owner", "Test", "--apply")
+        card = self.board / "backlog/TASK-00000001-check-lot.md"
+        source = card.read_text().replace("lot_id: null", 'lot_id: "Lot-001"')
+        card.write_text(source.replace("fiche_ids: []", 'fiche_ids: ["FICHE-001"]'))
+        self.run_board("validate")
+        report = lot / "Report.md"
+        report.write_text(report.read_text().replace('lot_id: "Lot-001"', 'lot_id: "Lot-999"'))
+        self.assertIn("Inconsistent YAML references for Report.md", self.run_board("validate", expected=1))

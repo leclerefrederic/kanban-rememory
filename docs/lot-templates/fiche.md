@@ -1,7 +1,10 @@
-# Specification title
+---
+type: fiche
+id: "FICHE-001"
+revision: "1"
+---
 
-- Fiche ID: FICHE-001
-- Revision: 1
+# Specification title
 
 ## Expected outcome
 
