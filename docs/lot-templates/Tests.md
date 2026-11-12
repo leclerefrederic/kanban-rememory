@@ -1,8 +1,8 @@
 ---
 type: tests
 id: "Lot-001-Tests"
-lot_id: "Lot-001"
-report_id: "Lot-001-Report"
+lot: "Lot-001"
+report: "Lot-001-Report"
 ---
 
 # User acceptance testing

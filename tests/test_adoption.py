@@ -257,9 +257,18 @@ class AdoptionTests(unittest.TestCase):
             (lot / name).write_text(source.replace("SHA256_DIGEST", sha256(fiche.read_bytes()).hexdigest()))
         self.run_board("new", "Check Lot", "--owner", "Test", "--apply")
         card = self.board / "backlog/TASK-00000001-check-lot.md"
-        source = card.read_text().replace("lot_id: null", 'lot_id: "Lot-001"')
-        card.write_text(source.replace("fiche_ids: []", 'fiche_ids: ["FICHE-001"]'))
+        source = card.read_text().replace("lot: null", 'lot: "Lot-001"')
+        card.write_text(source.replace("fiches: []", 'fiches: ["FICHE-001"]'))
         self.run_board("validate")
         report = lot / "Report.md"
-        report.write_text(report.read_text().replace('lot_id: "Lot-001"', 'lot_id: "Lot-999"'))
+        report.write_text(report.read_text().replace('lot: "Lot-001"', 'lot: "Lot-999"'))
         self.assertIn("Inconsistent YAML references for Report.md", self.run_board("validate", expected=1))
+        report.write_text(report.read_text().replace('lot: "Lot-999"', 'lot: "Lot-001"'))
+        for document in (lot / "Description.md", lot / "Tests.md", report, card):
+            source = document.read_text()
+            for key in ("lot", "tests", "report"):
+                source = source.replace(f"\n{key}:", f"\n{key}_id:")
+            if document == card:
+                source = source.replace("\nfiches:", "\nfiche_ids:")
+            document.write_text(source)
+        self.run_board("validate")

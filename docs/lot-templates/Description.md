@@ -1,8 +1,8 @@
 ---
 type: lot
 id: "Lot-001"
-tests_id: "Lot-001-Tests"
-report_id: "Lot-001-Report"
+tests: "Lot-001-Tests"
+report: "Lot-001-Report"
 fiches: [{"id":"FICHE-001","revision":"1","path":"specs/frozen/FICHE-001-r1.md","sha256":"SHA256_DIGEST"}]
 status: ready
 ---

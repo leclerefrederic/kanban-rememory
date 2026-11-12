@@ -1,8 +1,8 @@
 ---
 type: card
 id: "TASK-NNNNNNNN"
-lot_id: null
-fiche_ids: []
+lot: null
+fiches: []
 ---
 
 # TASK-NNNNNNNN — Short title

@@ -85,10 +85,10 @@ def markdown_files():
             yield path
 
 
-def header_value(source, key):
+def header_value(source, key, default=None):
     lines = source.splitlines()
     if not lines or lines[0] != "---":
-        return None
+        return default
     if "---" not in lines[1:]:
         raise ValueError("Unclosed YAML front matter.")
     for line in lines[1:lines.index("---", 1)]:
@@ -101,7 +101,16 @@ def header_value(source, key):
                 if raw.startswith(("[", "{", '"')):
                     raise ValueError(f"Invalid front matter value for {key}. Use JSON flow syntax.")
                 return raw
-    return None
+    return default
+
+
+def relationship(source, key):
+    missing = object()
+    value = header_value(source, key, missing)
+    if value is not missing:
+        return value
+    legacy = "fiche_ids" if key == "fiches" else f"{key}_id"
+    return header_value(source, legacy)
 
 
 def fiche_entries(source):
@@ -146,17 +155,17 @@ def validate_lot_mapping(card_paths):
         if header_value(source, "type") == "lot":
             if header_value(source, "id") != lot_id:
                 report(path, "Lot ID must match the directory name.")
-            if header_value(source, "tests_id") == header_value(source, "report_id"):
+            if relationship(source, "tests") == relationship(source, "report"):
                 report(path, "Tests and Report must have distinct IDs.")
             for name, kind, other in (("Tests.md", "tests", "report"), ("Report.md", "report", "tests")):
                 record = path.with_name(name)
                 record_source = record.read_text(encoding="utf-8") if record.is_file() else ""
-                record_id = header_value(source, f"{kind}_id")
+                record_id = relationship(source, kind)
                 if (not isinstance(record_id, str) or not record_id
                         or header_value(record_source, "type") != kind
                         or header_value(record_source, "id") != record_id
-                        or header_value(record_source, "lot_id") != lot_id
-                        or header_value(record_source, f"{other}_id") != header_value(source, f"{other}_id")):
+                        or relationship(record_source, "lot") != lot_id
+                        or relationship(record_source, other) != relationship(source, other)):
                     report(path, f"Inconsistent YAML references for {name}.")
         for parts in fiche_entries(source):
             if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts)
@@ -180,8 +189,8 @@ def validate_lot_mapping(card_paths):
         if header_value(source, "type") == "card":
             if header_value(source, "id") != CARD_ID.match(path.stem)[1]:
                 report(path, "Card ID must match the filename.")
-            lot_id = header_value(source, "lot_id")
-            fiche_ids = header_value(source, "fiche_ids")
+            lot_id = relationship(source, "lot")
+            fiche_ids = relationship(source, "fiches")
             if ((lot_id is not None and not isinstance(lot_id, str))
                     or not isinstance(fiche_ids, list)
                     or any(not isinstance(item, str) or not item for item in fiche_ids)):

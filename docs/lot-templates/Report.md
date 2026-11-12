@@ -1,8 +1,8 @@
 ---
 type: report
 id: "Lot-001-Report"
-lot_id: "Lot-001"
-tests_id: "Lot-001-Tests"
+lot: "Lot-001"
+tests: "Lot-001-Tests"
 ---
 
 # Lot Journal

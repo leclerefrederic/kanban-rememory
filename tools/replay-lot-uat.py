@@ -37,18 +37,18 @@ def main():
 
     def description(status):
         record("Description.md", f'---\ntype: lot\nid: "Lot-001"\nstatus: {status}\n'
-               'tests_id: "Lot-001-Tests"\nreport_id: "Lot-001-Report"\n'
+               'tests: "Lot-001-Tests"\nreport: "Lot-001-Report"\n'
                'fiches: [{"id":"FICHE-001","revision":"1",'
                f'"path":"specs/frozen/FICHE-001-r1.md","sha256":"{digest}"}}]\n---\n')
 
     def report(decision, evidence=""):
-        record("Report.md", '---\ntype: report\nid: "Lot-001-Report"\nlot_id: "Lot-001"\n'
-               f'tests_id: "Lot-001-Tests"\n---\n\nUser decision: {decision}.\n{evidence}')
+        record("Report.md", '---\ntype: report\nid: "Lot-001-Report"\nlot: "Lot-001"\n'
+               f'tests: "Lot-001-Tests"\n---\n\nUser decision: {decision}.\n{evidence}')
 
     description("delivered")
     report("pending")
-    record("Tests.md", '---\ntype: tests\nid: "Lot-001-Tests"\nlot_id: "Lot-001"\n'
-           f'report_id: "Lot-001-Report"\n---\n\nTested commit: `{tested}`\n\nAcceptance result: OK.\n')
+    record("Tests.md", '---\ntype: tests\nid: "Lot-001-Tests"\nlot: "Lot-001"\n'
+           f'report: "Lot-001-Report"\n---\n\nTested commit: `{tested}`\n\nAcceptance result: OK.\n')
     git("add", "Lots", "specs")
     git("commit", "-qm", "Record delivered fixture")
     git("branch", "uat-delivered")
