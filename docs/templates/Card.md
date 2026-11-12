@@ -1,8 +1,8 @@
 ---
 type: card
 id: "TASK-NNNNNNNN"
-lot: null
-fiches: []
+batch: null
+specifications: []
 ---
 
 # TASK-NNNNNNNN

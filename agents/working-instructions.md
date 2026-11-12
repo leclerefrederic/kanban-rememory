@@ -21,9 +21,9 @@ Check for `kanban/workflow.json` before resuming or creating cards. If it is mis
 
 Use the `TASK` prefix. For a single owner, keep the journal in the root `Rememory/` directory. Use the project date and specify its time zone at adoption.
 
-## Lot workflow roles
+## Batch workflow roles
 
-For a project using Lots, read the role that applies before editing project files. Specification Agent folder instructions should point to the Specification Agent role file.
+For a project using Batches, read the role that applies before editing project files. Specification Agent folder instructions should point to the Specification Agent role file.
 
 - [User](actor-user.md)
 - [Specification Agent](actor-specification-agent.md)

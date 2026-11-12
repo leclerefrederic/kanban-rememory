@@ -109,15 +109,19 @@ def relationship(source, key):
     value = header_value(source, key, missing)
     if value is not missing:
         return value
-    legacy = "fiche_ids" if key == "fiches" else f"{key}_id"
-    return header_value(source, legacy)
+    aliases = {"batch": ("lot", "lot_id"), "specifications": ("fiches", "fiche_ids")}
+    for legacy in aliases.get(key, (f"{key}_id",)):
+        value = header_value(source, legacy, missing)
+        if value is not missing:
+            return value
+    return None
 
 
 def fiche_entries(source):
-    if header_value(source, "type") == "lot":
-        entries = header_value(source, "fiches")
+    if header_value(source, "type") in ("batch", "lot"):
+        entries = relationship(source, "specifications")
         if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
-            raise ValueError("Lot front matter requires a fiches list of mappings.")
+            raise ValueError("Batch front matter requires a specifications list of mappings.")
         for entry in entries:
             yield [entry.get(key) for key in ("id", "revision", "path", "sha256")]
         return
@@ -126,11 +130,10 @@ def fiche_entries(source):
             yield [part.strip() for part in line.partition(":")[2].split("|")]
 
 
-def lots_directory():
-    names = {path.name for path in ROOT.iterdir() if path.is_dir()}
-    if {"lots", "Lots"} <= names:
-        raise ValueError("Both lots/ and Lots/ exist. Consolidate the Lot directories before continuing.")
-    return ROOT / ("Lots" if "Lots" in names else "lots")
+def batch_descriptions():
+    for directory in ROOT.iterdir():
+        if directory.name in ("batches", "lots", "Lots") and directory.is_dir():
+            yield from sorted(directory.glob("*/Description.md"))
 
 
 def validate_lot_mapping(card_paths):
@@ -154,14 +157,16 @@ def validate_lot_mapping(card_paths):
                 frozen[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
 
     lots = {}
-    for path in lots_directory().glob("*/Description.md"):
+    for path in batch_descriptions():
         lot_id = path.parent.name
         selected = set()
+        if lot_id in lots:
+            report(path, f"Duplicate batch ID: {lot_id}")
         lots[lot_id] = selected
         source = path.read_text(encoding="utf-8")
-        if header_value(source, "type") == "lot":
+        if header_value(source, "type") in ("batch", "lot"):
             if header_value(source, "id") != lot_id:
-                report(path, "Lot ID must match the directory name.")
+                report(path, "Batch ID must match the directory name.")
             companion_ids = []
             for name, kind, other in (("Tests.md", "tests", "report"), ("Report.md", "report", "tests")):
                 record = path.with_name(name)
@@ -171,7 +176,7 @@ def validate_lot_mapping(card_paths):
                 sibling_id = relationship(record_source, other)
                 if (not isinstance(record_id, str) or not record_id
                         or header_value(record_source, "type") != kind
-                        or relationship(record_source, "lot") != lot_id
+                        or relationship(record_source, "batch") != lot_id
                         or (expected_id is not None and record_id != expected_id)
                         or (sibling_id is not None and sibling_id != relationship(source, other))):
                     report(path, f"Inconsistent YAML references for {name}.")
@@ -184,44 +189,44 @@ def validate_lot_mapping(card_paths):
             if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts[:3])
                     or (parts[3] is not None and
                         (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
-                report(path, "Fiche entry requires an ID, revision, and path. Legacy digests must be valid.")
+                report(path, "Specification entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
             pinned = frozen.get(parts[2])
             if not pinned or pinned[:2] != tuple(parts[:2]):
-                report(path, "Fiche entry must pin a matching frozen ID, revision, and path.")
+                report(path, "Specification entry must pin a matching frozen ID, revision, and path.")
                 continue
             if parts[3] is not None and pinned[2] != parts[3]:
-                report(path, f"Frozen Fiche content changed: {parts[2]}")
+                report(path, f"Frozen specification content changed: {parts[2]}")
             if parts[0] in selected:
-                report(path, f"duplicate Fiche in Lot: {parts[0]}")
+                report(path, f"Duplicate specification in batch: {parts[0]}")
             selected.add(parts[0])
         if not selected:
-            report(path, "Lot requires at least one frozen Fiche.")
+            report(path, "A batch requires at least one frozen specification.")
 
     for path in card_paths:
         source = path.read_text(encoding="utf-8")
         if header_value(source, "type") == "card":
             if header_value(source, "id") != CARD_ID.match(path.stem)[1]:
                 report(path, "Card ID must match the filename.")
-            lot_id = relationship(source, "lot")
-            fiche_ids = relationship(source, "fiches")
+            lot_id = relationship(source, "batch")
+            fiche_ids = relationship(source, "specifications")
             if ((lot_id is not None and not isinstance(lot_id, str))
                     or not isinstance(fiche_ids, list)
                     or any(not isinstance(item, str) or not item for item in fiche_ids)):
-                report(path, "Card references require a Lot ID or null and a list of Fiche IDs.")
+                report(path, "Card references require a batch ID or null and a list of specification IDs.")
                 continue
         else:
             lot_id = field(source, "Lot ID")
             fiche_ids = [item.strip() for item in field(source, "Fiche IDs").split(",")]
         if lot_id and lot_id not in lots:
-            report(path, f"unknown Lot: {lot_id}")
+            report(path, f"Unknown batch: {lot_id}")
         for fiche_id in fiche_ids:
             if not fiche_id:
                 continue
             if fiche_id not in fiches:
-                report(path, f"Fiche is not ready or frozen: {fiche_id}")
+                report(path, f"Specification is not ready or frozen: {fiche_id}")
             elif lot_id in lots and fiche_id not in lots[lot_id]:
-                report(path, f"Fiche {fiche_id} is outside Lot {lot_id}")
+                report(path, f"Specification {fiche_id} is outside batch {lot_id}")
     return findings
 
 
@@ -398,7 +403,7 @@ def rewrite_card_links(source, document, card, target):
 
 def is_closed_lot_report(document):
     relative = document.relative_to(ROOT)
-    if len(relative.parts) != 3 or relative.parts[0] not in ("lots", "Lots") or document.name != "Report.md":
+    if len(relative.parts) != 3 or relative.parts[0] not in ("batches", "lots", "Lots") or document.name != "Report.md":
         return False
     description = document.with_name("Description.md")
     if not description.is_file():
@@ -547,7 +552,9 @@ def create_card(workflow, args):
     if entry not in workflow["stages"] or entry in workflow["active"] or entry == workflow["completed"]:
         raise ValueError("Configure an intake stage outside active and completed work.")
 
-    template_path = ROOT / "docs/lot-templates/Card.md"
+    template_path = ROOT / "docs/templates/Card.md"
+    if not template_path.is_file():
+        template_path = ROOT / "docs/lot-templates/Card.md"
     if not template_path.is_file():
         template_path = ROOT / "docs/task-template.md"
     template = template_path.read_text(encoding="utf-8")
@@ -591,26 +598,32 @@ def create_card(workflow, args):
 
 
 def verify_approval(lot_id, revision):
-    if not re.fullmatch(r"Lot-[0-9]+", lot_id):
-        raise ValueError("Expected a Lot ID such as Lot-001.")
+    if not re.fullmatch(r"(?:Batch|Lot)-[0-9]+", lot_id):
+        raise ValueError("Expected a batch ID such as Batch-001.")
     if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", revision):
         raise ValueError("Supply the full trusted approval commit ID.")
     kind = subprocess.run(["git", "cat-file", "-t", revision], cwd=ROOT, capture_output=True)
     if kind.returncode or kind.stdout.strip() != b"commit":
         raise ValueError("The trusted approval commit is unavailable.")
 
-    description = lots_directory() / lot_id / "Description.md"
+    matches = [path for path in batch_descriptions() if path.parent.name == lot_id]
+    if len(matches) != 1:
+        raise ValueError(f"Expected exactly one description for {lot_id}.")
+    description = matches[0]
 
     def approved_bytes(path):
         relative = path.relative_to(ROOT).as_posix()
         recorded = subprocess.run(
             ["git", "show", f"{revision}:{relative}"], cwd=ROOT, capture_output=True,
         )
-        if recorded.returncode and relative.startswith("lots/"):
-            legacy = "Lots/" + relative.removeprefix("lots/")
-            recorded = subprocess.run(
-                ["git", "show", f"{revision}:{legacy}"], cwd=ROOT, capture_output=True,
-            )
+        if recorded.returncode and path == description:
+            for directory in ("batches", "lots", "Lots"):
+                historical = f"{directory}/{lot_id}/Description.md"
+                recorded = subprocess.run(
+                    ["git", "show", f"{revision}:{historical}"], cwd=ROOT, capture_output=True,
+                )
+                if not recorded.returncode:
+                    break
         if recorded.returncode:
             raise ValueError(f"Approval mismatch: {relative}")
         return recorded.stdout

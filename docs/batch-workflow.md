@@ -1,0 +1,31 @@
+# Specifications, Delivery Batches, and Cards
+
+See the [project directory template](templates/Project-layout.md). Projects using Batches create `specs/draft/`, `specs/ready/`, `specs/frozen/`, and `batches/` in the product repository. The folder determines a Specification's state. Start from the [Specification template](templates/Specification.md). Keep the Specification ID across revisions and assign each revision its own filename.
+
+A Batch groups one or more Specifications. On approval, freeze the selected revisions in `specs/frozen/` and create the Batch as `ready`. Copy the [Description](templates/Description.md), [UAT](templates/Tests.md), and [Journal](templates/Report.md) templates into a folder such as `batches/Batch-001/`. The directory name is the stable Batch ID. In the Description header, record each selected Specification in the `specifications` list with `id`, `revision`, and repository-relative `path`. The list order sets the priority. Add execution constraints only when the list cannot express them. The pinned file must carry the same Specification ID and revision. Keep frozen revisions at their approved paths. The approval commit records the exact contents. Run `validate` for reference consistency and `verify-approval` against the trusted commit before pickup and closure. Historical Batches with a digest retain their original validation.
+
+Cards track Development Agent's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. Cards may reference Specifications in `ready` or `frozen`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
+
+Run `python3 tools/board.py validate` to check the mapping. See the [agent roles](../agents/working-instructions.md#batch-workflow-roles).
+
+For Git approval evidence, pickup coordination, and closure recovery, follow the [Batch operations guide](batch-operations.md).
+
+## Record headers
+
+Fill in the IDs and selected Specifications before marking a Batch ready. Record the tested commit and verdicts in Tests.md. Record the decision, closing trailer, and delivery tag or archive branch in Report.md.
+
+Use `type` and `id` on every record. Description is the Batch record. The fixed filenames Tests.md and Report.md identify the companion records within the Batch folder. Each companion carries its own ID and the parent `batch`. The Specification header carries its revision. A Card uses `batch` and `specifications` when applicable. Keep stable references in the header and the narrative and evidence in the body.
+
+Use the templates' YAML subset for machine-read fields: one key per line and JSON-compatible quoted scalars, flow lists and mappings. Specification state comes from its folder. Batch status comes from its Description header. Historical records retain their original format, including the former Tests filename `UAT.md`. The board also reads older projects using `lots/` or `Lots/`, and approval verification can read that historical path from Git.
+
+## Git provenance and state history
+
+Use the stable ID to find a Card across stage directories. For example, inspect commits reachable from the locally fetched published main branch with:
+
+```sh
+git log origin/main --full-history --name-status -- ':(glob)kanban/**/TASK-00000029-*.md'
+```
+
+This identifies the commits that introduced or changed the Card on that branch. Fetch the remote first if you need its latest state. Record a tested code revision separately from the commit that published the Card. The publication commit cannot contain its own hash, and a Git commit date does not establish when it was pushed.
+
+The move command records stage transitions in the Card's History section. Record changes within a stage, such as a blocker, when they happen. Git only shows transitions captured by commits. For a Batch, keep the current state in Description and record significant transitions, the decision, the tested revision and closing references in the Journal.

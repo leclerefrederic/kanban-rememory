@@ -1,10 +1,10 @@
 ---
-type: fiche
+type: specification
 id: null
 revision: "1"
 ---
 
-# Fiche
+# Specification
 
 ## Expected outcome
 

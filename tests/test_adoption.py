@@ -13,7 +13,7 @@ INSTALL_FILES = (
     "agents/adoption.md", "agents/working-instructions.md",
     "agents/actor-user.md", "agents/actor-specification-agent.md", "agents/actor-development-agent.md",
     "docs/kanban.md", "docs/software-development.md",
-    "docs/card-guide.md", "docs/lot-templates/Card.md", "docs/lot-templates/Project-layout.md",
+    "docs/card-guide.md", "docs/templates/Card.md", "docs/templates/Project-layout.md",
     "tools/board.py", "Rememory/README.md", "Rememory/daily-template.md",
 )
 
@@ -193,7 +193,7 @@ class AdoptionTests(unittest.TestCase):
         lot.mkdir(parents=True)
         description = lot / "Description.md"
         description.write_text("# Lot\n")
-        self.assertIn("at least one frozen Fiche", self.run_board("validate", expected=1))
+        self.assertIn("at least one frozen specification", self.run_board("validate", expected=1))
         frozen = self.root / "specs/frozen/FICHE-001-r1.md"
         original = frozen.read_bytes()
         digest = sha256(original).hexdigest()
@@ -201,15 +201,15 @@ class AdoptionTests(unittest.TestCase):
         self.assertIn("matching frozen ID, revision, and path", self.run_board("validate", expected=1))
         description.write_text(f"- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md | {digest}\n")
         frozen.write_bytes(original + b"\nEdited after approval.\n")
-        self.assertIn("Frozen Fiche content changed", self.run_board("validate", expected=1))
+        self.assertIn("Frozen specification content changed", self.run_board("validate", expected=1))
         frozen.write_bytes(original)
         card = self.board / "backlog/TASK-00000001-linked.md"
         card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001, FICHE-002, FICHE-003\n")
         result = self.run_board("validate", expected=1)
-        self.assertIn("Fiche FICHE-002 is outside Lot Lot-001", result)
-        self.assertIn("Fiche is not ready or frozen: FICHE-003", result)
+        self.assertIn("Specification FICHE-002 is outside batch Lot-001", result)
+        self.assertIn("Specification is not ready or frozen: FICHE-003", result)
         card.write_text("- Lot ID: Lot-999\n")
-        self.assertIn("unknown Lot", self.run_board("validate", expected=1))
+        self.assertIn("Unknown batch", self.run_board("validate", expected=1))
         card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001\n")
         self.run_board("validate")
         card.write_text("- Fiche IDs: FICHE-001, FICHE-002\n")
@@ -235,7 +235,7 @@ class AdoptionTests(unittest.TestCase):
         self.run_board(*command)
         changed = original + b"External edit\n"
         fiche.write_bytes(changed)
-        self.assertIn("Frozen Fiche content changed", self.run_board(*command, expected=1))
+        self.assertIn("Frozen specification content changed", self.run_board(*command, expected=1))
         description.write_text(approved.replace(digest, sha256(changed).hexdigest()))
         self.run_board("validate")
         self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
@@ -246,30 +246,30 @@ class AdoptionTests(unittest.TestCase):
         self.run_board(*command)
 
     def populate_lot_templates(self, lot):
-        templates = KIT / "docs/lot-templates"
+        templates = KIT / "docs/templates"
         for name in ("Description.md", "Tests.md", "Report.md"):
             source = (templates / name).read_text()
-            document_id = "Lot-001" if name == "Description.md" else f"Lot-001-{Path(name).stem}"
-            source = source.replace("id: null", f'id: "{document_id}"').replace("lot: null", 'lot: "Lot-001"')
+            document_id = "Batch-001" if name == "Description.md" else f"Batch-001-{Path(name).stem}"
+            source = source.replace("id: null", f'id: "{document_id}"').replace("batch: null", 'batch: "Batch-001"')
             source = source.replace("status: draft", "status: ready").replace(
-                "fiches: []", 'fiches: [{"id":"FICHE-001","revision":"1","path":"specs/frozen/FICHE-001-r1.md"}]'
+                "specifications: []", 'specifications: [{"id":"SPEC-001","revision":"1","path":"specs/frozen/SPEC-001-r1.md"}]'
             )
             (lot / name).write_text(source)
 
     def test_digest_free_approval_and_closure(self):
         self.run_board("init", "--template", "short", "--apply")
-        fiche = self.root / "specs/frozen/FICHE-001-r1.md"
+        fiche = self.root / "specs/frozen/SPEC-001-r1.md"
         fiche.parent.mkdir(parents=True)
-        original = b'- Fiche ID: FICHE-001\n- Revision: 1\n'
+        original = b'- Fiche ID: SPEC-001\n- Revision: 1\n'
         fiche.write_bytes(original)
-        lot = self.root / "lots/Lot-001"
+        lot = self.root / "batches/Batch-001"
         lot.mkdir(parents=True)
         self.populate_lot_templates(lot)
-        subprocess.run(["git", "add", "lots", "specs"], cwd=self.root, check=True)
+        subprocess.run(["git", "add", "batches", "specs"], cwd=self.root, check=True)
         subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                         "commit", "-qm", "Approve Lot"], cwd=self.root, check=True)
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
-        command = ("verify-approval", "Lot-001", revision)
+        command = ("verify-approval", "Batch-001", revision)
         self.run_board(*command)
         description = lot / "Description.md"
         description.write_text(description.read_text().replace("status: ready", "status: validated"))
@@ -280,34 +280,35 @@ class AdoptionTests(unittest.TestCase):
 
     def test_yaml_lot_cross_references(self):
         self.run_board("init", "--template", "short", "--apply")
-        fiche = self.root / "specs/frozen/FICHE-001-r1.md"
+        fiche = self.root / "specs/frozen/SPEC-001-r1.md"
         fiche.parent.mkdir(parents=True)
-        fiche.write_text('---\ntype: fiche\nid: "FICHE-001"\nrevision: "1"\n---\n')
-        lot = self.root / "lots/Lot-001"
+        fiche.write_text('---\ntype: specification\nid: "SPEC-001"\nrevision: "1"\n---\n')
+        lot = self.root / "batches/Batch-001"
         lot.mkdir(parents=True)
         self.populate_lot_templates(lot)
         self.run_board("new", "Check Lot", "--owner", "Test", "--apply")
         card = self.board / "backlog/TASK-00000001-check-lot.md"
-        source = card.read_text().replace("lot: null", 'lot: "Lot-001"')
-        card.write_text(source.replace("fiches: []", 'fiches: ["FICHE-001"]'))
+        source = card.read_text().replace("batch: null", 'batch: "Batch-001"')
+        card.write_text(source.replace("specifications: []", 'specifications: ["SPEC-001"]'))
         self.run_board("validate")
         report = lot / "Report.md"
-        report.write_text(report.read_text().replace('lot: "Lot-001"', 'lot: "Lot-999"'))
+        report.write_text(report.read_text().replace('batch: "Batch-001"', 'batch: "Batch-999"'))
         self.assertIn("Inconsistent YAML references for Report.md", self.run_board("validate", expected=1))
-        report.write_text(report.read_text().replace('lot: "Lot-999"', 'lot: "Lot-001"'))
+        report.write_text(report.read_text().replace('batch: "Batch-999"', 'batch: "Batch-001"'))
         description = lot / "Description.md"
         tests = lot / "Tests.md"
         for document, old_refs in (
-            (description, 'tests: "Lot-001-Tests"\nreport: "Lot-001-Report"\n'),
-            (tests, 'report: "Lot-001-Report"\n'),
-            (report, 'tests: "Lot-001-Tests"\n'),
+            (description, 'tests: "Batch-001-Tests"\nreport: "Batch-001-Report"\n'),
+            (tests, 'report: "Batch-001-Report"\n'),
+            (report, 'tests: "Batch-001-Tests"\n'),
         ):
             document.write_text(document.read_text().replace("---\n", "---\n" + old_refs, 1))
         for document in (lot / "Description.md", lot / "Tests.md", report, card):
             source = document.read_text()
-            for key in ("lot", "tests", "report"):
+            for key in ("tests", "report"):
                 source = source.replace(f"\n{key}:", f"\n{key}_id:")
+            source = source.replace("\nbatch:", "\nlot_id:")
             if document == card:
-                source = source.replace("\nfiches:", "\nfiche_ids:")
+                source = source.replace("\nspecifications:", "\nfiche_ids:")
             document.write_text(source)
         self.run_board("validate")

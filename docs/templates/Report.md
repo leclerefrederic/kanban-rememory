@@ -1,10 +1,10 @@
 ---
 type: report
 id: null
-lot: null
+batch: null
 ---
 
-# Lot Journal
+# Batch Journal
 
 [Description](Description.md) · [Tests](Tests.md)
 

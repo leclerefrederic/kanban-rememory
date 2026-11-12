@@ -1,7 +1,7 @@
 ---
 type: tests
 id: null
-lot: null
+batch: null
 ---
 
 # Acceptance tests
@@ -11,5 +11,5 @@ lot: null
 - Tested commit:
 - Environment or prerequisites:
 
-| ID | Fiches | Action | Expected result | Verdict | Comment |
+| ID | Specifications | Action | Expected result | Verdict | Comment |
 | --- | --- | --- | --- | --- | --- |

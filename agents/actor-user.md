@@ -7,21 +7,21 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 ## Responsibilities
 
 - Review and approve the specifications drafted by Specification Agent.
-- Define the scope of the next lot together with Specification Agent.
+- Define the scope of the next batch together with Specification Agent.
 - Run the UAT, guided by Specification Agent: choose OK or KO for each step and add an optional comment.
 - Decide to validate or reject the deployment after reading the report.
 - Answer Development Agent when it is blocked or needs an intervention.
 
 ## Decisions that belong to the User alone
 
-- Approving the scope of a lot.
-- Validating or rejecting a lot.
+- Approving the scope of a batch.
+- Validating or rejecting a batch.
 - Approving changes to the workflow and role definitions.
 
 ## What the User does not do
 
 - Write code or run git commands.
-- Edit lot files by hand: Specification Agent and Development Agent maintain them.
+- Edit batch files by hand: Specification Agent and Development Agent maintain them.
 
 ## Interfaces
 
@@ -33,4 +33,4 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 
 ## Availability
 
-A lot waits in `delivered` until the User runs the UAT and decides. A new Lot can start after closure. Queued standalone tasks become eligible at delivery.
+A batch waits in `delivered` until the User runs the UAT and decides. A new Batch can start after closure. Queued standalone tasks become eligible at delivery.

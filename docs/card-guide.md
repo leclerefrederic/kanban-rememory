@@ -13,7 +13,7 @@ The folder identifies the stage. The state describes the task within that stage 
 
 Keep the card short enough to act on. Link detailed requirements, design records, test output, PR discussions and Rememory entries. Keep credentials, personal data and copied logs out of the card.
 
-Use the [task template](lot-templates/Card.md) and see the [software example](software-development.md#example).
+Use the [task template](templates/Card.md) and see the [software example](software-development.md#example).
 
 ## Worked example
 
@@ -69,8 +69,8 @@ At completion, check the criteria and record the finish and evidence. In this ex
 - Delivery evidence: PR #42 merged at revision abc1234. Required review and retry regression test passed.
 ```
 
-## Specification sheets and Lots
+## Specification sheets and Batches
 
-A card can track work independently of a Lot. Record stable IDs in the optional YAML `lot` and `fiches` fields. A standalone task can leave both fields empty. The Lot pins its approved Fiche revisions.
+A card can track work independently of a Batch. Record stable IDs in the optional YAML `batch` and `specifications` fields. A standalone task can leave both fields empty. The Batch pins its approved Specification revisions.
 
-Completed cards and closed Lot reports are historical records. Use a card's stable ID when an immutable record needs to refer to a card that can still move. The board refuses a move that would rewrite a completed card or a closed report at `lots/Lot-XXX/Report.md`. It reports the affected document before changing files.
+Completed cards and closed Batch reports are historical records. Use a card's stable ID when an immutable record needs to refer to a card that can still move. The board refuses a move that would rewrite a completed card or a closed report at `batches/Batch-XXX/Report.md`. It reports the affected document before changing files.
