@@ -4,6 +4,7 @@ import argparse
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
+from hashlib import sha256
 import json
 import os
 from zoneinfo import ZoneInfo
@@ -94,13 +95,14 @@ def validate_lot_mapping(card_paths):
     frozen = {}
     for state in ("ready", "frozen"):
         for path in (ROOT / "specs" / state).glob("*.md"):
-            source = path.read_text(encoding="utf-8")
+            content = path.read_bytes()
+            source = content.decode("utf-8")
             fiche_id, revision = field(source, "Fiche ID"), field(source, "Revision")
             if not fiche_id:
                 continue
             fiches.add(fiche_id)
             if state == "frozen":
-                frozen[path.relative_to(ROOT).as_posix()] = (fiche_id, revision)
+                frozen[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
 
     lots = {}
     for path in (ROOT / "Lots").glob("*/Description.md"):
@@ -111,9 +113,15 @@ def validate_lot_mapping(card_paths):
             if not line.startswith("- Fiche:"):
                 continue
             parts = [part.strip() for part in line.partition(":")[2].split("|")]
-            if len(parts) != 3 or not all(parts) or frozen.get(parts[2]) != tuple(parts[:2]):
+            if len(parts) != 4 or not all(parts) or not re.fullmatch(r"[0-9a-f]{64}", parts[3]):
+                report(path, "Fiche entry requires an ID, revision, path, and SHA-256 digest.")
+                continue
+            pinned = frozen.get(parts[2])
+            if not pinned or pinned[:2] != tuple(parts[:2]):
                 report(path, "Fiche entry must pin a matching frozen ID, revision, and path.")
                 continue
+            if pinned[2] != parts[3]:
+                report(path, f"Frozen Fiche content changed: {parts[2]}")
             if parts[0] in selected:
                 report(path, f"duplicate Fiche in Lot: {parts[0]}")
             selected.add(parts[0])

@@ -9,7 +9,7 @@ status: ready
 
 ## Frozen Fiches
 
-- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md
+- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md | SHA256_DIGEST
 
 ## Mission order
 

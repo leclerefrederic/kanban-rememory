@@ -1,3 +1,4 @@
+from hashlib import sha256
 import json
 from pathlib import Path
 import shutil
@@ -162,8 +163,9 @@ class AdoptionTests(unittest.TestCase):
         lot.mkdir(parents=True)
         (specs / "frozen").mkdir()
         (specs / "frozen/FICHE-001-r1.md").write_text("- Fiche ID: FICHE-001\n- Revision: 1\n")
+        digest = sha256((specs / "frozen/FICHE-001-r1.md").read_bytes()).hexdigest()
         (lot / "Description.md").write_text(
-            "---\nstatus: closed\n---\n- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md\n"
+            f"---\nstatus: closed\n---\n- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md | {digest}\n"
         )
         report = lot / "Report.md"
         report.write_text(f"[Task](../../kanban/backlog/{card.name})\n")
@@ -190,9 +192,15 @@ class AdoptionTests(unittest.TestCase):
         description = lot / "Description.md"
         description.write_text("# Lot\n")
         self.assertIn("at least one frozen Fiche", self.run_board("validate", expected=1))
-        description.write_text("- Fiche: FICHE-001 | 2 | specs/frozen/FICHE-001-r1.md\n")
+        frozen = self.root / "specs/frozen/FICHE-001-r1.md"
+        original = frozen.read_bytes()
+        digest = sha256(original).hexdigest()
+        description.write_text(f"- Fiche: FICHE-001 | 2 | specs/frozen/FICHE-001-r1.md | {digest}\n")
         self.assertIn("matching frozen ID, revision, and path", self.run_board("validate", expected=1))
-        description.write_text("- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md\n")
+        description.write_text(f"- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md | {digest}\n")
+        frozen.write_bytes(original + b"\nEdited after approval.\n")
+        self.assertIn("Frozen Fiche content changed", self.run_board("validate", expected=1))
+        frozen.write_bytes(original)
         card = self.board / "backlog/TASK-00000001-linked.md"
         card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001, FICHE-002, FICHE-003\n")
         result = self.run_board("validate", expected=1)
