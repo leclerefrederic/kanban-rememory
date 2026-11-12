@@ -212,3 +212,33 @@ class AdoptionTests(unittest.TestCase):
         self.run_board("validate")
         card.write_text("- Fiche IDs: FICHE-001, FICHE-002\n")
         self.run_board("validate")
+
+    def test_verify_approval_detects_external_edits(self):
+        self.run_board("init", "--template", "short", "--apply")
+        fiche = self.root / "specs/frozen/FICHE-001-r1.md"
+        fiche.parent.mkdir(parents=True)
+        original = b"- Fiche ID: FICHE-001\n- Revision: 1\nApproved scope\n"
+        fiche.write_bytes(original)
+        description = self.root / "Lots/Lot-001/Description.md"
+        description.parent.mkdir(parents=True)
+        digest = sha256(original).hexdigest()
+        approved = (f"---\nstatus: ready\n---\n- Fiche: FICHE-001 | 1 | "
+                    f"specs/frozen/FICHE-001-r1.md | {digest}\nMission: export CSV\n")
+        description.write_text(approved)
+        subprocess.run(["git", "add", "Lots", "specs"], cwd=self.root, check=True)
+        subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                        "commit", "-qm", "Approve Lot"], cwd=self.root, check=True)
+        revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+        command = ("verify-approval", "Lot-001", revision)
+        self.run_board(*command)
+        changed = original + b"External edit\n"
+        fiche.write_bytes(changed)
+        self.assertIn("Frozen Fiche content changed", self.run_board(*command, expected=1))
+        description.write_text(approved.replace(digest, sha256(changed).hexdigest()))
+        self.run_board("validate")
+        self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
+        fiche.write_bytes(original)
+        description.write_text(approved.replace("export CSV", "export all records"))
+        self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
+        description.write_text(approved)
+        self.run_board(*command)

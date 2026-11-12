@@ -495,10 +495,48 @@ def create_card(workflow, args):
     return 0
 
 
+def verify_approval(lot_id, revision):
+    if not re.fullmatch(r"Lot-[0-9]+", lot_id):
+        raise ValueError("Expected a Lot ID such as Lot-001.")
+    if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", revision):
+        raise ValueError("Supply the full trusted approval commit ID.")
+    kind = subprocess.run(["git", "cat-file", "-t", revision], cwd=ROOT, capture_output=True)
+    if kind.returncode or kind.stdout.strip() != b"commit":
+        raise ValueError("The trusted approval commit is unavailable.")
+
+    description = ROOT / "Lots" / lot_id / "Description.md"
+
+    def compare(path):
+        relative = path.relative_to(ROOT).as_posix()
+        recorded = subprocess.run(
+            ["git", "show", f"{revision}:{relative}"], cwd=ROOT, capture_output=True,
+        )
+        if recorded.returncode or path.read_bytes() != recorded.stdout:
+            raise ValueError(f"Approval mismatch: {relative}")
+        return recorded.stdout.decode("utf-8")
+
+    approved = compare(description)
+    if not re.match(r"\A---\r?\n(?:(?!^---).)*^status:[ \t]*ready[ \t]*\r?$",
+                    approved, re.MULTILINE | re.DOTALL):
+        raise ValueError("Approval verification requires a Lot with status ready.")
+    findings = validate_lot_mapping(())
+    if findings:
+        raise ValueError("\n".join(findings))
+    for line in markdown_lines(approved):
+        if line.startswith("- Fiche:"):
+            path = line.split("|")[2].strip()
+            compare(ROOT / path)
+    print(f"Approval verified for {lot_id}.")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("validate")
+    approval = commands.add_parser("verify-approval")
+    approval.add_argument("lot_id")
+    approval.add_argument("revision", help="Full commit ID from the trusted approval record")
     new = commands.add_parser("new")
     new.add_argument("title")
     new.add_argument("--owner", required=True)
@@ -523,6 +561,8 @@ def main():
         if args.command == "init":
             return initialize(args)
         workflow = load_workflow()
+        if args.command == "verify-approval":
+            return verify_approval(args.lot_id, args.revision)
         if args.command == "new":
             return create_card(workflow, args)
         if args.command == "move":

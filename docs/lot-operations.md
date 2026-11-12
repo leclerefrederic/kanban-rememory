@@ -4,13 +4,13 @@
 
 When the User approves scope, capture the exact Lot ID, ordered mission, and frozen Fiche mapping in a Git approval commit before starting development. Keep this commit on a dedicated approval ref. Record its full commit ID in the Lot's operating record. The approval ref must be available to the coding agent. Capture approval separately from the later acceptance decision.
 
-Before pickup, run the board validator and compare the mission and Fiche mapping against the approval commit. If they differ, stop and surface the discrepancy. Keep the approval record when the Lot closes.
+Before pickup, run the board validator and run `python3 tools/board.py verify-approval Lot-001 APPROVED_COMMIT_ID` with the full commit ID from the trusted approval record. The command compares the ready Description and each pinned Fiche byte for byte. Obtain the commit ID from the approval record independently of the files being checked. If they differ, stop and surface the discrepancy. Keep the approval record when the Lot closes.
 
 ## Take ownership
 
 Use one designated worktree for Lot operations. For each pickup, acquire an exclusive repository lock before reading or updating the Lot status. An atomic directory creation in the shared Git directory can serve as the lock for sessions using the same clone. If the lock exists, leave the Lot untouched. After an interruption, verify that the previous operation has stopped and inspect its branch and status before clearing a stale lock. Separate clones require a shared coordinator before scheduled pickup is enabled.
 
-Under the lock, recheck that the Lot is ready, no other Lot is active, and its approval and Fiche checks pass. Create the Lot branch from the recorded main revision, then record the start. If the branch already exists after an interruption, verify its origin and resume the same Lot. Release the lock at the end of the operation.
+Under the lock, recheck that the Lot is ready, no other Lot is active, and its approval and Fiche checks pass. Run the approval command under the same lock immediately before pickup. Create the Lot branch from the recorded main revision, then record the start. If the branch already exists after an interruption, verify its origin and resume the same Lot. Release the lock at the end of the operation.
 
 ## Close the Lot
 
