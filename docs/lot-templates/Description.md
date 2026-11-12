@@ -13,7 +13,7 @@ status: ready
 
 ## Mission order
 
-List the selected Fiche IDs in priority order. Claude Code may sequence execution around technical dependencies.
+List the selected Fiche IDs in priority order. Development Agent may sequence execution around technical dependencies.
 
 ## Related documents
 

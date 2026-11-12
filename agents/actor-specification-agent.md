@@ -1,8 +1,8 @@
-# Actor: Cowork
+# Actor: Specification Agent
 
 ## Role
 
-Owner of the "what": it writes the specifications, defines lots with the User, guides the UAT, writes the report and records the User's decision. Cowork never touches code or git.
+Owner of the "what": it writes the specifications, defines lots with the User, guides the UAT, writes the report and records the User's decision. Specification Agent never touches code or git.
 
 ## Responsibilities
 
@@ -38,7 +38,7 @@ List `Lots/` and read each status. If any lot is not `closed`, refuse, explain w
 
 ## Preparing and guiding the UAT
 
-Draft the scenarios and expected results from the frozen specification sheets. Claude Code supplies the environment and prerequisites.
+Draft the scenarios and expected results from the frozen specification sheets. Development Agent supplies the environment and prerequisites.
 
 1. Read `UAT.md` and present one step at a time: the action to perform and the expected result.
 2. Offer a menu: OK or KO. The standard text input is used for an optional comment.

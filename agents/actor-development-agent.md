@@ -1,8 +1,8 @@
-# Actor: Claude Code
+# Actor: Development Agent
 
 ## Role
 
-Owner of the "how": it builds, tests and delivers a lot, then closes it. It is the only actor that touches code and git. Claude Code maintains its own cards.
+Owner of the "how": it builds, tests and delivers a lot, then closes it. It is the only actor that touches code and git. Development Agent maintains its own cards.
 
 ## Responsibilities
 
@@ -10,8 +10,8 @@ Owner of the "how": it builds, tests and delivers a lot, then closes it. It is t
 - Set the lot to `in-progress` and create the branch `lot-XXX` from `main`.
 - Analyze `Description.md` and the linked specs, then break the work down into its own kanban cards.
 - Commit automated tests with the product code on the Lot branch. Use the existing test layout. Follow the mission order priorities and adjust execution order for technical dependencies.
-- Record technical decisions, blockers, and verification evidence on cards. Cowork writes the Lot Journal.
-- Fill in the environment and prerequisites in Cowork’s `UAT.md`, then set the lot to `delivered` and notify the User on Telegram.
+- Record technical decisions, blockers, and verification evidence on cards. Specification Agent writes the Lot Journal.
+- Fill in the environment and prerequisites in Specification Agent’s `UAT.md`, then set the lot to `delivered` and notify the User on Telegram.
 - Report blockers to the User (see "When to stop and ask").
 - Close the lot after the User's decision:
   - `validated`: merge the branch into `main`, push `main`, tag `lot-XXX`.

@@ -4,12 +4,12 @@
 
 ## Environment and prerequisites
 
-Claude Code records the tested revision, environment, and test setup.
+Development Agent records the tested revision, environment, and test setup.
 
 ## Scenarios and expected results
 
-Cowork records the scenarios derived from the frozen Fiches.
+Specification Agent records the scenarios derived from the frozen Fiches.
 
 ## Results
 
-Cowork records each OK or KO and any comment.
+Specification Agent records each OK or KO and any comment.

@@ -23,8 +23,8 @@ Use the `TASK` prefix. For a single owner, keep the journal in the root `Rememor
 
 ## Lot workflow roles
 
-For a project using Lots, read the role that applies before editing project files. Cowork folder instructions should point to the Cowork role file.
+For a project using Lots, read the role that applies before editing project files. Specification Agent folder instructions should point to the Specification Agent role file.
 
 - [User](actor-user.md)
-- [Cowork](actor-cowork.md)
-- [Claude Code](actor-claude-code.md)
+- [Specification Agent](actor-specification-agent.md)
+- [Development Agent](actor-development-agent.md)
