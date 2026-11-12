@@ -148,7 +148,7 @@ class AdoptionTests(unittest.TestCase):
         specs.mkdir()
         (specs / "sheet.md").write_text("# Specification\n")
         card.write_text(card.read_text().replace(
-            "Specification sheet, if applicable:", "Specification sheet: [Sheet](../../specs/sheet.md)"
+            "- Link to other authoritative references.", "- Reference: [Sheet](../../specs/sheet.md)"
         ).replace("[ ]", "[x]"))
         completed = self.board / "completion/TASK-00000002-history.md"
         completed.write_text(f"[Task](../backlog/{card.name})\n")
@@ -160,7 +160,11 @@ class AdoptionTests(unittest.TestCase):
         completed.write_text("Reference: TASK-00000001\n")
         lot = self.root / "Lots/Lot-001"
         lot.mkdir(parents=True)
-        (lot / "Description.md").write_text("---\nstatus: closed\n---\n")
+        (specs / "frozen").mkdir()
+        (specs / "frozen/FICHE-001-r1.md").write_text("- Fiche ID: FICHE-001\n- Revision: 1\n")
+        (lot / "Description.md").write_text(
+            "---\nstatus: closed\n---\n- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md\n"
+        )
         report = lot / "Report.md"
         report.write_text(f"[Task](../../kanban/backlog/{card.name})\n")
         original = report.read_bytes()
@@ -171,4 +175,32 @@ class AdoptionTests(unittest.TestCase):
         report.write_text("Reference: TASK-00000001\n")
         self.run_board("move", "TASK-00000001", "development")
         self.run_board("move", "TASK-00000001", "completion")
+        self.run_board("validate")
+
+    def test_lot_mapping(self):
+        self.run_board("init", "--template", "short", "--apply")
+        for stage in ("draft", "ready", "frozen"):
+            (self.root / "specs" / stage).mkdir(parents=True)
+        for stage, number in (("frozen", 1), ("ready", 2), ("draft", 3)):
+            (self.root / "specs" / stage / f"FICHE-00{number}-r1.md").write_text(
+                f"- Fiche ID: FICHE-00{number}\n- Revision: 1\n"
+            )
+        lot = self.root / "Lots/Lot-001"
+        lot.mkdir(parents=True)
+        description = lot / "Description.md"
+        description.write_text("# Lot\n")
+        self.assertIn("at least one frozen Fiche", self.run_board("validate", expected=1))
+        description.write_text("- Fiche: FICHE-001 | 2 | specs/frozen/FICHE-001-r1.md\n")
+        self.assertIn("matching frozen ID, revision, and path", self.run_board("validate", expected=1))
+        description.write_text("- Fiche: FICHE-001 | 1 | specs/frozen/FICHE-001-r1.md\n")
+        card = self.board / "backlog/TASK-00000001-linked.md"
+        card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001, FICHE-002, FICHE-003\n")
+        result = self.run_board("validate", expected=1)
+        self.assertIn("Fiche FICHE-002 is outside Lot Lot-001", result)
+        self.assertIn("Fiche is not ready or frozen: FICHE-003", result)
+        card.write_text("- Lot ID: Lot-999\n")
+        self.assertIn("unknown Lot", self.run_board("validate", expected=1))
+        card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001\n")
+        self.run_board("validate")
+        card.write_text("- Fiche IDs: FICHE-001, FICHE-002\n")
         self.run_board("validate")

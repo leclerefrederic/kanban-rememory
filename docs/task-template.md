@@ -21,7 +21,8 @@ Describe the need and the deliverable.
 
 ## Sources and decisions
 
-- Specification sheet, if applicable:
+- Lot ID:
+- Fiche IDs:
 - Link to other authoritative references.
 
 ## Execution and evidence

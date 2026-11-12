@@ -71,6 +71,6 @@ At completion, check the criteria and record the finish and evidence. In this ex
 
 ## Specification sheets and Lots
 
-A card can track work independently of a Lot. Link the specification sheet (Fiche) under Sources and decisions when the task implements or verifies a sheet. Record the approved revision if the sheet is part of a frozen Lot. A standalone task can leave the field empty.
+A card can track work independently of a Lot. Record stable IDs in the optional Lot ID and Fiche IDs fields. A standalone task can leave both fields empty. The Lot pins its approved Fiche revisions.
 
 Completed cards and closed Lot reports are historical records. Use a card's stable ID when an immutable record needs to refer to a card that can still move. The board refuses a move that would rewrite a completed card or a closed report at `Lots/Lot-XXX/Report.md`. It reports the affected document before changing files.

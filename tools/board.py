@@ -84,6 +84,57 @@ def markdown_files():
             yield path
 
 
+def validate_lot_mapping(card_paths):
+    findings = []
+
+    def report(path, message):
+        findings.append(f"{path.relative_to(ROOT)}: {message}")
+
+    fiches = set()
+    frozen = {}
+    for state in ("ready", "frozen"):
+        for path in (ROOT / "specs" / state).glob("*.md"):
+            source = path.read_text(encoding="utf-8")
+            fiche_id, revision = field(source, "Fiche ID"), field(source, "Revision")
+            if not fiche_id:
+                continue
+            fiches.add(fiche_id)
+            if state == "frozen":
+                frozen[path.relative_to(ROOT).as_posix()] = (fiche_id, revision)
+
+    lots = {}
+    for path in (ROOT / "Lots").glob("*/Description.md"):
+        lot_id = path.parent.name
+        selected = set()
+        lots[lot_id] = selected
+        for line in markdown_lines(path.read_text(encoding="utf-8")):
+            if not line.startswith("- Fiche:"):
+                continue
+            parts = [part.strip() for part in line.partition(":")[2].split("|")]
+            if len(parts) != 3 or not all(parts) or frozen.get(parts[2]) != tuple(parts[:2]):
+                report(path, "Fiche entry must pin a matching frozen ID, revision, and path.")
+                continue
+            if parts[0] in selected:
+                report(path, f"duplicate Fiche in Lot: {parts[0]}")
+            selected.add(parts[0])
+        if not selected:
+            report(path, "Lot requires at least one frozen Fiche.")
+
+    for path in card_paths:
+        source = path.read_text(encoding="utf-8")
+        lot_id = field(source, "Lot ID")
+        if lot_id and lot_id not in lots:
+            report(path, f"unknown Lot: {lot_id}")
+        for fiche_id in map(str.strip, field(source, "Fiche IDs").split(",")):
+            if not fiche_id:
+                continue
+            if fiche_id not in fiches:
+                report(path, f"Fiche is not ready or frozen: {fiche_id}")
+            elif lot_id in lots and fiche_id not in lots[lot_id]:
+                report(path, f"Fiche {fiche_id} is outside Lot {lot_id}")
+    return findings
+
+
 def validate(workflow):
     findings = []
     by_id = defaultdict(list)
@@ -101,6 +152,8 @@ def validate(workflow):
     for task_id, paths in by_id.items():
         if len(paths) > 1:
             findings.append(f"duplicate {task_id}: {', '.join(map(str, paths))}")
+
+    findings.extend(validate_lot_mapping(ROOT / path for paths in by_id.values() for path in paths))
 
     for path in markdown_files():
         name = path.relative_to(ROOT)
