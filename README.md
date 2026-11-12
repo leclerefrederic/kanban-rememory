@@ -10,7 +10,7 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 | [Task card guide](docs/card-guide.md) | Required card content and the distinction between stage and state |
 | [Board commands](tools/board.py) | Workflow setup, card creation, stage view, guarded moves, and validation |
 | [Optional Lot workflow](docs/lot-workflow.md) | Fiche and Lot templates and stable ID mapping |
-| [Task template](docs/task-template.md) | Outcome, scope, dependencies, and acceptance criteria |
+| [Card template](docs/lot-templates/Card.md) | Outcome, scope, dependencies, and acceptance criteria |
 | [Rememory guide](Rememory/README.md) | Record of decisions, verification, and next steps |
 | [Daily log template](Rememory/daily-template.md) | Structure for a daily log entry |
 
@@ -31,7 +31,8 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | Directory | Files |
    | --- | --- |
    | `agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-specification-agent.md`, `actor-development-agent.md` |
-   | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`, `task-template.md` |
+   | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`
+   | `docs/lot-templates/` | `Card.md` |
    | `tools/` | `board.py` |
    | `Rememory/` | `README.md`, `daily-template.md` |
 
@@ -59,7 +60,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](agents/adoption.md).
 
-For the optional Lot module, also copy `docs/lot-workflow.md`, `docs/lot-operations.md`, `docs/lot-handoff.md`, the files under `docs/lot-templates/`, and `tools/replay-lot-uat.py`.
+For the optional Lot module, also copy `docs/lot-workflow.md`, `docs/lot-operations.md`, `docs/lot-handoff.md`, `Fiche.md`, `Description.md`, `Tests.md`, and `Report.md` under `docs/lot-templates/`, and `tools/replay-lot-uat.py`.
 
 Kanban shows the official task status. Rememory records decisions, what was verified, and where to resume. Git preserves the history of both.
 

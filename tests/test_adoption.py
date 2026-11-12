@@ -13,7 +13,7 @@ INSTALL_FILES = (
     "agents/adoption.md", "agents/working-instructions.md",
     "agents/actor-user.md", "agents/actor-specification-agent.md", "agents/actor-development-agent.md",
     "docs/kanban.md", "docs/software-development.md",
-    "docs/card-guide.md", "docs/task-template.md",
+    "docs/card-guide.md", "docs/lot-templates/Card.md",
     "tools/board.py", "Rememory/README.md", "Rememory/daily-template.md",
 )
 

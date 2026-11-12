@@ -524,7 +524,10 @@ def create_card(workflow, args):
     if entry not in workflow["stages"] or entry in workflow["active"] or entry == workflow["completed"]:
         raise ValueError("Configure an intake stage outside active and completed work.")
 
-    template = (ROOT / "docs/task-template.md").read_text(encoding="utf-8")
+    template_path = ROOT / "docs/lot-templates/Card.md"
+    if not template_path.is_file():
+        template_path = ROOT / "docs/task-template.md"
+    template = template_path.read_text(encoding="utf-8")
     slug = normalize("NFKD", title).encode("ascii", "ignore").decode().lower()
     slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")[:80].rstrip("-") or "task"
 
