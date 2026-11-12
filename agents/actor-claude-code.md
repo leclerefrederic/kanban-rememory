@@ -54,3 +54,5 @@ Cards remain independent of Lots and may link to a Fiche. Record standalone work
 - Lot identifier and title.
 - Test environment URL and name of the test account (never the password: it stays in the local, git-ignored `kanban/secrets-test.md`).
 - Short summary of what is delivered and a pointer to `Lots/Lot-XXX/UAT.md`.
+
+For pickup and closure in a project with the Lot module installed, follow the Lot operations guide in the project documentation.

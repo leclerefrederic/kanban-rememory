@@ -7,3 +7,5 @@ A Lot groups one or more Fiches. On approval, freeze the selected revisions in `
 Cards track Claude Code's tasks. Leave `Lot ID` and `Fiche IDs` empty for standalone work, or fill either field when relevant. List multiple Fiche IDs separated by commas. Cards may reference Fiches in `ready` or `frozen`. A Card that names a Lot and Fiches can name only Fiches selected in that Lot. A Lot-linked Card can omit Fiches for work such as preparing the acceptance environment.
 
 Run `python3 tools/board.py validate` to check the mapping. See the [agent roles](../agents/working-instructions.md#lot-workflow-roles).
+
+For Git approval evidence, pickup coordination, and closure recovery, follow the [Lot operations guide](lot-operations.md).
