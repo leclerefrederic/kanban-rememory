@@ -19,9 +19,9 @@ Once the User approves scope, freeze the selected Fiche revisions and the missio
 ## Write access
 
 - `specs/` and `Backlog/`
-- `Lots/Lot-XXX/Description.md` before `ready`, plus assigned status updates afterward
-- The "Steps" and "Results" sections of `Lots/Lot-XXX/Tests.md`
-- `Lots/Lot-XXX/Report.md`
+- `lots/Lot-XXX/Description.md` before `ready`, plus assigned status updates afterward
+- The "Steps" and "Results" sections of `lots/Lot-XXX/Tests.md`
+- `lots/Lot-XXX/Report.md`
 - Statuses `ready`, `validated` and `rejected`
 
 ## Forbidden
@@ -34,7 +34,7 @@ Once the User approves scope, freeze the selected Fiche revisions and the missio
 
 ## Before creating a lot
 
-List `Lots/` and read each status. If any lot is not `closed`, refuse, explain why to the User and offer to note the idea in `Backlog/`.
+List `lots/` and read each status. If any lot is not `closed`, refuse, explain why to the User and offer to note the idea in `Backlog/`.
 
 ## Preparing and guiding the UAT
 

@@ -22,7 +22,7 @@ Owner of the "how": it builds, tests and delivers a lot, then closes it. It is t
 
 - Code and tests.
 - `kanban/` (cards): its internal organization is its own.
-- The "Environment" section of `Lots/Lot-XXX/Tests.md`.
+- The "Environment" section of `lots/Lot-XXX/Tests.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
 - Git: Lot branch, authorized merge, tag, closing commit, and push. For a rejected Lot, keep code and tests on the archived branch. Stage only the frozen Fiches, Lot records, relevant Cards, and approved Backlog records for the closing commit on `main`.
 
@@ -31,7 +31,7 @@ Owner of the "how": it builds, tests and delivers a lot, then closes it. It is t
 - Editing `specs/`, `Backlog/`, `Description.md` or `Report.md`.
 - Setting `ready`, `validated` or `rejected`.
 - Committing on `main` other than the merge of a validated lot and the closing commit.
-- Committing lot files (`Lots/`) on the lot branch.
+- Committing lot files (`lots/`) on the lot branch.
 - Starting a lot that is not `ready`, or working on two lots at once.
 - Modifying or reopening a completed card.
 - Writing a secret in the repository, the journal, `Tests.md` or a Telegram message.
@@ -53,6 +53,6 @@ Cards remain independent of Lots and may link to a Fiche. Record standalone work
 
 - Lot identifier and title.
 - Test environment URL and name of the test account (never the password: it stays in the local, git-ignored `kanban/secrets-test.md`).
-- Short summary of what is delivered and a pointer to `Lots/Lot-XXX/Tests.md`.
+- Short summary of what is delivered and a pointer to `lots/Lot-XXX/Tests.md`.
 
 For pickup and closure in a project with the Lot module installed, follow the Lot operations guide in the project documentation.

@@ -24,7 +24,7 @@ def main():
     git("commit", "-qm", "Implement sample change")
     tested = git("rev-parse", "HEAD")
     git("switch", "-q", "main")
-    lot = root / "Lots/Lot-001"
+    lot = root / "lots/Lot-001"
     lot.mkdir(parents=True)
     fiche = root / "specs/frozen/FICHE-001-r1.md"
     fiche.parent.mkdir(parents=True)
@@ -46,14 +46,14 @@ def main():
     report("pending")
     record("Tests.md", '---\ntype: tests\nid: "Lot-001-Tests"\nlot: "Lot-001"\n'
            f'---\n\nTested commit: `{tested}`\n\nAcceptance result: OK.\n')
-    git("add", "Lots", "specs")
+    git("add", "lots", "specs")
     git("commit", "-qm", "Record delivered fixture")
     git("branch", "uat-delivered")
     git("merge", "--no-ff", "-qm", "Merge accepted fixture", "delivery")
     git("tag", "lot-001", tested)
     description("closed")
     report("accepted", "\nClosing trailer: Lot-Closure: Lot-001\nDelivery tag: refs/tags/lot-001\n")
-    git("add", "Lots")
+    git("add", "lots")
     git("commit", "-qm", "Close fixture", "-m", "Lot-Closure: Lot-001")
     print(f"Fixture: {root}\nDelivered snapshot: uat-delivered\nClosed snapshot: main")
     print(f"Tested commit: {tested}\nClosing commit: {git('rev-parse', 'HEAD')}")

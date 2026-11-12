@@ -11,7 +11,7 @@ Confirm that Description says `delivered`, UAT identifies the full tested commit
 Confirm that Description says `closed` and the Journal records acceptance or rejection. Use the full tested commit from UAT. Locate the closing commit on main by its exact trailer. For Lot-001, inspect the results of:
 
 ```sh
-git log main --format='%H %(trailers:key=Lot-Closure,valueonly)' -- Lots/Lot-001
+git log main --format='%H %(trailers:key=Lot-Closure,valueonly)' -- lots/Lot-001
 ```
 
 Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Lot tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, report that closure is complete.

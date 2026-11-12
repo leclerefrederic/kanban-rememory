@@ -16,11 +16,7 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 
 ## Repository layout
 
-- `kanban/` contains the workflow configuration and one folder per stage. Each stage folder holds its cards.
-- `docs/` contains the user guides and card template.
-- `agents/` contains the first-access interview. Root-level `AGENTS.md` directs agents to it.
-- `tools/` contains the command-line board and validator.
-- `Rememory/` contains the journal, its guide, and the daily template.
+Use the [project directory template](docs/lot-templates/Project-layout.md) for the base kit and the optional Lot module.
 
 ## Adopt the kit
 
@@ -32,7 +28,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | --- | --- |
    | `agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-specification-agent.md`, `actor-development-agent.md` |
    | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`
-   | `docs/lot-templates/` | `Card.md` |
+   | `docs/lot-templates/` | `Card.md`, `Project-layout.md` |
    | `tools/` | `board.py` |
    | `Rememory/` | `README.md`, `daily-template.md` |
 

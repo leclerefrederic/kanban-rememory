@@ -13,7 +13,7 @@ INSTALL_FILES = (
     "agents/adoption.md", "agents/working-instructions.md",
     "agents/actor-user.md", "agents/actor-specification-agent.md", "agents/actor-development-agent.md",
     "docs/kanban.md", "docs/software-development.md",
-    "docs/card-guide.md", "docs/lot-templates/Card.md",
+    "docs/card-guide.md", "docs/lot-templates/Card.md", "docs/lot-templates/Project-layout.md",
     "tools/board.py", "Rememory/README.md", "Rememory/daily-template.md",
 )
 
@@ -161,7 +161,7 @@ class AdoptionTests(unittest.TestCase):
         self.assertEqual(completed.read_bytes(), original)
         self.assertTrue(card.exists())
         completed.write_text("Reference: TASK-00000001\n")
-        lot = self.root / "Lots/Lot-001"
+        lot = self.root / "lots/Lot-001"
         lot.mkdir(parents=True)
         (specs / "frozen").mkdir()
         (specs / "frozen/FICHE-001-r1.md").write_text("- Fiche ID: FICHE-001\n- Revision: 1\n")
@@ -189,7 +189,7 @@ class AdoptionTests(unittest.TestCase):
             (self.root / "specs" / stage / f"FICHE-00{number}-r1.md").write_text(
                 f"- Fiche ID: FICHE-00{number}\n- Revision: 1\n"
             )
-        lot = self.root / "Lots/Lot-001"
+        lot = self.root / "lots/Lot-001"
         lot.mkdir(parents=True)
         description = lot / "Description.md"
         description.write_text("# Lot\n")
@@ -262,10 +262,10 @@ class AdoptionTests(unittest.TestCase):
         fiche.parent.mkdir(parents=True)
         original = b'- Fiche ID: FICHE-001\n- Revision: 1\n'
         fiche.write_bytes(original)
-        lot = self.root / "Lots/Lot-001"
+        lot = self.root / "lots/Lot-001"
         lot.mkdir(parents=True)
         self.populate_lot_templates(lot)
-        subprocess.run(["git", "add", "Lots", "specs"], cwd=self.root, check=True)
+        subprocess.run(["git", "add", "lots", "specs"], cwd=self.root, check=True)
         subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                         "commit", "-qm", "Approve Lot"], cwd=self.root, check=True)
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
@@ -283,7 +283,7 @@ class AdoptionTests(unittest.TestCase):
         fiche = self.root / "specs/frozen/FICHE-001-r1.md"
         fiche.parent.mkdir(parents=True)
         fiche.write_text('---\ntype: fiche\nid: "FICHE-001"\nrevision: "1"\n---\n')
-        lot = self.root / "Lots/Lot-001"
+        lot = self.root / "lots/Lot-001"
         lot.mkdir(parents=True)
         self.populate_lot_templates(lot)
         self.run_board("new", "Check Lot", "--owner", "Test", "--apply")

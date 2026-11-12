@@ -126,6 +126,13 @@ def fiche_entries(source):
             yield [part.strip() for part in line.partition(":")[2].split("|")]
 
 
+def lots_directory():
+    names = {path.name for path in ROOT.iterdir() if path.is_dir()}
+    if {"lots", "Lots"} <= names:
+        raise ValueError("Both lots/ and Lots/ exist. Consolidate the Lot directories before continuing.")
+    return ROOT / ("Lots" if "Lots" in names else "lots")
+
+
 def validate_lot_mapping(card_paths):
     findings = []
 
@@ -147,7 +154,7 @@ def validate_lot_mapping(card_paths):
                 frozen[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
 
     lots = {}
-    for path in (ROOT / "Lots").glob("*/Description.md"):
+    for path in lots_directory().glob("*/Description.md"):
         lot_id = path.parent.name
         selected = set()
         lots[lot_id] = selected
@@ -391,7 +398,7 @@ def rewrite_card_links(source, document, card, target):
 
 def is_closed_lot_report(document):
     relative = document.relative_to(ROOT)
-    if len(relative.parts) != 3 or relative.parts[0] != "Lots" or document.name != "Report.md":
+    if len(relative.parts) != 3 or relative.parts[0] not in ("lots", "Lots") or document.name != "Report.md":
         return False
     description = document.with_name("Description.md")
     if not description.is_file():
@@ -592,13 +599,18 @@ def verify_approval(lot_id, revision):
     if kind.returncode or kind.stdout.strip() != b"commit":
         raise ValueError("The trusted approval commit is unavailable.")
 
-    description = ROOT / "Lots" / lot_id / "Description.md"
+    description = lots_directory() / lot_id / "Description.md"
 
     def approved_bytes(path):
         relative = path.relative_to(ROOT).as_posix()
         recorded = subprocess.run(
             ["git", "show", f"{revision}:{relative}"], cwd=ROOT, capture_output=True,
         )
+        if recorded.returncode and relative.startswith("lots/"):
+            legacy = "Lots/" + relative.removeprefix("lots/")
+            recorded = subprocess.run(
+                ["git", "show", f"{revision}:{legacy}"], cwd=ROOT, capture_output=True,
+            )
         if recorded.returncode:
             raise ValueError(f"Approval mismatch: {relative}")
         return recorded.stdout
