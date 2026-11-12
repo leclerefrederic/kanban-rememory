@@ -29,7 +29,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    | Directory | Files |
    | --- | --- |
-   | `agents/` | `adoption.md`, `working-instructions.md` |
+   | `agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-cowork.md`, `actor-claude-code.md` |
    | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`, `task-template.md` |
    | `tools/` | `board.py` |
    | `Rememory/` | `README.md`, `daily-template.md` |

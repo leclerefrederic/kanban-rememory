@@ -10,6 +10,7 @@ import unittest
 KIT = Path(__file__).resolve().parents[1]
 INSTALL_FILES = (
     "agents/adoption.md", "agents/working-instructions.md",
+    "agents/actor-user.md", "agents/actor-cowork.md", "agents/actor-claude-code.md",
     "docs/kanban.md", "docs/software-development.md",
     "docs/card-guide.md", "docs/task-template.md",
     "tools/board.py", "Rememory/README.md", "Rememory/daily-template.md",
