@@ -26,3 +26,5 @@ If the original worktree is unavailable, fetch the recovery ref and inspect its 
 Keep the recovery ref until the remote main and archive branch or tag have been verified. Remove it only after verification. If a Lot was archived before a recovery ref existed, recover the closing records from a trusted copy before continuing.
 
 The procedure is manual. Enable scheduled pickup only after verifying coordination in the deployment environment.
+
+For a fresh session handling a delivered or closed Lot, see [the handoff guide](lot-handoff.md).
