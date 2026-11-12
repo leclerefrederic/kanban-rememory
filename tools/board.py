@@ -563,8 +563,10 @@ def create_card(workflow, args):
         task_id = f"TASK-{highest + 1:08d}"
         target = ROOT / "kanban" / entry / f"{task_id}-{slug}.md"
         content = template.replace('id: "TASK-NNNNNNNN"', f'id: "{task_id}"', 1)
-        content = content.replace("# TASK-NNNNNNNN — Short title", f"# {task_id} — {title}", 1)
-        content = content.replace("- Owner: application, team, or domain", f"- Owner: {owner}", 1)
+        content = re.sub(r"^# TASK-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
+                         content, count=1, flags=re.MULTILINE)
+        content = re.sub(r"^- Owner:[^\n]*$", lambda _: f"- Owner: {owner}",
+                         content, count=1, flags=re.MULTILINE)
         return target, content
 
     if not args.apply:

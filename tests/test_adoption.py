@@ -54,6 +54,7 @@ class AdoptionTests(unittest.TestCase):
         self.assertFalse(card.exists())
         self.run_board("new", "Example", "--owner", "Test team", "--apply")
         self.assertIn("- Owner: Test team", card.read_text())
+        card.write_text(card.read_text().replace("## Acceptance criteria\n", "## Acceptance criteria\n\n- [ ] Verified.\n", 1))
         journal = self.root / "Rememory/journal.md"
         journal.write_text(
             f"[Criteria](../kanban/{stages[0]}/{card.name}#acceptance-criteria)\n"
@@ -150,8 +151,8 @@ class AdoptionTests(unittest.TestCase):
         specs.mkdir()
         (specs / "sheet.md").write_text("# Specification\n")
         card.write_text(card.read_text().replace(
-            "- Link to other authoritative references.", "- Reference: [Sheet](../../specs/sheet.md)"
-        ).replace("[ ]", "[x]"))
+            "## Acceptance criteria\n", "## Acceptance criteria\n\n- [x] Verified.\n", 1
+        ) + "\n- Reference: [Sheet](../../specs/sheet.md)\n")
         completed = self.board / "completion/TASK-00000002-history.md"
         completed.write_text(f"[Task](../backlog/{card.name})\n")
         original = completed.read_bytes()
@@ -244,6 +245,17 @@ class AdoptionTests(unittest.TestCase):
         description.write_text(approved)
         self.run_board(*command)
 
+    def populate_lot_templates(self, lot):
+        templates = KIT / "docs/lot-templates"
+        for name in ("Description.md", "Tests.md", "Report.md"):
+            source = (templates / name).read_text()
+            document_id = "Lot-001" if name == "Description.md" else f"Lot-001-{Path(name).stem}"
+            source = source.replace("id: null", f'id: "{document_id}"').replace("lot: null", 'lot: "Lot-001"')
+            source = source.replace("status: draft", "status: ready").replace(
+                "fiches: []", 'fiches: [{"id":"FICHE-001","revision":"1","path":"specs/frozen/FICHE-001-r1.md"}]'
+            )
+            (lot / name).write_text(source)
+
     def test_digest_free_approval_and_closure(self):
         self.run_board("init", "--template", "short", "--apply")
         fiche = self.root / "specs/frozen/FICHE-001-r1.md"
@@ -252,9 +264,7 @@ class AdoptionTests(unittest.TestCase):
         fiche.write_bytes(original)
         lot = self.root / "Lots/Lot-001"
         lot.mkdir(parents=True)
-        for name in ("Description.md", "Tests.md", "Report.md"):
-            source = (KIT / "docs/lot-templates" / name).read_text()
-            (lot / name).write_text(source.replace("status: draft", "status: ready"))
+        self.populate_lot_templates(lot)
         subprocess.run(["git", "add", "Lots", "specs"], cwd=self.root, check=True)
         subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                         "commit", "-qm", "Approve Lot"], cwd=self.root, check=True)
@@ -275,10 +285,7 @@ class AdoptionTests(unittest.TestCase):
         fiche.write_text('---\ntype: fiche\nid: "FICHE-001"\nrevision: "1"\n---\n')
         lot = self.root / "Lots/Lot-001"
         lot.mkdir(parents=True)
-        templates = KIT / "docs/lot-templates"
-        for name in ("Description.md", "Tests.md", "Report.md"):
-            source = (templates / name).read_text()
-            (lot / name).write_text(source)
+        self.populate_lot_templates(lot)
         self.run_board("new", "Check Lot", "--owner", "Test", "--apply")
         card = self.board / "backlog/TASK-00000001-check-lot.md"
         source = card.read_text().replace("lot: null", 'lot: "Lot-001"')

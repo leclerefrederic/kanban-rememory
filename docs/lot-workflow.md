@@ -12,6 +12,8 @@ For Git approval evidence, pickup coordination, and closure recovery, follow the
 
 ## Record headers
 
+Fill in the IDs and selected Fiches before marking a Lot ready. Record the tested commit and verdicts in Tests.md. Record the decision, closing trailer, and delivery tag or archive branch in Report.md.
+
 Use `type` and `id` on every record. Description is the Lot record. The fixed filenames Tests.md and Report.md identify the companion records within the Lot folder. Each companion carries its own ID and the parent `lot`. The Fiche header carries its revision. A Card uses `lot` and `fiches` when applicable. Keep stable references in the header and the narrative and evidence in the body.
 
 Use the templates' YAML subset for machine-read fields: one key per line and JSON-compatible quoted scalars, flow lists and mappings. Fiche state comes from its folder. Lot status comes from its Description header. Historical records retain their original format, including the former Tests filename `UAT.md`, so prior approvals and frozen hashes stay verifiable.

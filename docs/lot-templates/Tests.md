@@ -1,7 +1,7 @@
 ---
 type: tests
-id: "Lot-001-Tests"
-lot: "Lot-001"
+id: null
+lot: null
 ---
 
 # Acceptance tests
@@ -9,8 +9,7 @@ lot: "Lot-001"
 [Description](Description.md) · [Report](Report.md)
 
 - Tested commit:
-- Environment or prerequisites, if needed:
+- Environment or prerequisites:
 
 | ID | Fiches | Action | Expected result | Verdict | Comment |
 | --- | --- | --- | --- | --- | --- |
-| UAT-01 | | | | | |
