@@ -1,7 +1,7 @@
 ---
 type: lot
 id: "Lot-001"
-fiches: [{"id":"FICHE-001","revision":"1","path":"specs/frozen/FICHE-001-r1.md","sha256":"SHA256_DIGEST"}]
+fiches: [{"id":"FICHE-001","revision":"1","path":"specs/frozen/FICHE-001-r1.md"}]
 status: draft
 ---
 

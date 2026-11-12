@@ -1,7 +1,6 @@
 """Create a disposable Git repository with delivered and closed Lot snapshots."""
 
 import argparse
-from hashlib import sha256
 from pathlib import Path
 import subprocess
 
@@ -30,7 +29,6 @@ def main():
     fiche = root / "specs/frozen/FICHE-001-r1.md"
     fiche.parent.mkdir(parents=True)
     fiche.write_text('---\ntype: fiche\nid: "FICHE-001"\nrevision: "1"\n---\n', encoding="utf-8")
-    digest = sha256(fiche.read_bytes()).hexdigest()
 
     def record(name, body):
         (lot / name).write_text(body, encoding="utf-8")
@@ -38,7 +36,7 @@ def main():
     def description(status):
         record("Description.md", f'---\ntype: lot\nid: "Lot-001"\nstatus: {status}\n'
                'fiches: [{"id":"FICHE-001","revision":"1",'
-               f'"path":"specs/frozen/FICHE-001-r1.md","sha256":"{digest}"}}]\n---\n')
+               '"path":"specs/frozen/FICHE-001-r1.md"}]\n---\n')
 
     def report(decision, evidence=""):
         record("Report.md", '---\ntype: report\nid: "Lot-001-Report"\nlot: "Lot-001"\n'

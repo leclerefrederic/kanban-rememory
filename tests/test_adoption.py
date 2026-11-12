@@ -244,6 +244,30 @@ class AdoptionTests(unittest.TestCase):
         description.write_text(approved)
         self.run_board(*command)
 
+    def test_digest_free_approval_and_closure(self):
+        self.run_board("init", "--template", "short", "--apply")
+        fiche = self.root / "specs/frozen/FICHE-001-r1.md"
+        fiche.parent.mkdir(parents=True)
+        original = b'- Fiche ID: FICHE-001\n- Revision: 1\n'
+        fiche.write_bytes(original)
+        lot = self.root / "Lots/Lot-001"
+        lot.mkdir(parents=True)
+        for name in ("Description.md", "Tests.md", "Report.md"):
+            source = (KIT / "docs/lot-templates" / name).read_text()
+            (lot / name).write_text(source.replace("status: draft", "status: ready"))
+        subprocess.run(["git", "add", "Lots", "specs"], cwd=self.root, check=True)
+        subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                        "commit", "-qm", "Approve Lot"], cwd=self.root, check=True)
+        revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+        command = ("verify-approval", "Lot-001", revision)
+        self.run_board(*command)
+        description = lot / "Description.md"
+        description.write_text(description.read_text().replace("status: ready", "status: validated"))
+        self.run_board(*command)
+        fiche.write_bytes(original + b"Changed scope\n")
+        self.run_board("validate")
+        self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
+
     def test_yaml_lot_cross_references(self):
         self.run_board("init", "--template", "short", "--apply")
         fiche = self.root / "specs/frozen/FICHE-001-r1.md"
@@ -254,7 +278,7 @@ class AdoptionTests(unittest.TestCase):
         templates = KIT / "docs/lot-templates"
         for name in ("Description.md", "Tests.md", "Report.md"):
             source = (templates / name).read_text()
-            (lot / name).write_text(source.replace("SHA256_DIGEST", sha256(fiche.read_bytes()).hexdigest()))
+            (lot / name).write_text(source)
         self.run_board("new", "Check Lot", "--owner", "Test", "--apply")
         card = self.board / "backlog/TASK-00000001-check-lot.md"
         source = card.read_text().replace("lot: null", 'lot: "Lot-001"')

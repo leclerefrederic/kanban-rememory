@@ -172,15 +172,18 @@ def validate_lot_mapping(card_paths):
             if companion_ids[0] and companion_ids[0] == companion_ids[1]:
                 report(path, "Tests and Report must have distinct IDs.")
         for parts in fiche_entries(source):
-            if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts)
-                    or not re.fullmatch(r"[0-9a-f]{64}", parts[3])):
-                report(path, "Fiche entry requires an ID, revision, path, and SHA-256 digest.")
+            if len(parts) == 3:
+                parts = [*parts, None]
+            if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts[:3])
+                    or (parts[3] is not None and
+                        (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
+                report(path, "Fiche entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
             pinned = frozen.get(parts[2])
             if not pinned or pinned[:2] != tuple(parts[:2]):
                 report(path, "Fiche entry must pin a matching frozen ID, revision, and path.")
                 continue
-            if pinned[2] != parts[3]:
+            if parts[3] is not None and pinned[2] != parts[3]:
                 report(path, f"Frozen Fiche content changed: {parts[2]}")
             if parts[0] in selected:
                 report(path, f"duplicate Fiche in Lot: {parts[0]}")
@@ -589,24 +592,34 @@ def verify_approval(lot_id, revision):
 
     description = ROOT / "Lots" / lot_id / "Description.md"
 
-    def compare(path):
+    def approved_bytes(path):
         relative = path.relative_to(ROOT).as_posix()
         recorded = subprocess.run(
             ["git", "show", f"{revision}:{relative}"], cwd=ROOT, capture_output=True,
         )
-        if recorded.returncode or path.read_bytes() != recorded.stdout:
+        if recorded.returncode:
             raise ValueError(f"Approval mismatch: {relative}")
-        return recorded.stdout.decode("utf-8")
+        return recorded.stdout
 
-    approved = compare(description)
-    if not re.match(r"\A---\r?\n(?:(?!^---).)*^status:[ \t]*ready[ \t]*\r?$",
-                    approved, re.MULTILINE | re.DOTALL):
-        raise ValueError("Approval verification requires a Lot with status ready.")
+    approved = approved_bytes(description).decode("utf-8")
+    current = description.read_bytes().decode("utf-8")
+    status = header_value(current, "status")
+    if header_value(approved, "status") != "ready" or status not in ("ready", "validated", "rejected"):
+        raise ValueError("Approval verification requires a ready approval and a ready or decided Lot.")
+    if status != "ready":
+        header, end, body = current[4:].partition("\n---\n") if current.startswith("---\n") else ("", "", "")
+        if end:
+            header = re.sub(r"(?m)^status:[^\n]*$", "status: ready", header, count=1)
+            current = "---\n" + header + end + body
+    if current != approved:
+        raise ValueError(f"Approval mismatch: {description.relative_to(ROOT)}")
     findings = validate_lot_mapping(())
     if findings:
         raise ValueError("\n".join(findings))
     for entry in fiche_entries(approved):
-        compare(ROOT / entry[2])
+        fiche = ROOT / entry[2]
+        if fiche.read_bytes() != approved_bytes(fiche):
+            raise ValueError(f"Approval mismatch: {fiche.relative_to(ROOT)}")
     print(f"Approval verified for {lot_id}.")
     return 0
 
