@@ -264,6 +264,14 @@ class AdoptionTests(unittest.TestCase):
         report.write_text(report.read_text().replace('lot: "Lot-001"', 'lot: "Lot-999"'))
         self.assertIn("Inconsistent YAML references for Report.md", self.run_board("validate", expected=1))
         report.write_text(report.read_text().replace('lot: "Lot-999"', 'lot: "Lot-001"'))
+        description = lot / "Description.md"
+        tests = lot / "Tests.md"
+        for document, old_refs in (
+            (description, 'tests: "Lot-001-Tests"\nreport: "Lot-001-Report"\n'),
+            (tests, 'report: "Lot-001-Report"\n'),
+            (report, 'tests: "Lot-001-Tests"\n'),
+        ):
+            document.write_text(document.read_text().replace("---\n", "---\n" + old_refs, 1))
         for document in (lot / "Description.md", lot / "Tests.md", report, card):
             source = document.read_text()
             for key in ("lot", "tests", "report"):

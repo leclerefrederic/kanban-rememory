@@ -2,21 +2,15 @@
 type: tests
 id: "Lot-001-Tests"
 lot: "Lot-001"
-report: "Lot-001-Report"
 ---
 
-# User acceptance testing
+# Acceptance tests
 
-[Description](Description.md) · [Lot Journal](Report.md)
+[Description](Description.md) · [Report](Report.md)
 
-## Environment and prerequisites
+- Tested commit:
+- Environment or prerequisites, if needed:
 
-Development Agent records the tested revision, environment, and test setup.
-
-## Scenarios and expected results
-
-Specification Agent records the scenarios derived from the frozen Fiches.
-
-## Results
-
-Specification Agent records each OK or KO and any comment.
+| ID | Fiches | Action | Expected result | Verdict | Comment |
+| --- | --- | --- | --- | --- | --- |
+| UAT-01 | | | | | |

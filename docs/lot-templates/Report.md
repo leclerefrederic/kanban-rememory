@@ -2,15 +2,16 @@
 type: report
 id: "Lot-001-Report"
 lot: "Lot-001"
-tests: "Lot-001-Tests"
 ---
 
 # Lot Journal
 
-[Description](Description.md) · [UAT](Tests.md)
+[Description](Description.md) · [Tests](Tests.md)
 
-## Delivered scope and evidence
+## User decision
 
-## Acceptance test summary
+Pending.
 
-## User decision and closing evidence
+## Closure evidence
+
+Record the closing trailer and the delivery tag or archive branch. Add context if it explains the decision or an exception.

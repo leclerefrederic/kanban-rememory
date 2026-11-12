@@ -155,18 +155,22 @@ def validate_lot_mapping(card_paths):
         if header_value(source, "type") == "lot":
             if header_value(source, "id") != lot_id:
                 report(path, "Lot ID must match the directory name.")
-            if relationship(source, "tests") == relationship(source, "report"):
-                report(path, "Tests and Report must have distinct IDs.")
+            companion_ids = []
             for name, kind, other in (("Tests.md", "tests", "report"), ("Report.md", "report", "tests")):
                 record = path.with_name(name)
                 record_source = record.read_text(encoding="utf-8") if record.is_file() else ""
-                record_id = relationship(source, kind)
+                record_id = header_value(record_source, "id")
+                expected_id = relationship(source, kind)
+                sibling_id = relationship(record_source, other)
                 if (not isinstance(record_id, str) or not record_id
                         or header_value(record_source, "type") != kind
-                        or header_value(record_source, "id") != record_id
                         or relationship(record_source, "lot") != lot_id
-                        or relationship(record_source, other) != relationship(source, other)):
+                        or (expected_id is not None and record_id != expected_id)
+                        or (sibling_id is not None and sibling_id != relationship(source, other))):
                     report(path, f"Inconsistent YAML references for {name}.")
+                companion_ids.append(record_id)
+            if companion_ids[0] and companion_ids[0] == companion_ids[1]:
+                report(path, "Tests and Report must have distinct IDs.")
         for parts in fiche_entries(source):
             if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts)
                     or not re.fullmatch(r"[0-9a-f]{64}", parts[3])):

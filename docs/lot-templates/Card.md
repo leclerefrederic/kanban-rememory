@@ -8,39 +8,24 @@ fiches: []
 # TASK-NNNNNNNN — Short title
 
 - Owner: application, team, or domain
-- Priority: according to project policy
 - Dependencies: IDs and readiness conditions, or none
-- Approval to add and authorization to execute: references and dates, once established
 
 ## Expected outcome
 
-Describe the need and the deliverable.
-
-## Scope
-
-- In scope:
-- Out of scope:
-- Open questions:
+Describe the observable result. Add scope boundaries only when they affect execution.
 
 ## Acceptance criteria
 
 - [ ] Observable outcome and how to verify it.
 
-## Sources and decisions
-
-- Link to other authoritative references.
-
 ## Execution and evidence
+
+Add authorization, start and finish dates, and verification evidence as they become available. Use the fields below when a state or blocker needs tracking.
 
 - State:
 - Actual start:
 - Actual finish:
-- Verified revision or PR, checks run, and results.
-- Agreed delivery point and evidence, if applicable:
 - Blocker:
-
-If blocked, record the date, cause, condition or person who can unblock the card, and next authorized action.
-- Link to the relevant Rememory entry.
 
 ## History
 
