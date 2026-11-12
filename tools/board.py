@@ -253,13 +253,30 @@ def rewrite_card_links(source, document, card, target):
     return "".join(lines)
 
 
-def relocate_card(card, target):
+def is_closed_lot_report(document):
+    relative = document.relative_to(ROOT)
+    if len(relative.parts) != 3 or relative.parts[0] != "Lots" or document.name != "Report.md":
+        return False
+    description = document.with_name("Description.md")
+    if not description.is_file():
+        return False
+    lines = description.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0] != "---" or "---" not in lines[1:]:
+        return False
+    front_matter = lines[1:lines.index("---", 1)]
+    return any(re.fullmatch(r"""status:[ 	]*(?:closed|'closed'|"closed")[ 	]*""", line)
+               for line in front_matter)
+
+
+def relocate_card(card, target, completed):
     updates = {}
     for document in set(markdown_files()) | {card}:
         original = document.read_bytes()
         source = original.decode("utf-8")
         updated = rewrite_card_links(source, document, card, target)
         if source != updated:
+            if (document.parent == completed and CARD_ID.match(document.stem)) or is_closed_lot_report(document):
+                raise ValueError(f"Move would rewrite immutable history: {document.relative_to(ROOT)}")
             updates[target if document == card else document] = (original, updated.encode("utf-8"))
 
     card.rename(target)
@@ -282,6 +299,8 @@ def move_card(workflow, task_id, destination):
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one card for {task_id}, found {len(matches)}.")
     stage, card = matches[0]
+    if stage == workflow["completed"]:
+        raise ValueError("Completed cards are immutable. Create a follow-up card.")
     if "transitions" not in workflow:
         raise ValueError("Configure transitions in kanban/workflow.json before moving cards.")
     if destination not in workflow["transitions"].get(stage, []):
@@ -297,7 +316,7 @@ def move_card(workflow, task_id, destination):
     target = ROOT / "kanban" / destination / card.name
     if target.exists() or target.is_symlink():
         raise ValueError(f"Destination already exists: {target.relative_to(ROOT)}")
-    relocate_card(card, target)
+    relocate_card(card, target, ROOT / "kanban" / workflow["completed"])
     print(f"Moved {task_id} from {stage} to {destination}.")
     return 0
 

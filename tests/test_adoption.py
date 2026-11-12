@@ -138,3 +138,36 @@ class AdoptionTests(unittest.TestCase):
         self.assertIn("Duplicate TASK-00000009", self.run_board(
             "new", "Another card", "--owner", "Maintainers", "--apply", expected=1))
         self.assertEqual(len(list((self.board / "queue").glob("*.md"))), 1)
+
+    def test_move_preserves_closed_history(self):
+        self.run_board("init", "--template", "short", "--apply")
+        self.run_board("new", "Linked task", "--owner", "Maintainers", "--apply")
+        card = self.board / "backlog/TASK-00000001-linked-task.md"
+        specs = self.root / "specs"
+        specs.mkdir()
+        (specs / "sheet.md").write_text("# Specification\n")
+        card.write_text(card.read_text().replace(
+            "Specification sheet, if applicable:", "Specification sheet: [Sheet](../../specs/sheet.md)"
+        ).replace("[ ]", "[x]"))
+        completed = self.board / "completion/TASK-00000002-history.md"
+        completed.write_text(f"[Task](../backlog/{card.name})\n")
+        original = completed.read_bytes()
+        self.assertIn("immutable history", self.run_board("move", "TASK-00000001",
+                                                         "development", expected=1))
+        self.assertEqual(completed.read_bytes(), original)
+        self.assertTrue(card.exists())
+        completed.write_text("Reference: TASK-00000001\n")
+        lot = self.root / "Lots/Lot-001"
+        lot.mkdir(parents=True)
+        (lot / "Description.md").write_text("---\nstatus: closed\n---\n")
+        report = lot / "Report.md"
+        report.write_text(f"[Task](../../kanban/backlog/{card.name})\n")
+        original = report.read_bytes()
+        self.assertIn("immutable history", self.run_board("move", "TASK-00000001",
+                                                         "development", expected=1))
+        self.assertEqual(report.read_bytes(), original)
+        self.assertTrue(card.exists())
+        report.write_text("Reference: TASK-00000001\n")
+        self.run_board("move", "TASK-00000001", "development")
+        self.run_board("move", "TASK-00000001", "completion")
+        self.run_board("validate")

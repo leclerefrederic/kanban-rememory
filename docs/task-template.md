@@ -21,7 +21,8 @@ Describe the need and the deliverable.
 
 ## Sources and decisions
 
-- Link to authoritative references.
+- Specification sheet, if applicable:
+- Link to other authoritative references.
 
 ## Execution and evidence
 
