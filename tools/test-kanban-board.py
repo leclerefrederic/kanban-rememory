@@ -253,7 +253,7 @@ class KanbanBoardTests(unittest.TestCase):
     def populate_lot_templates(self, lot):
         templates = KIT / "docs/templates"
         for name in ("description.md", "tests.md", "report.md"):
-            source = (templates / name).read_text()
+            source = (templates / (name if name == "tests.md" else f"batch-{name}")).read_text()
             document_id = "Batch-001" if name == "description.md" else f"Batch-001-{Path(name).stem.title()}"
             source = source.replace("id: null", f'id: "{document_id}"').replace("batch: null", 'batch: "Batch-001"')
             source = source.replace("status: draft", "status: ready").replace(

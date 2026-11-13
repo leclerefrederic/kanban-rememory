@@ -37,6 +37,6 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](agents/configure-a-project.md).
 
-For the optional Batch module, also copy `docs/batches/batch-workflow.md`, `docs/batches/start-and-close-batches.md`, `docs/batches/resume-a-batch.md`, `specification.md`, `description.md`, `tests.md`, and `report.md` under `docs/templates/`.
+For the optional Batch module, also copy `docs/batches/batch-workflow.md`, `docs/batches/start-and-close-batches.md`, `docs/batches/resume-a-batch.md`, `specification.md`, `batch-description.md`, `tests.md`, and `batch-report.md` under `docs/templates/`.
 
 See the [project directory template](templates/project-layout.md) for the installed layout.

@@ -10,7 +10,3 @@ status: draft
 ## Objective
 
 ## Execution constraints
-
-## Related documents
-
-[Tests](tests.md) · [Batch Journal](report.md)

@@ -6,7 +6,6 @@ batch: null
 
 # Acceptance tests
 
-[Description](description.md) · [Report](report.md)
 
 - Tested commit:
 - Environment or prerequisites:
