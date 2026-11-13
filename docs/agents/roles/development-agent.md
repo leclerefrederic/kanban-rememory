@@ -25,11 +25,11 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 - The tested commit, environment, prerequisites, and technical evidence in `tests.md`.
 - The Closure evidence section of `report.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
-- Git: Batch branch, authorized merge, tag, closing commit, and push. For a rejected Batch, keep code and tests on the archived branch. Stage only the approved Specifications, Batch records, relevant Cards, and approved Backlog records for the closing commit on `main`.
+- Git: Batch branch, authorized merge, tag, closing commit, and push. For a rejected Batch, keep code and tests on the archived branch. Stage only the approved Specifications, Batch records, and relevant Cards for the closing commit on `main`.
 
 ## Forbidden
 
-- Editing `project/specs/`, `Backlog/`, or Batch records outside the assigned fields and statuses.
+- Editing `project/specs/` or Batch records outside the assigned fields and statuses.
 - Setting `ready`, `validated` or `rejected`.
 - Committing on `main` other than the merge of a validated batch and the closing commit.
 - Committing batch files (`project/batches/`) on the batch branch.

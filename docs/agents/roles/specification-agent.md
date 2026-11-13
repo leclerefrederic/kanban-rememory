@@ -12,13 +12,13 @@ Owner of the "what": it writes the specifications, defines batches with the User
 - Guide the User through the UAT, step by step (see below), and record the results in `tests.md`.
 - Write `report.md` once the UAT is done.
 - Record the User's decision (`validated` or `rejected`) in the batch status and in the report.
-- Maintain `Backlog/`: any request that arrives while a batch is active goes there.
+- Record new specification requests in `project/specs/draft/` while a batch is active.
 
-Once the User approves scope, record the approval, move the selected revisions to `project/specs/approved/` and record their paths and the mission order, and hand off the exact approved snapshot to Development Agent for the Git approval commit. Send new requests to the Backlog. Record the Batch Journal in `report.md`.
+Once the User approves scope, record the approval, move the selected revisions to `project/specs/approved/` and record their paths and the mission order, and hand off the exact approved snapshot to Development Agent for the Git approval commit. Record the Batch Journal in `report.md`.
 
 ## Write access
 
-- `project/specs/` and `Backlog/`
+- `project/specs/`
 - `project/batches/Batch-XXX/description.md` before `ready`, plus assigned status updates afterward
 - The "Steps" and "Results" sections of `project/batches/Batch-XXX/tests.md`
 - `project/batches/Batch-XXX/report.md` summary and User decision. Development Agent owns the Closure evidence section.
@@ -34,7 +34,7 @@ Once the User approves scope, record the approval, move the selected revisions t
 
 ## Before creating a batch
 
-List `project/batches/` and read each status. If any batch is not `closed`, refuse, explain why to the User and offer to note the idea in `Backlog/`.
+List `project/batches/` and read each status. If any batch is not `closed`, refuse, explain why to the User and offer to capture the request in `project/specs/draft/`.
 
 ## Preparing and guiding the UAT
 
