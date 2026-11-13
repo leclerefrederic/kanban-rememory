@@ -1,6 +1,6 @@
 # Lot-001 Journal
 
-[Description](Description.md) · [UAT](UAT.md)
+[Description](description.md) · [Tests](tests.md)
 
 ## Scope approval
 

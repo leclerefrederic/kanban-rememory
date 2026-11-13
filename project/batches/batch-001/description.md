@@ -19,4 +19,4 @@ Enable an agent in a fresh session to identify the tested revision, recorded Use
 
 ## Related documents
 
-[UAT](UAT.md) · [Lot Journal](Report.md)
+[Tests](tests.md) · [Lot Journal](report.md)

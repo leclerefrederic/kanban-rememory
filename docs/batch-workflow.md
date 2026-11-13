@@ -16,7 +16,7 @@ Fill in the IDs and selected Specifications before marking a Batch ready. Record
 
 Use `type` and `id` on every record. Description is the Batch record. The fixed filenames tests.md and report.md identify the companion records within the Batch folder. Each companion carries its own ID and the parent `batch`. The Specification header carries its revision. A Card uses `batch` and `specifications` when applicable. Keep stable references in the header and the narrative and evidence in the body.
 
-Use the templates' YAML subset for machine-read fields: one key per line and JSON-compatible quoted scalars, flow lists and mappings. Specification state comes from its folder. Batch status comes from its Description header. Historical records retain their original format, including the former Tests filename `UAT.md`. The board also reads older projects using `lots/` or `Lots/`, and approval verification can read that historical path from Git.
+Use the templates' YAML subset for machine-read fields: one key per line and JSON-compatible quoted scalars, flow lists and mappings. Specification state comes from its folder. Batch status comes from its Description header. Older projects may still use `UAT.md` for acceptance tests. The board also reads older projects using `lots/` or `Lots/`, and approval verification can read that historical path from Git.
 
 ## Git provenance and state history
 
