@@ -9,7 +9,7 @@ batch: "Batch-002"
 
 | ID | Specification | Action | Expected result | Verdict |
 | --- | --- | --- | --- | --- |
-| UAT-01 | SPEC-002 | Open the app with isolated Codex, Claude Code, unrelated, and ambiguous fixture jobs. | Only the verified watchers appear. | Pending |
-| UAT-02 | SPEC-002 | Edit, run, and delete both supported watchers. | Other jobs and user files remain intact, and Run Now cannot interrupt an active run. | Pending |
-| UAT-03 | SPEC-002 | Check idle results, event retention, and repeated failures, then restart. | Latest result is current and history is bounded and deduplicated. | Pending |
-| UAT-04 | SPEC-002 | Build and open the app and inspect Finder and Dock. | The app opens with its bundled icon and build output is ignored. | Pending |
+| UAT-01 | SPEC-002 | Open the app with isolated Codex, Claude Code, unrelated, and ambiguous fixture jobs. | Only the verified watchers appear. | OK (User, 2026-11-13, isolated plist fixtures) |
+| UAT-02 | SPEC-002 | Edit, run, and delete both supported watchers. | Other jobs and user files remain intact, and Run Now cannot interrupt an active run. | Blocked: edit and delete are disabled for discovered watchers; live execution is unverified. |
+| UAT-03 | SPEC-002 | Check idle results, event retention, and repeated failures, then restart. | Latest result is current and history is bounded and deduplicated. | OK (User, isolated storage test); app restart verification pending |
+| UAT-04 | SPEC-002 | Build and open the app and inspect Finder and Dock. | The app opens with its bundled icon and build output is ignored. | KO (User, three attempts; icon absent in Finder and Dock). Fix deferred to Batch-003. |

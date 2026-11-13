@@ -3,3 +3,9 @@
 .AppleDouble
 .LSOverride
 ._*
+
+# Platform build output
+/build/macos/*
+!/build/macos/.gitkeep
+/build/windows/*
+!/build/windows/.gitkeep
