@@ -1,4 +1,4 @@
-name: Test Kanban adoption
+name: Test Kanban board
 
 on: [push, pull_request]
 
@@ -11,4 +11,4 @@ jobs:
         with:
           python-version: '3.9'
       - run: python3 tools/manage-kanban-board.py validate
-      - run: python3 -B tools/test-kanban-adoption.py
+      - run: python3 -B tools/test-kanban-board.py

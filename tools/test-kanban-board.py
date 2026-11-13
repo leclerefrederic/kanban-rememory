@@ -18,7 +18,7 @@ INSTALL_FILES = (
 )
 
 
-class AdoptionTests(unittest.TestCase):
+class KanbanBoardTests(unittest.TestCase):
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
