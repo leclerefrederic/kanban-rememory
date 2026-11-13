@@ -11,5 +11,7 @@ batch: null
 - Environment or prerequisites:
 - Technical evidence:
 
-| ID | Specifications | Action | Expected result | Verdict | Comment |
-| --- | --- | --- | --- | --- | --- |
+| ID | Specifications | Action | Expected result | Verdict | Tested revision | Observation or evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+
+Retain earlier attempts. Link screenshots under `evidence/`. For blocked or unexecuted required tests, record the reason and original scenario reference when carried forward.

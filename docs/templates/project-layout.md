@@ -39,14 +39,20 @@ project/
 ├── specs/
 │   ├── draft/
 │   ├── ready/
-│   └── approved/
+│   ├── approved/
+│   └── resources/
+│       ├── active/
+│       └── archived/
 └── batches/
     └── batch-001/
         ├── description.md
         ├── tests.md
-        └── report.md
+        ├── report.md
+        └── evidence/
 ```
 
 The Specification directory determines its state. A Batch pins the approved Specifications in `project/specs/approved/`. Its Journal is `report.md`. Cards stay in `project/kanban/` and can reference a Batch or Specifications by ID.
 
 Use lowercase names for workflow directories. The project template describes the layout. The installation guide lists the files to copy. Each project starts with its own workflow configuration, Cards, Specifications, Batches, and dated journals.
+
+Create the Batch evidence directory when adding the first attachment.
