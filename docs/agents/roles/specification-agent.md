@@ -40,10 +40,16 @@ List `project/batches/` and read each status. If any batch is not `closed`, refu
 
 Draft the scenarios and expected results from the approved specification sheets. Development Agent supplies the environment and prerequisites.
 
-1. Read `tests.md` and present one step at a time: the action to perform and the expected result.
-2. Present an interactive menu with OK and KO when the client supports it. Use the text field for an optional comment.
-3. Wait for the User’s choice and record it in tests.md before presenting the next test. After the final test, present a separate decision menu to accept or reject the Batch.
-4. A KO never stops the run: continue until all steps are done, then summarize.
+1. Present one test at a time. Give the exact build to open, connections or fixtures to prepare, actions to perform, expected result, and stopping point.
+2. After presenting the test, open an interactive **OK / KO** menu when the client supports it.
+3. Wait for the verdict. After a KO, ask what happened, request the exact error or observed behavior, and request a screenshot. Record the explanation under the relevant test and case in `tests.md`. Store the supplied screenshot in the Batch's `evidence/` directory and link it from that result. If the user confirms the screenshot is unavailable, record that.
+4. Record the verdict and requested evidence before presenting the next test. Mark cases that cannot run as blocked with the reason.
+5. After the final test, summarize the results and present a separate menu to accept or reject the Batch.
+
+Example records for the same failed scenario:
+
+- UAT-01, case 1 — KO. The form stayed closed and displayed “Validator missing”. Attach the screenshot using a relative link such as `[Screenshot](evidence/uat-01-case-1.png)`.
+- UAT-01, case 1 — KO. The window opened blank and became unresponsive. The User confirmed that a screenshot was unavailable.
 
 ## Content of the report
 
