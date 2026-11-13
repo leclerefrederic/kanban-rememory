@@ -11,12 +11,12 @@ Confirm that Description says `delivered`, UAT identifies the full tested commit
 Confirm that Description says `closed` and the Journal records acceptance or rejection. Use the full tested commit from UAT. Locate the closing commit on main by its exact trailer. For Batch-001, inspect the results of:
 
 ```sh
-git log main --format='%H %(trailers:key=Batch-Closure,valueonly)' -- batches/Batch-001
+git log main --format='%H %(trailers:key=Batch-Closure,valueonly)' -- project/batches/batch-001
 ```
 
 Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Batch tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, report that closure is complete.
 
-Development Agent records the closing trailer and expected Git refs in the Closure evidence section of Report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
+Development Agent records the closing trailer and expected Git refs in the Closure evidence section of report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
 
 ## Replay the pilot acceptance scenarios
 

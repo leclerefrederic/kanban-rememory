@@ -12,4 +12,4 @@
 
 - Actual start and finish: 2026-11-10, Europe/Paris.
 - Reviewed Git base `a860bd4`. Checked relative links, heading anchors, stage folders, and external guide references.
-- [Milestone log](../../Rememory/2026-11-10.md).
+- [Milestone log](../../rememory/2026-11-10.md).

@@ -21,4 +21,4 @@ Enable a project to configure its workflow and track a card from selection to cl
 - Git base verified: `285e5c2`. Deliverables are in the local changes.
 - Workflow checked: a started card fills the only WIP slot, still counts while blocked, and frees the slot at closure. A card started on the 10th and finished on the 14th is two days old on the 12th, has a four-day cycle time, and adds one to throughput when closed.
 - Local checks: column structure, unique card ID, template fields, and `git diff --check`.
-- [Milestone log](../../Rememory/2026-11-10.md).
+- [Milestone log](../../rememory/2026-11-10.md).

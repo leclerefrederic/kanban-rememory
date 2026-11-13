@@ -13,4 +13,4 @@
 - Actual start and finish: 2026-11-10, Europe/Paris.
 - Git base: `285e5c2` with local TASK-00000001 changes.
 - Verified all repository Markdown and its relative links.
-- [Milestone log](../../Rememory/2026-11-10.md).
+- [Milestone log](../../rememory/2026-11-10.md).

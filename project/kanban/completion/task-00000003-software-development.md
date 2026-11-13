@@ -14,5 +14,5 @@
 
 - Actual start and finish: 2026-11-10, Europe/Paris.
 - Git base: `f88cf26` with existing local changes.
-- Checked relative Markdown links, the local WIP limit, and the three-day cycle time in the [worked example](../../docs/software-development.md#example). Reviewed the example against the stated review, rework, and delivery policies.
-- [Milestone log](../../Rememory/2026-11-10.md).
+- Checked relative Markdown links, the local WIP limit, and the three-day cycle time in the [worked example](../../../docs/software-development.md#example). Reviewed the example against the stated review, rework, and delivery policies.
+- [Milestone log](../../rememory/2026-11-10.md).

@@ -6,7 +6,7 @@ batch: null
 
 # Batch Journal
 
-[Description](Description.md) · [Tests](Tests.md)
+[Description](description.md) · [Tests](tests.md)
 
 ## Delivery summary and gaps
 

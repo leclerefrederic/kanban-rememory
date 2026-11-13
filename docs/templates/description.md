@@ -13,4 +13,4 @@ status: draft
 
 ## Related documents
 
-[Tests](Tests.md) · [Batch Journal](Report.md)
+[Tests](tests.md) · [Batch Journal](report.md)

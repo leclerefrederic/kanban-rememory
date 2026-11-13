@@ -15,19 +15,20 @@ from unicodedata import normalize
 from urllib.parse import quote, unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-[0-9]{8})(?:-|$)")
+PROJECT = ROOT / "project"
+CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-[0-9]{8})(?:-|$)", re.ASCII | re.IGNORECASE)
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,}).*$")
 HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)\s*#*\s*$")
 LINK = re.compile(r"(?<!\\)\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+\"[^\"]*\")?\s*\)")
 
 
 def card_order(path):
-    prefix, _, number = CARD_ID.match(path.stem)[1].rpartition("-")
+    prefix, _, number = CARD_ID.match(path.stem)[1].upper().rpartition("-")
     return prefix, int(number), path.name
 
 
 def cards(stage):
-    paths = (ROOT / "kanban" / stage).glob("*.md")
+    paths = (PROJECT / "kanban" / stage).glob("*.md")
     return sorted((path for path in paths if CARD_ID.match(path.stem)), key=card_order)
 
 
@@ -130,10 +131,17 @@ def fiche_entries(source):
             yield [part.strip() for part in line.partition(":")[2].split("|")]
 
 
+def project_reference(path):
+    relative = Path(path)
+    if relative.parts and relative.parts[0] == "specs":
+        return PROJECT / path.lower()
+    return ROOT / relative
+
+
 def batch_descriptions():
-    for directory in ROOT.iterdir():
+    for directory in PROJECT.iterdir() if PROJECT.exists() else ():
         if directory.name in ("batches", "lots", "Lots") and directory.is_dir():
-            yield from sorted(directory.glob("*/Description.md"))
+            yield from sorted(p for p in directory.glob("*/*.md") if p.name.lower() == "description.md")
 
 
 def validate_lot_mapping(card_paths):
@@ -145,7 +153,7 @@ def validate_lot_mapping(card_paths):
     fiches = set()
     frozen = {}
     for state in ("ready", "frozen"):
-        for path in (ROOT / "specs" / state).glob("*.md"):
+        for path in (PROJECT / "specs" / state).glob("*.md"):
             content = path.read_bytes()
             source = content.decode("utf-8")
             fiche_id = header_value(source, "id") or field(source, "Fiche ID")
@@ -158,7 +166,10 @@ def validate_lot_mapping(card_paths):
 
     lots = {}
     for path in batch_descriptions():
-        lot_id = path.parent.name
+        lot_id = header_value(path.read_text(encoding="utf-8"), "id") or header_value(path.read_text(encoding="utf-8"), "lot") or path.parent.name
+        if not isinstance(lot_id, str) or lot_id.lower() != path.parent.name.lower():
+            report(path, "Batch ID must match the directory name.")
+            continue
         selected = set()
         if lot_id in lots:
             report(path, f"Duplicate batch ID: {lot_id}")
@@ -168,8 +179,10 @@ def validate_lot_mapping(card_paths):
             if header_value(source, "id") != lot_id:
                 report(path, "Batch ID must match the directory name.")
             companion_ids = []
-            for name, kind, other in (("Tests.md", "tests", "report"), ("Report.md", "report", "tests")):
+            for name, kind, other in (("tests.md", "tests", "report"), ("report.md", "report", "tests")):
                 record = path.with_name(name)
+                if not record.is_file():
+                    record = path.with_name(name.capitalize())
                 record_source = record.read_text(encoding="utf-8") if record.is_file() else ""
                 record_id = header_value(record_source, "id")
                 expected_id = relationship(source, kind)
@@ -191,7 +204,7 @@ def validate_lot_mapping(card_paths):
                         (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
                 report(path, "Specification entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
-            pinned = frozen.get(parts[2])
+            pinned = frozen.get(project_reference(parts[2]).relative_to(ROOT).as_posix())
             if not pinned or pinned[:2] != tuple(parts[:2]):
                 report(path, "Specification entry must pin a matching frozen ID, revision, and path.")
                 continue
@@ -206,7 +219,7 @@ def validate_lot_mapping(card_paths):
     for path in card_paths:
         source = path.read_text(encoding="utf-8")
         if header_value(source, "type") == "card":
-            if header_value(source, "id") != CARD_ID.match(path.stem)[1]:
+            if header_value(source, "id") != CARD_ID.match(path.stem)[1].upper():
                 report(path, "Card ID must match the filename.")
             lot_id = relationship(source, "batch")
             fiche_ids = relationship(source, "specifications")
@@ -234,12 +247,12 @@ def validate(workflow):
     findings = []
     by_id = defaultdict(list)
     for stage in workflow["stages"]:
-        for path in sorted((ROOT / "kanban" / stage).glob("*.md")):
+        for path in sorted((PROJECT / "kanban" / stage).glob("*.md")):
             match = CARD_ID.match(path.stem)
             if not match or match[1].endswith("-00000000"):
                 findings.append(f"{path.relative_to(ROOT)}: expected a task ID with eight digits from 00000001 to 99999999")
                 continue
-            by_id[CARD_ID.match(path.stem)[1]].append(path.relative_to(ROOT))
+            by_id[CARD_ID.match(path.stem)[1].upper()].append(path.relative_to(ROOT))
             if stage == workflow["completed"]:
                 for check in acceptance_checks(path.read_text(encoding="utf-8")):
                     if re.match(r"[-*+]\s+\[ \]", check):
@@ -260,6 +273,8 @@ def validate(workflow):
                 if url.scheme or url.netloc:
                     continue
                 target = path.parent / unquote(url.path) if url.path else path
+                if not target.exists() and path.is_relative_to(PROJECT / "batches"):
+                    target = target.with_name(target.name.lower())
                 if not target.exists():
                     findings.append(f"{name}: missing link target {href}")
                 elif url.fragment and target.suffix.lower() == ".md" and target.is_file():
@@ -287,7 +302,7 @@ def show_board(workflow, limit, today):
             source = path.read_text(encoding="utf-8")
             heading = next((line[2:] for line in markdown_lines(source)
                             if line.startswith("# ")), path.stem)
-            task_id = CARD_ID.match(path.stem)[1]
+            task_id = CARD_ID.match(path.stem)[1].upper()
             title = heading.removeprefix(task_id).lstrip(" —-")
             print(f"  {task_id} | {title} | {path.relative_to(ROOT)}")
             if stage in workflow["active"]:
@@ -342,11 +357,11 @@ def check_workflow(workflow):
 
 
 def load_workflow():
-    path = ROOT / "kanban/workflow.json"
+    path = PROJECT / "kanban/workflow.json"
     if not path.is_file():
-        raise ValueError("No workflow configured. Follow agents/adoption.md before using the board.")
+        raise ValueError("No workflow configured. Follow docs/agents/adoption.md before using the board.")
     workflow = check_workflow(json.loads(path.read_text(encoding="utf-8")))
-    missing = [stage for stage in workflow["stages"] if not (ROOT / "kanban" / stage).is_dir()]
+    missing = [stage for stage in workflow["stages"] if not (PROJECT / "kanban" / stage).is_dir()]
     if missing:
         raise ValueError(f"Missing stage folders: {', '.join(missing)}")
     return workflow
@@ -403,9 +418,11 @@ def rewrite_card_links(source, document, card, target):
 
 def is_closed_lot_report(document):
     relative = document.relative_to(ROOT)
-    if len(relative.parts) != 3 or relative.parts[0] not in ("batches", "lots", "Lots") or document.name != "Report.md":
+    if len(relative.parts) != 4 or relative.parts[1] not in ("batches", "lots", "Lots") or document.name.lower() != "report.md":
         return False
-    description = document.with_name("Description.md")
+    description = document.with_name("description.md")
+    if not description.is_file():
+        description = document.with_name("Description.md")
     if not description.is_file():
         return False
     lines = description.read_text(encoding="utf-8").splitlines()
@@ -448,7 +465,7 @@ def relocate_card(card, target, completed, transition):
 
 def move_card(workflow, task_id, destination):
     matches = [(stage, card) for stage in workflow["stages"] for card in cards(stage)
-               if CARD_ID.match(card.stem)[1] == task_id]
+               if CARD_ID.match(card.stem)[1].upper() == task_id]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one card for {task_id}, found {len(matches)}.")
     stage, card = matches[0]
@@ -466,12 +483,12 @@ def move_card(workflow, task_id, destination):
         checks = list(acceptance_checks(card.read_text(encoding="utf-8")))
         if not checks or any(re.match(r"[-*+]\s+\[ \]", check) for check in checks):
             raise ValueError("Completion requires a nonempty acceptance checklist with every item checked.")
-    target = ROOT / "kanban" / destination / card.name
+    target = PROJECT / "kanban" / destination / card.name
     if target.exists() or target.is_symlink():
         raise ValueError(f"Destination already exists: {target.relative_to(ROOT)}")
     timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
     transition = f"{timestamp} — Stage moved from `{stage}` to `{destination}`."
-    relocate_card(card, target, ROOT / "kanban" / workflow["completed"], transition)
+    relocate_card(card, target, PROJECT / "kanban" / workflow["completed"], transition)
     print(f"Moved {task_id} from {stage} to {destination}.")
     return 0
 
@@ -492,7 +509,7 @@ def initialize(args):
         }
     check_workflow(workflow)
 
-    board = ROOT / "kanban"
+    board = PROJECT / "kanban"
     config = board / "workflow.json"
     if board.is_symlink() or config.is_symlink():
         raise ValueError("The board and workflow configuration must be local paths.")
@@ -533,7 +550,7 @@ def initialize(args):
 
 @contextmanager
 def board_write_lock():
-    lock = ROOT / "kanban/.write-lock"
+    lock = PROJECT / "kanban/.write-lock"
     try:
         lock.mkdir()
     except FileExistsError:
@@ -552,7 +569,7 @@ def create_card(workflow, args):
     if entry not in workflow["stages"] or entry in workflow["active"] or entry == workflow["completed"]:
         raise ValueError("Configure an intake stage outside active and completed work.")
 
-    template_path = ROOT / "docs/templates/Card.md"
+    template_path = ROOT / "docs/templates/card.md"
     if not template_path.is_file():
         template_path = ROOT / "docs/lot-templates/Card.md"
     if not template_path.is_file():
@@ -566,7 +583,7 @@ def create_card(workflow, args):
         seen = set()
         for stage in workflow["stages"]:
             for card in cards(stage):
-                task_id = CARD_ID.match(card.stem)[1]
+                task_id = CARD_ID.match(card.stem)[1].upper()
                 if task_id in seen:
                     raise ValueError(f"Duplicate {task_id}. Resolve the collision before creating a card.")
                 seen.add(task_id)
@@ -575,7 +592,7 @@ def create_card(workflow, args):
         if highest >= 99999999:
             raise ValueError("The eight-digit TASK range is exhausted.")
         task_id = f"TASK-{highest + 1:08d}"
-        target = ROOT / "kanban" / entry / f"{task_id}-{slug}.md"
+        target = PROJECT / "kanban" / entry / f"{task_id.lower()}-{slug}.md"
         content = template.replace('id: "TASK-NNNNNNNN"', f'id: "{task_id}"', 1)
         content = re.sub(r"^# TASK-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
                          content, count=1, flags=re.MULTILINE)
@@ -606,7 +623,7 @@ def verify_approval(lot_id, revision):
     if kind.returncode or kind.stdout.strip() != b"commit":
         raise ValueError("The trusted approval commit is unavailable.")
 
-    matches = [path for path in batch_descriptions() if path.parent.name == lot_id]
+    matches = [path for path in batch_descriptions() if path.parent.name.lower() == lot_id.lower()]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one description for {lot_id}.")
     description = matches[0]
@@ -644,8 +661,9 @@ def verify_approval(lot_id, revision):
     if findings:
         raise ValueError("\n".join(findings))
     for entry in fiche_entries(approved):
-        fiche = ROOT / entry[2]
-        if fiche.read_bytes() != approved_bytes(fiche):
+        fiche = project_reference(entry[2])
+        original = ROOT / entry[2]
+        if fiche.read_bytes() != approved_bytes(original):
             raise ValueError(f"Approval mismatch: {fiche.relative_to(ROOT)}")
     print(f"Approval verified for {lot_id}.")
     return 0
@@ -688,7 +706,7 @@ def main():
             return create_card(workflow, args)
         if args.command == "move":
             with board_write_lock():
-                return move_card(workflow, args.task_id, args.destination)
+                return move_card(workflow, args.task_id.upper(), args.destination)
     except (OSError, ValueError) as error:
         parser.exit(1, f"{error}\n")
     if args.command == "validate":

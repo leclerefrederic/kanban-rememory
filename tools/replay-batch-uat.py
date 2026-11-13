@@ -24,9 +24,9 @@ def main():
     git("commit", "-qm", "Implement sample change")
     tested = git("rev-parse", "HEAD")
     git("switch", "-q", "main")
-    lot = root / "batches/Batch-001"
+    lot = root / "project/batches/batch-001"
     lot.mkdir(parents=True)
-    fiche = root / "specs/frozen/SPEC-001-r1.md"
+    fiche = root / "project/specs/frozen/spec-001-r1.md"
     fiche.parent.mkdir(parents=True)
     fiche.write_text('---\ntype: specification\nid: "SPEC-001"\nrevision: "1"\n---\n', encoding="utf-8")
 
@@ -34,26 +34,26 @@ def main():
         (lot / name).write_text(body, encoding="utf-8")
 
     def description(status):
-        record("Description.md", f'---\ntype: batch\nid: "Batch-001"\nstatus: {status}\n'
+        record("description.md", f'---\ntype: batch\nid: "Batch-001"\nstatus: {status}\n'
                'specifications: [{"id":"SPEC-001","revision":"1",'
-               '"path":"specs/frozen/SPEC-001-r1.md"}]\n---\n')
+               '"path":"project/specs/frozen/spec-001-r1.md"}]\n---\n')
 
     def report(decision, evidence=""):
-        record("Report.md", '---\ntype: report\nid: "Batch-001-Report"\nbatch: "Batch-001"\n'
+        record("report.md", '---\ntype: report\nid: "Batch-001-Report"\nbatch: "Batch-001"\n'
                f'---\n\nUser decision: {decision}.\n{evidence}')
 
     description("delivered")
     report("pending")
-    record("Tests.md", '---\ntype: tests\nid: "Batch-001-Tests"\nbatch: "Batch-001"\n'
+    record("tests.md", '---\ntype: tests\nid: "Batch-001-Tests"\nbatch: "Batch-001"\n'
            f'---\n\nTested commit: `{tested}`\n\nAcceptance result: OK.\n')
-    git("add", "batches", "specs")
+    git("add", "project/batches", "project/specs")
     git("commit", "-qm", "Record delivered fixture")
     git("branch", "uat-delivered")
     git("merge", "--no-ff", "-qm", "Merge accepted fixture", "delivery")
     git("tag", "batch-001", tested)
     description("closed")
     report("accepted", "\nClosing trailer: Batch-Closure: Batch-001\nDelivery tag: refs/tags/batch-001\n")
-    git("add", "batches")
+    git("add", "project/batches")
     git("commit", "-qm", "Close fixture", "-m", "Batch-Closure: Batch-001")
     print(f"Fixture: {root}\nDelivered snapshot: uat-delivered\nClosed snapshot: main")
     print(f"Tested commit: {tested}\nClosing commit: {git('rev-parse', 'HEAD')}")

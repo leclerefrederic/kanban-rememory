@@ -25,4 +25,4 @@ Read the stage folders and card metadata. Show each stage, including empty stage
 - Actual start: 2026-11-10
 - Actual finish: 2026-11-10
 - Verified locally against Git base `c2df064` with an isolated fixture and the repository itself.
-- [Milestone log](../../Rememory/2026-11-10.md)
+- [Milestone log](../../rememory/2026-11-10.md)

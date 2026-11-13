@@ -25,4 +25,4 @@ Check card IDs across all stage folders, local Markdown links and heading anchor
 - Actual start: 2026-11-10
 - Actual finish: 2026-11-10
 - Verified locally against Git base `c2df064` with an isolated fixture and the repository itself.
-- [Milestone log](../../Rememory/2026-11-10.md)
+- [Milestone log](../../rememory/2026-11-10.md)

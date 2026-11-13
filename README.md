@@ -10,13 +10,13 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 | [Task card guide](docs/card-guide.md) | Required card content and the distinction between stage and state |
 | [Board commands](tools/board.py) | Workflow setup, card creation, stage view, guarded moves, and validation |
 | [Optional Batch workflow](docs/batch-workflow.md) | Specification and Batch templates and stable ID mapping |
-| [Card template](docs/templates/Card.md) | Outcome, scope, dependencies, and acceptance criteria |
-| [Rememory guide](Rememory/README.md) | Record of decisions, verification, and next steps |
-| [Daily log template](Rememory/daily-template.md) | Structure for a daily log entry |
+| [Card template](docs/templates/card.md) | Outcome, scope, dependencies, and acceptance criteria |
+| [Rememory guide](project/rememory/README.md) | Record of decisions, verification, and next steps |
+| [Daily log template](project/rememory/daily-template.md) | Structure for a daily log entry |
 
 ## Repository layout
 
-Use the [project directory template](docs/templates/Project-layout.md) for the base kit and the optional Batch module.
+Use the [project directory template](docs/templates/project-layout.md) for the base kit and the optional Batch module.
 
 ## Adopt the kit
 
@@ -26,21 +26,21 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    | Directory | Files |
    | --- | --- |
-   | `agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-specification-agent.md`, `actor-development-agent.md` |
+   | `docs/agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-specification-agent.md`, `actor-development-agent.md` |
    | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`
-   | `docs/templates/` | `Card.md`, `Project-layout.md` |
+   | `docs/templates/` | `card.md`, `Project-layout.md` |
    | `tools/` | `board.py` |
-   | `Rememory/` | `README.md`, `daily-template.md` |
+   | `project/rememory/` | `README.md`, `daily-template.md` |
 
    In the target repository's root `AGENTS.md`, create or merge this entry:
 
    ```markdown
-   Read the [shared working instructions](agents/working-instructions.md) before adopting the kit or working on cards.
+   Read the [shared working instructions](docs/agents/working-instructions.md) before adopting the kit or working on cards.
    ```
 
    Define the target project's ownership, journal conventions, and Git permissions in its own `AGENTS.md`. The kit repository's root instructions, board configuration, cards, and dated journal belong to this repository.
 
-2. Follow the [guided adoption interview](agents/adoption.md) to select a template or agree on a custom workflow. From the target repository root, preview the result. This example uses the standard template.
+2. Follow the [guided adoption interview](docs/agents/adoption.md) to select a template or agree on a custom workflow. From the target repository root, preview the result. This example uses the standard template.
 
    ```sh
    python3 tools/board.py init --template standard --wip-limit 1 --timezone Europe/Paris
@@ -54,9 +54,9 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    python3 tools/board.py show
    ```
 
-   Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](agents/adoption.md).
+   Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](docs/agents/adoption.md).
 
-For the optional Batch module, also copy `docs/batch-workflow.md`, `docs/batch-operations.md`, `docs/batch-handoff.md`, `Specification.md`, `Description.md`, `Tests.md`, and `Report.md` under `docs/templates/`, and `tools/replay-batch-uat.py`.
+For the optional Batch module, also copy `docs/batch-workflow.md`, `docs/batch-operations.md`, `docs/batch-handoff.md`, `Specification.md`, `description.md`, `tests.md`, and `report.md` under `docs/templates/`, and `tools/replay-batch-uat.py`.
 
 Kanban shows the official task status. Rememory records decisions, what was verified, and where to resume. Git preserves the history of both.
 
