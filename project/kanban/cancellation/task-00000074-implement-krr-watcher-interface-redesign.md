@@ -28,3 +28,7 @@ specifications: ["SPEC-004"]
 ## History
 
 - 2026-11-13T22:56:46+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-13T23:23:30+01:00 — Stage moved from `development` to `cancellation`.
+
+- The User accepted the functional delivery with the creation-form visual gap. Individual acceptance verdicts were not collected for all scenarios. Remaining look-and-feel work will be specified separately.
