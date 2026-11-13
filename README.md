@@ -29,7 +29,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | `docs/agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-specification-agent.md`, `actor-development-agent.md` |
    | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`
    | `docs/templates/` | `card.md`, `Project-layout.md` |
-   | `tools/` | `manage-kanban-board.py` |
+   | `tools/` | `manage-kanban-board.py` and the `kanban/` package |
    | `project/rememory/` | `README.md`, `daily-template.md` |
 
    In the target repository's root `AGENTS.md`, create or merge this entry:

@@ -28,6 +28,8 @@ class KanbanBoardTests(unittest.TestCase):
             destination = self.root / name
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(KIT / name, destination)
+        shutil.copytree(KIT / "tools/kanban", self.root / "tools/kanban",
+                        ignore=shutil.ignore_patterns("__pycache__"))
         (self.root / "AGENTS.md").write_text(
             "Read the [shared working instructions](docs/agents/working-instructions.md) "
             "before adopting the kit or working on cards.\n", encoding="utf-8",
