@@ -41,11 +41,11 @@ List `project/batches/` and read each status. If any batch is not `closed`, refu
 
 Draft the scenarios and expected results from the approved specification sheets. Development Agent supplies the environment and prerequisites.
 
-1. Present one test at a time. Give the exact build to open, connections or fixtures to prepare, actions to perform, expected result, and stopping point.
-2. After presenting the test, open an interactive **OK / KO** menu when the client supports it.
+1. Present one test or individual case at a time. Always begin with startup instructions, even when they repeat: exact build and tested revision, how to launch it, any session to close or connection to establish, and fixtures or data to prepare. Then give the actions, expected result, and stopping point. Never assume the User remembers the previous setup.
+2. End that presentation with an interactive **OK / KO** menu when supported. Include the complete startup instructions, actions, and expected result inside the question itself so opening the menu cannot hide them. If the client cannot retain them there, use a single persistent message with the complete instructions and ask the User to reply OK or KO.
 3. Wait for the verdict. After a KO, ask what happened, request the exact error or observed behavior, and request a screenshot. Record the explanation under the relevant test and case in `tests.md`. Store the supplied screenshot in the Batch's `evidence/` directory and link it from that result. If the user confirms the screenshot is unavailable, record that.
-4. Record the verdict and requested evidence before presenting the next test. Mark cases that cannot run as blocked with the reason.
-5. After the final test, summarize the results and present a separate menu to accept or reject the Batch.
+4. Record the verdict and requested evidence, then immediately present the next case with its own startup instructions and verdict menu. Do not ask for separate permission to continue. Continue until every case has a verdict or a documented blocker, or the User pauses. Mark cases that cannot run as blocked with the reason and continue independent cases where possible.
+5. After the final case, summarize results and open debt for the tested revision. Offer acceptance only when every required scenario passed and no blocking debt remains. Otherwise, present correction or rejection; do not convert blocked or untested cases into acceptance. Record any explicit decision to defer nonblocking debt separately.
 
 Example records for the same failed scenario:
 

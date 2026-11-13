@@ -4,7 +4,11 @@ Read the Batch's Description, UAT, and Journal in that order. Use Description fo
 
 ## Delivered and awaiting a decision
 
-Confirm that Description says `delivered`, UAT identifies the full tested commit, and the Journal shows the decision is pending. Verify that the commit exists in Git and matches the revision identified in the Journal if it repeats the value. Report that revision and ask for the User's explicit decision. OK or KO results are evidence for that decision.
+Confirm that `description.md` says `delivered`, `tests.md` identifies the full tested commit, and `report.md` shows the decision is pending. Verify that the commit exists in Git and matches the revision identified in the report if it repeats the value. Report that revision and inspect the recorded test results before choosing the next action.
+
+- If required tests are pending or unexecuted, resume the [guided acceptance procedure](../agents/roles/specification-agent.md#preparing-and-guiding-the-uat) at the next executable case, with complete startup instructions.
+- If blocking debt prevents completion, continue independent tests where possible, then arrange correction in the open Batch or record the User's rejection. Preserve blocked scenarios and previous results.
+- Only when all required tests passed and no blocking debt remains, summarize the results and ask for the User's explicit delivery decision, including any deferral of nonblocking debt. Individual OK verdicts do not accept the Batch.
 
 ## Closed
 
