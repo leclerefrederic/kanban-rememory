@@ -21,6 +21,7 @@ struct Runner: App {
 struct WatcherView: View {
     @State private var watchers: [Watcher] = []
     @State private var selection: URL?
+    @State private var disabledInstallations: Set<URL> = []
     @State private var statuses: [URL: ServiceStatus] = [:]
     @State private var checkedRepository: URL?
     @State private var checkingRepository = false
@@ -68,19 +69,38 @@ struct WatcherView: View {
                     if watcher.editable {
                         Button("Delete Watcher", role: .destructive) { deleting = true }
                     } else {
-                        Text("Only disabled watchers created by KRR can be edited or deleted.").foregroundStyle(.secondary)
+                        Text(disabledInstallations.contains(watcher.id) && statuses[watcher.id]?.active == true
+                             ? "Waiting for the current run to finish."
+                             : "Only disabled watchers created by KRR can be edited or deleted.").foregroundStyle(.secondary)
                     }
                 }.formStyle(.grouped)
                 .toolbar {
                     Button("Run Now") { perform {
                         let status = try LaunchAgents.status(watcher)
-                        guard status.loaded && !status.active else {
+                        guard status.loaded, !status.active, try !LaunchAgents.isDisabled(watcher) else {
                             throw WatcherError(message: "The watcher must be loaded and idle.")
                         }
                         try LaunchAgents.checked(["kickstart", "\(LaunchAgents.domain)/\(watcher.label)"])
-                    }}.disabled(statuses[watcher.id]?.loaded != true || statuses[watcher.id]?.active != false)
+                    }}.disabled(statuses[watcher.id]?.loaded != true || statuses[watcher.id]?.active != false || disabledInstallations.contains(watcher.id))
                     if watcher.editable {
                         Button("Activate Watcher") { perform { try ManagedWatchers.activate(watcher) } }
+                    }
+                    if ManagedWatchers.installedAndOwned(watcher),
+                       ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil {
+                        if disabledInstallations.contains(watcher.id) {
+                            Button("Finish Deactivation") {
+                                perform { selection = try ManagedWatchers.deactivate(watcher) }
+                            }.disabled(statuses[watcher.id]?.active != false)
+                        } else {
+                            Button("Deactivate Watcher") {
+                                perform {
+                                    try ManagedWatchers.requestDeactivation(watcher)
+                                    if !(try LaunchAgents.status(watcher)).active {
+                                        selection = try ManagedWatchers.deactivate(watcher)
+                                    }
+                                }
+                            }
+                        }
                     }
                     Button("Edit Watcher") {
                         seconds = watcher.interval.map(String.init) ?? ""
@@ -231,6 +251,9 @@ struct WatcherView: View {
                          significant: exitCode != 0, repeatedFailure: exitCode != 0)
             history[watcher.label] = entry
         }
+        disabledInstallations = Set(watchers.filter {
+            fixture == nil && ManagedWatchers.installedAndOwned($0) && (try? LaunchAgents.isDisabled($0)) == true
+        }.map(\.id))
         statuses = refreshed
         if let data = try? JSONEncoder().encode(history), data != storedHistory { storedHistory = data }
     }

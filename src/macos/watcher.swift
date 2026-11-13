@@ -62,6 +62,15 @@ enum LaunchAgents {
         if code != 0 { throw WatcherError(message: output.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
 
+    static func isDisabled(_ watcher: Watcher) throws -> Bool {
+        let (code, output) = try call(["print-disabled", domain])
+        guard code == 0 else { throw WatcherError(message: output) }
+        return output.split(separator: "\n").contains {
+            let line = $0.trimmingCharacters(in: .whitespaces)
+            return line == "\"\(watcher.label)\" => disabled" || line == "\"\(watcher.label)\" => true"
+        }
+    }
+
     static func requireAvailable(_ label: String) throws {
         let installed = directory.appendingPathComponent(label + ".plist")
         let (code, output) = try call(["print", "\(domain)/\(label)"])

@@ -55,6 +55,46 @@ enum ManagedWatchers {
         return file
     }
 
+    static func installedAndOwned(_ watcher: Watcher) -> Bool {
+        guard watcher.file.deletingLastPathComponent() == LaunchAgents.directory,
+              let bytes = try? Data(contentsOf: watcher.file) else { return false }
+        return owns(watcher.label, file: watcher.file, bytes: bytes)
+    }
+
+    static func requestDeactivation(_ watcher: Watcher) throws {
+        guard installedAndOwned(watcher) else {
+            throw WatcherError(message: "Only a watcher created by KRR can be disabled.")
+        }
+        try LaunchAgents.checked(["disable", "\(LaunchAgents.domain)/\(watcher.label)"])
+    }
+
+    static func deactivate(_ watcher: Watcher) throws -> URL {
+        guard installedAndOwned(watcher) else {
+            throw WatcherError(message: "Only a watcher created by KRR can be deactivated.")
+        }
+        let bytes = try Data(contentsOf: watcher.file)
+        let destination = inactive.appendingPathComponent(watcher.file.lastPathComponent)
+        try FileManager.default.createDirectory(at: inactive, withIntermediateDirectories: true)
+        try bytes.write(to: destination, options: .withoutOverwriting)
+        do {
+            guard try LaunchAgents.isDisabled(watcher) else {
+                throw WatcherError(message: "Disable the watcher before removing its installation.")
+            }
+            let status = try LaunchAgents.status(watcher)
+            guard !status.active else {
+                throw WatcherError(message: "Wait for the current run to finish.")
+            }
+            if status.loaded {
+                try LaunchAgents.checked(["bootout", "\(LaunchAgents.domain)/\(watcher.label)"])
+            }
+            try FileManager.default.removeItem(at: watcher.file)
+        } catch {
+            try? FileManager.default.removeItem(at: destination)
+            throw error
+        }
+        return destination
+    }
+
     static func activate(_ watcher: Watcher) throws {
         let bytes = try Data(contentsOf: watcher.file)
         guard owns(watcher.label, file: watcher.file, bytes: bytes),
@@ -68,6 +108,7 @@ enum ManagedWatchers {
         let installed = LaunchAgents.directory.appendingPathComponent(watcher.file.lastPathComponent)
         try bytes.write(to: installed, options: .withoutOverwriting)
         do {
+            try LaunchAgents.checked(["enable", "\(LaunchAgents.domain)/\(watcher.label)"])
             try LaunchAgents.checked(["bootstrap", LaunchAgents.domain, installed.path])
         } catch {
             if (try? Data(contentsOf: installed)) == bytes,
