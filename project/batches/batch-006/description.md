@@ -2,7 +2,7 @@
 type: batch
 id: "Batch-006"
 specifications: [{"id":"SPEC-008","revision":"1","path":"project/specs/approved/spec-008-r1.md"},{"id":"SPEC-007","revision":"1","path":"project/specs/approved/spec-007-r1.md"},{"id":"SPEC-006","revision":"1","path":"project/specs/approved/spec-006-r1.md"}]
-status: ready
+status: closed
 ---
 # KRR watcher forms and menu bar
 

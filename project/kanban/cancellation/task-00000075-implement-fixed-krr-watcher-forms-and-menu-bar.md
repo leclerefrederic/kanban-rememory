@@ -24,3 +24,7 @@ specifications: ["SPEC-008", "SPEC-007", "SPEC-006"]
 ## History
 
 - 2026-11-13T23:50:23+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-14T00:23:26+01:00 — Stage moved from `development` to `cancellation`.
+
+- User accepted Batch closure with outstanding live verification.

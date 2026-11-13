@@ -15,6 +15,12 @@ The User approved the harmonized KRR Specifications and authorized starting the 
 
 ## User decision
 
-Pending.
+The User accepted the delivery with the menu bar limited to opening the main window.
 
 ## Closure evidence
+
+- Approval commit: `1bb40f1b9f4687ccdf2a2b8b6c3fd84fac7f407e`.
+
+- Delivery tag target: `c1da3532ba732150255fa9b54158740ba4cd83e2`.
+- Closing trailer: `Batch-Closure: Batch-006`.
+- Remaining gaps: final menu bar click and edit eligibility were not verified in live acceptance. Icon redesign remains open.
