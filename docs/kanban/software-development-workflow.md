@@ -13,7 +13,7 @@ Track a feature, fix, or maintenance change as a card with an observable outcome
 | `code-review` | Code Review | Record the PR or revision and required checks. Return to Development if changes are requested, keeping the original start date. |
 | `deployment` | Deployment, if applicable | Checks and approvals required before release have passed. Keep the card here while release or delivery verification is pending. |
 | `completion` | Completion | Acceptance criteria and the agreed delivery point are verified. Record the revision and evidence. |
-| `archive` | Archive | Record the reason and exclude the card from completed throughput. |
+| `cancellation` | Cancellation | Record the reason and exclude the card from completed throughput. |
 
 Agree on what delivery means for each kind of work. A documentation change may finish at merge, while a fix may require deployment and a production check. Record tests, merge, publication, deployment, and user validation separately as applicable. A required check still pending keeps the card open.
 

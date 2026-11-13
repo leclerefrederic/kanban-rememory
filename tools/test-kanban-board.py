@@ -86,20 +86,20 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board("validate")
 
     def test_short(self):
-        self.lifecycle("short", ["backlog", "development", "completion", "archive"])
+        self.lifecycle("short", ["backlog", "development", "completion", "cancellation"])
 
     def test_standard(self):
-        self.lifecycle("standard", ["backlog", "development", "code-review", "completion", "archive"])
+        self.lifecycle("standard", ["backlog", "development", "code-review", "completion", "cancellation"])
 
     def test_long(self):
         self.lifecycle("long", ["backlog", "refinement", "development", "code-review",
-                                "testing", "deployment", "completion", "archive"])
+                                "testing", "deployment", "completion", "cancellation"])
 
     def test_custom_and_conflict(self):
         source = self.root / "custom.json"
         source.write_text(json.dumps({
-            "stages": ["queue", "build", "shipped"], "active": ["build"],
-            "completed": "shipped", "wip_limit": 2, "timezone": "UTC",
+            "stages": ["backlog", "development", "completion", "cancellation"], "active": ["development"],
+            "completed": "completion", "wip_limit": 2, "timezone": "UTC",
         }))
         self.run_board("init", "--config", "custom.json", "--apply")
         config = (self.board / "workflow.json").read_bytes()
@@ -107,7 +107,7 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("different workflow", self.run_board(
             "init", "--template", "short", "--apply", expected=1))
         self.assertEqual((self.board / "workflow.json").read_bytes(), config)
-        self.assertFalse((self.board / "backlog").exists())
+        self.assertTrue((self.board / "cancellation").is_dir())
         self.run_board("validate")
 
     def test_move_guards_and_rework(self):
@@ -135,7 +135,11 @@ class KanbanBoardTests(unittest.TestCase):
             "active": ["build"], "completed": "shipped",
             "wip_limit": 1, "timezone": "UTC",
         }))
-        self.run_board("init", "--config", "custom.json", "--apply")
+        self.assertIn("Missing required stages", self.run_board(
+            "init", "--config", "custom.json", "--apply", expected=1))
+        for stage in ("queue", "build", "shipped", "archive"):
+            (self.board / stage).mkdir(parents=True)
+        (self.board / "workflow.json").write_bytes(source.read_bytes())
         archived = self.board / "archive/task-00000009-archived.md"
         archived.touch()
         self.run_board("new", "Test adoption", "--owner", "Maintainers", "--apply")

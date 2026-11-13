@@ -22,7 +22,7 @@ repository/
     │   ├── development/
     │   ├── code-review/
     │   ├── completion/
-    │   └── archive/
+    │   └── cancellation/
     └── rememory/
         ├── README.md
         └── daily-template.md

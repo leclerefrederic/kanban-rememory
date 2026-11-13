@@ -61,7 +61,7 @@ TEMPLATES = {
 
 def starter_transitions(delivery, active):
     transitions = {
-        stage: [following, "archive"] for stage, following in zip(delivery, delivery[1:])
+        stage: [following, "cancellation"] for stage, following in zip(delivery, delivery[1:])
     }
     for stage in active[1:]:
         transitions[stage].append(active[0])
@@ -75,7 +75,7 @@ def initialize(args):
         preparation, active = TEMPLATES[args.template]
         delivery = ["backlog", *preparation, *active, "completion"]
         workflow = {
-            "stages": [*delivery, "archive"],
+            "stages": [*delivery, "cancellation"],
             "transitions": starter_transitions(delivery, active),
             "active": active,
             "completed": "completion",
@@ -90,6 +90,16 @@ def initialize(args):
         raise ValueError("The board and workflow configuration must be local paths.")
     if config.exists() and json.loads(config.read_text(encoding="utf-8")) != workflow:
         raise ValueError("A different workflow already exists. Use an explicit migration.")
+    if not config.exists():
+        required = {"backlog", "development", "completion", "cancellation"}
+        if missing := required.difference(workflow["stages"]):
+            raise ValueError(f"Missing required stages: {', '.join(sorted(missing))}")
+        if (workflow["stages"][0] != "backlog" or workflow["active"][0] != "development"
+                or workflow["completed"] != "completion"
+                or {"backlog", "cancellation"}.intersection(workflow["active"])
+                or workflow.get("transitions", {}).get("cancellation")):
+            raise ValueError("Use backlog for intake, development as the first active stage, "
+                             "completion for delivery, and cancellation as a terminal stage.")
     stages = [board / stage for stage in workflow["stages"]]
     for stage in stages:
         if stage.is_symlink() or (stage.exists() and not stage.is_dir()):

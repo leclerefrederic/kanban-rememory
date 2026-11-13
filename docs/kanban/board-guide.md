@@ -7,7 +7,7 @@
 | `code-review` | Work awaiting or undergoing review |
 | `deployment` | Reviewed work awaiting release or delivery verification |
 | `completion` | Acceptance criteria verified and evidence recorded |
-| `archive` | Decision to abandon the work and its rationale recorded |
+| `cancellation` | Decision to abandon the work and its rationale recorded |
 
 The folder determines the stage. The optional card state describes whether work is waiting, in progress, or blocked within that stage. See the [task card guide](write-task-cards.md). Keep each card in one column and preserve its filename and ID when moving it. Link external tickets as references where useful.
 
@@ -17,7 +17,7 @@ The folder determines the stage. The optional card state describes whether work 
 2. Once the backlog entry is approved, copy the [template](../templates/kanban-card.md) to `project/kanban/backlog/task-00000001-topic.md`, using the next number after the highest numeric suffix across all stages for the configured prefix. Use exactly eight digits with leading zeros, from `TASK-00000001` to `TASK-99999999`. After `TASK-00009999`, use `TASK-00010000`. Stop and agree on a numbering migration before exceeding the range. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
 3. Check prerequisites before starting. Unmet dependencies block affected cards, including through intermediate dependencies. Keep work that has yet to start in the backlog and document the dependency chain.
 4. When execution is authorized and capacity is available, move the card to the first active stage. Keep interrupted work in its current stage and record the blocker and next action.
-5. Verify every criterion before moving a card to Completion. Link the journal and evidence. If user validation is required for closure, keep the card in its current active stage until that validation is recorded. If the work is abandoned, record the reason and move the card to Archive.
+5. Verify every criterion before moving a card to Completion. Link the journal and evidence. If user validation is required for closure, keep the card in its current active stage until that validation is recorded. If the work is abandoned, record the reason and move the card to Cancellation.
 
 ## Define the workflow at adoption
 
@@ -64,12 +64,12 @@ To look up a reference published before the eight-digit migration, left-pad its 
 
 ## Move a card
 
-Run `python3 tools/manage-kanban-board.py move TASK-00000019 code-review` with the ID and destination for your card. Starter workflows include forward moves, returns to Development for rework, and withdrawal to Archive. For a custom or existing board, add a `transitions` object to `project/kanban/workflow.json`. Each key is a source stage and its value is the list of permitted destinations. Stages with no outgoing moves can be omitted.
+Run `python3 tools/manage-kanban-board.py move TASK-00000019 code-review` with the ID and destination for your card. Starter workflows include forward moves, returns to Development for rework, and withdrawal to Cancellation. For a custom or existing board, add a `transitions` object to `project/kanban/workflow.json`. Each key is a source stage and its value is the list of permitted destinations. Stages with no outgoing moves can be omitted.
 
 The command checks capacity when a card enters an active stage, and requires a nonempty, fully checked acceptance checklist before completion. It moves the same file and preserves its original start date. It also updates relative inline Markdown links to the card, including section anchors, and adjusts relative links within the moved card. Record authorization, dates, evidence, and state on the card as work progresses. For links outside the repository or formats outside the inline Markdown check, update references separately. Then run `python3 tools/manage-kanban-board.py validate`. See the [worked card example](write-task-cards.md#worked-example).
 
 ## Create a card
 
-Preview a card with `python3 tools/manage-kanban-board.py new "Verify retries" --owner "Billing team"`. After backlog approval, run the same command with `--apply`. The command uses the card template and assigns the next eight-digit `TASK` number across every stage, including Archive. The ID shown in a preview can change if another card is created first.
+Preview a card with `python3 tools/manage-kanban-board.py new "Verify retries" --owner "Billing team"`. After backlog approval, run the same command with `--apply`. The command uses the card template and assigns the next eight-digit `TASK` number across every stage, including Cancellation. The ID shown in a preview can change if another card is created first.
 
 The first configured stage is the intake folder by default. Set `intake` in `project/kanban/workflow.json` to use a different configured stage outside active and completed work. Fill in the outcome, scope, and acceptance criteria before starting the card with `move`.

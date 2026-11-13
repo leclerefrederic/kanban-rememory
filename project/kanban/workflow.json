@@ -5,7 +5,7 @@
     "code-review",
     "deployment",
     "completion",
-    "archive"
+    "cancellation"
   ],
   "active": [
     "development",
@@ -18,22 +18,22 @@
   "transitions": {
     "backlog": [
       "development",
-      "archive"
+      "cancellation"
     ],
     "development": [
       "code-review",
-      "archive"
+      "cancellation"
     ],
     "code-review": [
       "development",
       "deployment",
       "completion",
-      "archive"
+      "cancellation"
     ],
     "deployment": [
       "development",
       "completion",
-      "archive"
+      "cancellation"
     ]
   }
 }
