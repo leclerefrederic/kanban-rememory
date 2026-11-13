@@ -15,7 +15,7 @@ struct Runner: App {
     @AppStorage("appearance") private var appearance = "System"
     @NSApplicationDelegateAdaptor(RunnerDelegate.self) private var delegate
     var body: some Scene {
-        WindowGroup("Kanban Rememory Runner") { WatcherView().preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light) }
+        WindowGroup("Kanban Rememory Runner") { WatcherView().preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light) }.defaultSize(width: 420, height: 390)
     }
 }
 
@@ -53,71 +53,20 @@ struct WatcherView: View {
     private var selected: Watcher? { watchers.first { $0.id == selection } }
 
     var body: some View {
-        List(watchers) { watcher in
-            HStack(spacing: 12) {
-                Image(systemName: profiles[watcher.label]?.icon ?? "folder")
-                    .frame(width: 24)
-                    .foregroundStyle(.teal)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(displayName(watcher)).font(.headline)
-                    Text("\(watcher.engine) · \(state(watcher))").foregroundStyle(.secondary)
-                }
-                Spacer()
-                if state(watcher) == "Ready" {
-                    Button("Run Now") { perform { try run(watcher) } }
-                } else if state(watcher) == "Disabled" && watcher.editable {
-                    Button("Activate") { perform { try ManagedWatchers.activate(watcher) } }
-                } else if state(watcher) == "Running" {
-                    ProgressView().controlSize(.small).accessibilityLabel("Running")
-                }
-                Menu {
-                    Button("Details") { selection = watcher.id; details = true }
-                    if isManaged(watcher) {
-                        Button("Edit Watcher") {
-                            selection = watcher.id
-                            watcherName = displayName(watcher)
-                            icon = profiles[watcher.label]?.icon ?? "folder"
-                            seconds = watcher.interval.map(String.init) ?? ""
-                            editing = true
-                        }
-                    }
-                    if ManagedWatchers.installedAndOwned(watcher) && live {
-                        if disabledInstallations.contains(watcher.id) {
-                            Button("Finish Deactivation") {
-                                perform { _ = try ManagedWatchers.deactivate(watcher) }
-                            }.disabled(statuses[watcher.id]?.active != false)
-                        } else {
-                            Button("Deactivate") { perform {
-                                try ManagedWatchers.requestDeactivation(watcher)
-                                if try !LaunchAgents.status(watcher).active {
-                                    _ = try ManagedWatchers.deactivate(watcher)
-                                }
-                            }}
-                        }
-                    }
-                    if watcher.editable {
-                        Button("Delete Watcher", role: .destructive) { selection = watcher.id; deleting = true }
-                    }
-                } label: {
-                    Image(systemName: "ellipsis").accessibilityLabel("Watcher actions")
-                }
-                .menuIndicator(.hidden)
-                .fixedSize()
-            }.padding(.vertical, 7)
-        }
-        .overlay {
-            if watchers.isEmpty { Text("No watchers").foregroundStyle(.secondary) }
-        }
-        .navigationTitle("Watchers")
+        watcherList.navigationTitle("Watchers")
         .toolbar {
+
             Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
                 .disabled(checkingRepository || !live)
             Button { settings.toggle() } label: { Label("Settings", systemImage: "gearshape") }
                 .popover(isPresented: $settings) {
+                    VStack(alignment: .leading, spacing: 12) {
+                    Text("Settings").font(.headline)
+                    Text("Appearance").font(.subheadline)
                     Picker("Appearance", selection: $appearance) {
                         ForEach(["System", "Light", "Dark"], id: \.self) { Text($0) }
-                    }.pickerStyle(.segmented).padding().frame(width: 320)
+                    }.pickerStyle(.segmented).labelsHidden()
+                    }.padding().frame(width: 280)
                 }
         }
         .sheet(isPresented: $details) {
@@ -169,19 +118,27 @@ struct WatcherView: View {
         }
         .sheet(isPresented: $creating) {
             if let repository = checkedRepository {
-                Form {
-                    LabeledContent("Repository", value: repository.path)
-                    Picker("Engine", selection: $engine) {
-                        Text("Codex").tag("codex")
-                        Text("Claude Code").tag("claude")
-                    }
-                    TextField("Absolute executable path", text: $executable)
-                    TextField("Interval in seconds", text: $seconds)
-                    TextField("Watcher Name", text: $watcherName)
-                    iconPicker
-                    Text("The watcher is created disabled. Activation schedules a status check.")
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("New Watcher").font(.title2.bold())
+                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
+                        GridRow { Text("Repository"); Text(repository.lastPathComponent).foregroundStyle(.secondary) }
+                        GridRow { Text("Watcher Name"); TextField("Watcher Name", text: $watcherName).labelsHidden() }
+                        GridRow {
+                            Text("Engine")
+                            Picker("Engine", selection: $engine) {
+                                Text("Codex").tag("codex")
+                                Text("Claude Code").tag("claude")
+                            }.pickerStyle(.segmented).labelsHidden()
+                        }
+                        GridRow { Text("Executable"); TextField("/opt/homebrew/bin/codex", text: $executable).labelsHidden() }
+                        GridRow { Text("Interval (seconds)"); TextField("300", text: $seconds).labelsHidden() }
+                        GridRow { Text("Icon"); iconPicker.labelsHidden() }
+                    }.textFieldStyle(.roundedBorder)
+                    Divider()
                     HStack {
-                        Button("Cancel") { creating = false }
+                        Text("New watchers start disabled.").font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Cancel") { creating = false }.keyboardShortcut(.cancelAction)
                         Button("Create Watcher") {
                             guard let interval = Int(seconds) else { return }
                             creating = false
@@ -208,16 +165,23 @@ struct WatcherView: View {
                                     failed = true
                                 }
                             }
-                        }.disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/") || cleanName.isEmpty)
+                        }.buttonStyle(.borderedProminent).tint(.teal)
+                            .disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/") || cleanName.isEmpty)
                     }
-                }.formStyle(.grouped).frame(width: 560, height: 380)
+                }.padding(24).frame(width: 460)
             }
         }
-        .frame(minWidth: 380, minHeight: 250)
+        .frame(minWidth: 390, minHeight: 280)
         .task {
             profiles = (try? JSONDecoder().decode([String: WatcherProfile].self, from: storedProfiles)) ?? [:]
             history = (try? JSONDecoder().decode([String: RunHistory].self, from: storedHistory)) ?? [:]
             perform(refresh)
+            if !live, let prefix = ProcessInfo.processInfo.environment["KRR_VISUAL_CAPTURE"] {
+                try? await Task.sleep(for: .milliseconds(500))
+                try? capturePreview(prefix)
+                NSApplication.shared.terminate(nil)
+                return
+            }
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(15))
                 if !Task.isCancelled { try? refresh() }
@@ -226,6 +190,111 @@ struct WatcherView: View {
         .alert("Watcher operation failed", isPresented: $failed) {
             Button("OK", role: .cancel) {}
         } message: { Text(message) }
+    }
+
+    private var watcherList: some View {
+        Group {
+            if watchers.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "folder").font(.system(size: 26)).foregroundStyle(.teal)
+                    Text("No watchers").font(.headline)
+                    Button("New Watcher", action: chooseRepository)
+                        .buttonStyle(.borderedProminent).tint(.teal)
+                        .disabled(checkingRepository || !live)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView { watcherGroup }
+            }
+        }
+    }
+
+    private var watcherGroup: some View {
+            VStack(spacing: 0) {
+                ForEach(watchers) { watcher in
+                    if watcher.label != watchers.first?.label { Divider().padding(.leading, 62) }
+                    watcherRow(watcher)
+                }
+            }
+            .background(.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 16))
+            .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(.primary.opacity(0.10)) }
+            .padding(16)
+    }
+
+    @MainActor private func capturePreview(_ prefix: String) throws {
+        for (name, scheme) in [("light", ColorScheme.light), ("dark", .dark)] {
+            let renderer = ImageRenderer(content: VStack(alignment: .leading, spacing: 0) {
+                Text("Watchers").font(.title2.bold()).padding([.top, .horizontal], 16)
+                watcherGroup
+                Spacer(minLength: 0)
+            }.frame(width: 420, height: 320)
+             .background(scheme == .dark ? Color(white: 0.12) : Color(white: 0.96))
+             .environment(\.colorScheme, scheme))
+            renderer.scale = 2
+            if let image = renderer.cgImage,
+               let data = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) {
+                try data.write(to: URL(fileURLWithPath: prefix + "-" + name + ".png"))
+            }
+        }
+    }
+
+    private func watcherRow(_ watcher: Watcher) -> some View {
+            HStack(spacing: 12) {
+                Image(systemName: previewIndex(watcher).map { ["rectangle.split.3x1", "doc.text", "server.rack", "gearshape"][$0] } ?? profiles[watcher.label]?.icon ?? "folder")
+                    .font(.system(size: 18, weight: .medium))
+                    .frame(width: 38, height: 38)
+                    .background(Color.teal.opacity(0.16), in: RoundedRectangle(cornerRadius: 9))
+                    .foregroundStyle(.teal)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(displayName(watcher)).font(.headline)
+                    Text("\(watcher.engine) · \(state(watcher))").foregroundStyle(.secondary)
+                    if state(watcher) == "Deactivating", (statuses[watcher.id]?.active == true || !live) {
+                        Text("Waiting for the current run to finish").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                if state(watcher) == "Ready" {
+                    Button("Run Now") { if live { perform { try run(watcher) } } }
+                } else if state(watcher) == "Disabled" && (watcher.editable || !live) {
+                    Button("Activate") { if live { perform { try ManagedWatchers.activate(watcher) } } }
+                } else if state(watcher) == "Running" {
+                    ProgressView().controlSize(.small).accessibilityLabel("Running")
+                }
+                Menu {
+                    Button("Details") { selection = watcher.id; details = true }
+                    if isManaged(watcher) {
+                        Button("Edit Watcher") {
+                            selection = watcher.id
+                            watcherName = displayName(watcher)
+                            icon = profiles[watcher.label]?.icon ?? "folder"
+                            seconds = watcher.interval.map(String.init) ?? ""
+                            editing = true
+                        }
+                    }
+                    if ManagedWatchers.installedAndOwned(watcher) && live {
+                        if disabledInstallations.contains(watcher.id) {
+                            Button("Finish Deactivation") {
+                                perform { _ = try ManagedWatchers.deactivate(watcher) }
+                            }.disabled(statuses[watcher.id]?.active != false)
+                        } else {
+                            Button("Deactivate") { perform {
+                                try ManagedWatchers.requestDeactivation(watcher)
+                                if try !LaunchAgents.status(watcher).active {
+                                    _ = try ManagedWatchers.deactivate(watcher)
+                                }
+                            }}
+                        }
+                    }
+                    if watcher.editable {
+                        Button("Delete Watcher", role: .destructive) { selection = watcher.id; deleting = true }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis").accessibilityLabel("Watcher actions")
+                }
+                .menuIndicator(.hidden)
+                .fixedSize()
+            }.padding(.horizontal, 12).padding(.vertical, 10)
+                .buttonStyle(.bordered).tint(.teal)
     }
 
     private var live: Bool { ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil }
@@ -239,8 +308,16 @@ struct WatcherView: View {
         }
     }
 
+    private func previewIndex(_ watcher: Watcher) -> Int? {
+        guard !live, ProcessInfo.processInfo.environment["KRR_VISUAL_CAPTURE"] != nil,
+              let index = Int(watcher.label.replacingOccurrences(of: "fixture-", with: "")),
+              (0..<4).contains(index) else { return nil }
+        return index
+    }
+
     private func displayName(_ watcher: Watcher) -> String {
-        profiles[watcher.label]?.name ?? watcher.label
+        if let index = previewIndex(watcher) { return ["Kanban Rememory", "Docs Site", "API Service", "Build Tools"][index] }
+        return profiles[watcher.label]?.name ?? watcher.label
     }
 
     private func isManaged(_ watcher: Watcher) -> Bool {
@@ -248,6 +325,7 @@ struct WatcherView: View {
     }
 
     private func state(_ watcher: Watcher) -> String {
+        if let index = previewIndex(watcher) { return ["Ready", "Disabled", "Running", "Deactivating"][index] }
         if disabledInstallations.contains(watcher.id) { return "Deactivating" }
         if watcher.editable { return "Disabled" }
         guard let status = statuses[watcher.id] else { return "Unknown" }
