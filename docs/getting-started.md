@@ -9,7 +9,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | `docs/agents/` | `configure-a-project.md`, `work-in-a-project.md` |
    | `docs/agents/roles/` | All three role files |
    | `docs/kanban/` | All three guides |
-   | `docs/templates/` | `card.md`, `project-layout.md` |
+   | `docs/templates/` | `kanban-card.md`, `project-layout.md` |
    | `tools/` | `manage-kanban-board.py` and the `kanban/` package |
    | `project/rememory/` | `README.md`, `daily-template.md` |
 
@@ -37,6 +37,6 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](agents/configure-a-project.md).
 
-For the optional Batch module, also copy `docs/batches/batch-workflow.md`, `docs/batches/start-and-close-batches.md`, `docs/batches/resume-a-batch.md`, `specification.md`, `batch-description.md`, `tests.md`, and `batch-report.md` under `docs/templates/`.
+For the optional Batch module, also copy `docs/batches/batch-workflow.md`, `docs/batches/start-and-close-batches.md`, `docs/batches/resume-a-batch.md`, `specification.md`, `batch-description.md`, `batch-tests.md`, and `batch-report.md` under `docs/templates/`.
 
 See the [project directory template](templates/project-layout.md) for the installed layout.

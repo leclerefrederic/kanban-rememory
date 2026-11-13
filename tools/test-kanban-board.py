@@ -13,7 +13,7 @@ INSTALL_FILES = (
     "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md",
     "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
     "docs/kanban/board-guide.md", "docs/kanban/software-development-workflow.md",
-    "docs/kanban/write-task-cards.md", "docs/templates/card.md", "docs/templates/project-layout.md",
+    "docs/kanban/write-task-cards.md", "docs/templates/kanban-card.md", "docs/templates/project-layout.md",
     "tools/manage-kanban-board.py", "project/rememory/README.md", "project/rememory/daily-template.md",
 )
 
@@ -253,7 +253,7 @@ class KanbanBoardTests(unittest.TestCase):
     def populate_lot_templates(self, lot):
         templates = KIT / "docs/templates"
         for name in ("description.md", "tests.md", "report.md"):
-            source = (templates / (name if name == "tests.md" else f"batch-{name}")).read_text()
+            source = (templates / f"batch-{name}").read_text()
             document_id = "Batch-001" if name == "description.md" else f"Batch-001-{Path(name).stem.title()}"
             source = source.replace("id: null", f'id: "{document_id}"').replace("batch: null", 'batch: "Batch-001"')
             source = source.replace("status: draft", "status: ready").replace(

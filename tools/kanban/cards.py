@@ -155,7 +155,9 @@ def create_card(workflow, args):
     if entry not in workflow["stages"] or entry in workflow["active"] or entry == workflow["completed"]:
         raise ValueError("Configure an intake stage outside active and completed work.")
 
-    template_path = ROOT / "docs/templates/card.md"
+    template_path = ROOT / "docs/templates/kanban-card.md"
+    if not template_path.is_file():
+        template_path = ROOT / "docs/templates/card.md"
     if not template_path.is_file():
         template_path = ROOT / "docs/lot-templates/Card.md"
     if not template_path.is_file():

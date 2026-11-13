@@ -10,7 +10,7 @@ repository/
 │   │   └── roles/
 │   ├── kanban/
 │   └── templates/
-│       ├── card.md
+│       ├── kanban-card.md
 │       └── project-layout.md
 ├── tools/
 │   ├── manage-kanban-board.py
