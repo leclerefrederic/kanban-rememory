@@ -12,10 +12,16 @@ final class RunnerDelegate: NSObject, NSApplicationDelegate {
 
 @main
 struct Runner: App {
+    @AppStorage("appearance") private var appearance = "System"
     @NSApplicationDelegateAdaptor(RunnerDelegate.self) private var delegate
     var body: some Scene {
-        WindowGroup("Kanban Rememory Runner") { WatcherView() }
+        WindowGroup("Kanban Rememory Runner") { WatcherView().preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light) }
     }
+}
+
+private struct WatcherProfile: Codable {
+    let name: String
+    let icon: String
 }
 
 struct WatcherView: View {
@@ -28,7 +34,14 @@ struct WatcherView: View {
     @State private var creating = false
     @State private var engine = "codex"
     @State private var executable = ""
-    @State private var purpose = ""
+    @AppStorage("appearance") private var appearance = "System"
+    @AppStorage("watcher-profiles") private var storedProfiles = Data()
+    @State private var profiles: [String: WatcherProfile] = [:]
+    @State private var watcherName = ""
+    @State private var icon = "folder"
+    @State private var settings = false
+    @State private var details = false
+    private let icons = ["folder", "chevron.left.forwardslash.chevron.right", "doc.text", "server.rack", "terminal", "gearshape"]
     @State private var editing = false
     @State private var deleting = false
     @State private var seconds = ""
@@ -40,105 +53,122 @@ struct WatcherView: View {
     private var selected: Watcher? { watchers.first { $0.id == selection } }
 
     var body: some View {
-        NavigationSplitView {
-            List(watchers, selection: $selection) { watcher in
-                VStack(alignment: .leading) {
-                    Text(watcher.label)
-                    Text(watcher.engine).foregroundStyle(.secondary)
-                }.tag(watcher.id)
-            }.navigationTitle("Watchers").frame(minWidth: 250)
-        } detail: {
-            if let watcher = selected {
-                Form {
-                    Section(watcher.label) {
-                        LabeledContent("Engine", value: watcher.engine)
-                        LabeledContent("Executable", value: watcher.executable)
-                        LabeledContent("Working directory", value: watcher.plist["WorkingDirectory"] as? String ?? "Unknown")
-                        LabeledContent("Trigger", value: watcher.trigger)
-                        LabeledContent("Service state", value: statuses[watcher.id]?.state ?? "Unknown")
-                        LabeledContent("Last run", value: history[watcher.label]?.latest?.date.formatted() ?? "Unknown")
-                        LabeledContent("Last result", value: history[watcher.label]?.latest?.result ?? "Unknown")
-                    }
-                    Section("Recent Runs") {
-                        ForEach(history[watcher.label]?.events ?? []) { event in
-                            LabeledContent(event.count > 1 ? "\(event.result) (\(event.count))" : event.result) {
-                                Text(event.date.formatted())
-                            }
+        List(watchers) { watcher in
+            HStack(spacing: 12) {
+                Image(systemName: profiles[watcher.label]?.icon ?? "folder")
+                    .frame(width: 24)
+                    .foregroundStyle(.teal)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(displayName(watcher)).font(.headline)
+                    Text("\(watcher.engine) · \(state(watcher))").foregroundStyle(.secondary)
+                }
+                Spacer()
+                if state(watcher) == "Ready" {
+                    Button("Run Now") { perform { try run(watcher) } }
+                } else if state(watcher) == "Disabled" && watcher.editable {
+                    Button("Activate") { perform { try ManagedWatchers.activate(watcher) } }
+                } else if state(watcher) == "Running" {
+                    ProgressView().controlSize(.small).accessibilityLabel("Running")
+                }
+                Menu {
+                    Button("Details") { selection = watcher.id; details = true }
+                    if isManaged(watcher) {
+                        Button("Edit Watcher") {
+                            selection = watcher.id
+                            watcherName = displayName(watcher)
+                            icon = profiles[watcher.label]?.icon ?? "folder"
+                            seconds = watcher.interval.map(String.init) ?? ""
+                            editing = true
                         }
                     }
-                    if watcher.editable {
-                        Button("Delete Watcher", role: .destructive) { deleting = true }
-                    } else {
-                        Text(disabledInstallations.contains(watcher.id) && statuses[watcher.id]?.active == true
-                             ? "Waiting for the current run to finish."
-                             : "Only disabled watchers created by KRR can be edited or deleted.").foregroundStyle(.secondary)
-                    }
-                }.formStyle(.grouped)
-                .toolbar {
-                    Button("Run Now") { perform {
-                        let status = try LaunchAgents.status(watcher)
-                        guard status.loaded, !status.active, try !LaunchAgents.isDisabled(watcher) else {
-                            throw WatcherError(message: "The watcher must be loaded and idle.")
-                        }
-                        try LaunchAgents.checked(["kickstart", "\(LaunchAgents.domain)/\(watcher.label)"])
-                    }}.disabled(statuses[watcher.id]?.loaded != true || statuses[watcher.id]?.active != false || disabledInstallations.contains(watcher.id))
-                    if watcher.editable {
-                        Button("Activate Watcher") { perform { try ManagedWatchers.activate(watcher) } }
-                    }
-                    if ManagedWatchers.installedAndOwned(watcher),
-                       ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil {
+                    if ManagedWatchers.installedAndOwned(watcher) && live {
                         if disabledInstallations.contains(watcher.id) {
                             Button("Finish Deactivation") {
-                                perform { selection = try ManagedWatchers.deactivate(watcher) }
+                                perform { _ = try ManagedWatchers.deactivate(watcher) }
                             }.disabled(statuses[watcher.id]?.active != false)
                         } else {
-                            Button("Deactivate Watcher") {
-                                perform {
-                                    try ManagedWatchers.requestDeactivation(watcher)
-                                    if !(try LaunchAgents.status(watcher)).active {
-                                        selection = try ManagedWatchers.deactivate(watcher)
-                                    }
+                            Button("Deactivate") { perform {
+                                try ManagedWatchers.requestDeactivation(watcher)
+                                if try !LaunchAgents.status(watcher).active {
+                                    _ = try ManagedWatchers.deactivate(watcher)
                                 }
-                            }
+                            }}
                         }
                     }
-                    Button("Edit Watcher") {
-                        seconds = watcher.interval.map(String.init) ?? ""
-                        editing = true
-                    }.disabled(!watcher.editable || watcher.interval == nil)
-                    Button("Refresh") { perform(refresh) }
-                }
-                .sheet(isPresented: $editing) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Edit Watcher").font(.headline)
-                        TextField("Interval in seconds", text: $seconds)
-                        HStack {
-                            Button("Cancel") { editing = false }
-                            Button("Save") {
-                                editing = false
-                                if let interval = Int(seconds), interval > 0 {
-                                    perform { try LaunchAgents.change(watcher, interval: interval) }
-                                }
-                            }.disabled((Int(seconds) ?? 0) <= 0)
-                        }
-                    }.padding().frame(width: 320)
-                }
-                .confirmationDialog("Delete this watcher?", isPresented: $deleting) {
-                    Button("Delete Watcher", role: .destructive) {
-                        perform { try LaunchAgents.change(watcher, interval: nil) }
+                    if watcher.editable {
+                        Button("Delete Watcher", role: .destructive) { selection = watcher.id; deleting = true }
                     }
+                } label: {
+                    Image(systemName: "ellipsis").accessibilityLabel("Watcher actions")
                 }
-            } else {
-                Text("Select a Codex or Claude Code watcher.").foregroundStyle(.secondary)
-                    .toolbar { Button("Refresh") { perform(refresh) } }
-            }
-        }.toolbar {
+                .menuIndicator(.hidden)
+                .fixedSize()
+            }.padding(.vertical, 7)
+        }
+        .overlay {
+            if watchers.isEmpty { Text("No watchers").foregroundStyle(.secondary) }
+        }
+        .navigationTitle("Watchers")
+        .toolbar {
             Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
-                .disabled(checkingRepository)
+                .disabled(checkingRepository || !live)
+            Button { settings.toggle() } label: { Label("Settings", systemImage: "gearshape") }
+                .popover(isPresented: $settings) {
+                    Picker("Appearance", selection: $appearance) {
+                        ForEach(["System", "Light", "Dark"], id: \.self) { Text($0) }
+                    }.pickerStyle(.segmented).padding().frame(width: 320)
+                }
+        }
+        .sheet(isPresented: $details) {
+            if let watcher = selected {
+                Form {
+                    LabeledContent("Service label", value: watcher.label)
+                    LabeledContent("Executable", value: watcher.executable)
+                    LabeledContent("Repository", value: watcher.plist["WorkingDirectory"] as? String ?? "Unknown")
+                    LabeledContent("Trigger", value: watcher.trigger)
+                    LabeledContent("Last run", value: history[watcher.label]?.latest?.date.formatted() ?? "Unknown")
+                    LabeledContent("Last result", value: history[watcher.label]?.latest?.result ?? "Unknown")
+                    ForEach(history[watcher.label]?.events ?? []) { event in
+                        LabeledContent("\(event.result) (\(event.count))", value: event.date.formatted())
+                    }
+                    Button("Done") { details = false }
+                }.formStyle(.grouped).frame(width: 480, height: 320)
+            }
+        }
+        .sheet(isPresented: $editing) {
+            if let watcher = selected {
+                Form {
+                    TextField("Watcher Name", text: $watcherName)
+                    iconPicker
+                    if watcher.editable { TextField("Interval in seconds", text: $seconds) }
+                    HStack {
+                        Button("Cancel") { editing = false }
+                        Button("Save") {
+                            editing = false
+                            perform {
+                                if watcher.editable, let interval = Int(seconds), interval != watcher.interval {
+                                    try LaunchAgents.change(watcher, interval: interval)
+                                }
+                                saveProfile(watcher.label)
+                            }
+                        }.disabled(cleanName.isEmpty || (watcher.editable && (Int(seconds) ?? 0) <= 0))
+                    }
+                }.formStyle(.grouped).frame(width: 380, height: 220)
+            }
+        }
+        .confirmationDialog("Delete this watcher?", isPresented: $deleting) {
+            Button("Delete Watcher", role: .destructive) {
+                guard let watcher = selected else { return }
+                perform {
+                    try LaunchAgents.change(watcher, interval: nil)
+                    profiles.removeValue(forKey: watcher.label)
+                    persistProfiles()
+                }
+            }
         }
         .sheet(isPresented: $creating) {
             if let repository = checkedRepository {
-                let label = ManagedWatchers.label(for: repository, purpose: purpose)
                 Form {
                     LabeledContent("Repository", value: repository.path)
                     Picker("Engine", selection: $engine) {
@@ -147,39 +177,45 @@ struct WatcherView: View {
                     }
                     TextField("Absolute executable path", text: $executable)
                     TextField("Interval in seconds", text: $seconds)
-                    TextField("Purpose suffix (optional)", text: $purpose)
-                    LabeledContent("LaunchAgent label", value: label)
+                    TextField("Watcher Name", text: $watcherName)
+                    iconPicker
                     Text("The watcher is created disabled. Activation schedules a status check.")
                     HStack {
                         Button("Cancel") { creating = false }
-                        Button("Create Disabled Watcher") {
+                        Button("Create Watcher") {
                             guard let interval = Int(seconds) else { return }
                             creating = false
                             Task { @MainActor in
                                 do {
                                     try await verify(repository)
                                     perform {
-                                let file = try ManagedWatchers.create(
-                                    repository: repository, executable: URL(fileURLWithPath: executable),
-                                    engine: engine, interval: interval, label: label,
-                                    agents: ManagedWatchers.inactive, records: ManagedWatchers.records
-                                ) {
-                                    try LaunchAgents.requireAvailable(label)
-                                }
-                                        selection = file
+                                        let file = try ManagedWatchers.allocateLabel { label in
+                                            guard try LaunchAgents.isAvailable(label) else { return nil }
+                                            do {
+                                                return try ManagedWatchers.create(
+                                                    repository: repository, executable: URL(fileURLWithPath: executable),
+                                                    engine: engine, interval: interval, label: label,
+                                                    agents: ManagedWatchers.inactive, records: ManagedWatchers.records
+                                                ) {}
+                                            } catch let error as CocoaError where error.code == .fileWriteFileExists {
+                                                return nil
+                                            }
+                                        }
+                                        saveProfile(file.deletingPathExtension().lastPathComponent)
                                     }
                                 } catch {
                                     message = error.localizedDescription
                                     failed = true
                                 }
                             }
-                        }.disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/"))
+                        }.disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/") || cleanName.isEmpty)
                     }
                 }.formStyle(.grouped).frame(width: 560, height: 380)
             }
         }
-        .frame(minWidth: 770, minHeight: 460)
+        .frame(minWidth: 380, minHeight: 250)
         .task {
+            profiles = (try? JSONDecoder().decode([String: WatcherProfile].self, from: storedProfiles)) ?? [:]
             history = (try? JSONDecoder().decode([String: RunHistory].self, from: storedHistory)) ?? [:]
             perform(refresh)
             while !Task.isCancelled {
@@ -190,6 +226,50 @@ struct WatcherView: View {
         .alert("Watcher operation failed", isPresented: $failed) {
             Button("OK", role: .cancel) {}
         } message: { Text(message) }
+    }
+
+    private var live: Bool { ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil }
+    private var cleanName: String { watcherName.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    private var iconPicker: some View {
+        Picker("Icon", selection: $icon) {
+            ForEach(Array(zip(icons, ["Folder", "Code", "Document", "Server", "Terminal", "Tools"])), id: \.0) {
+                Label($0.1, systemImage: $0.0).tag($0.0)
+            }
+        }
+    }
+
+    private func displayName(_ watcher: Watcher) -> String {
+        profiles[watcher.label]?.name ?? watcher.label
+    }
+
+    private func isManaged(_ watcher: Watcher) -> Bool {
+        live && (watcher.editable || ManagedWatchers.installedAndOwned(watcher))
+    }
+
+    private func state(_ watcher: Watcher) -> String {
+        if disabledInstallations.contains(watcher.id) { return "Deactivating" }
+        if watcher.editable { return "Disabled" }
+        guard let status = statuses[watcher.id] else { return "Unknown" }
+        if !status.loaded { return "Not loaded" }
+        return status.active ? "Running" : "Ready"
+    }
+
+    private func run(_ watcher: Watcher) throws {
+        let status = try LaunchAgents.status(watcher)
+        guard status.loaded, !status.active, try !LaunchAgents.isDisabled(watcher) else {
+            throw WatcherError(message: "The watcher must be loaded, enabled and idle.")
+        }
+        try LaunchAgents.checked(["kickstart", "\(LaunchAgents.domain)/\(watcher.label)"])
+    }
+
+    private func saveProfile(_ label: String) {
+        profiles[label] = WatcherProfile(name: cleanName, icon: icon)
+        persistProfiles()
+    }
+
+    private func persistProfiles() {
+        if let bytes = try? JSONEncoder().encode(profiles) { storedProfiles = bytes }
     }
 
     private func chooseRepository() {
@@ -211,7 +291,8 @@ struct WatcherView: View {
                     try await verify(directory)
                     checkedRepository = directory
                     seconds = "300"
-                    purpose = ""
+                    watcherName = directory.lastPathComponent
+                    icon = "folder"
                     executable = ""
                     creating = true
                 } catch {

@@ -8,13 +8,13 @@ enum ManagedWatchers {
 
     static var inactive: URL { records.deletingLastPathComponent().appendingPathComponent("Inactive") }
 
-    static func label(for repository: URL, purpose: String) -> String {
-        func slug(_ value: String) -> String {
-            value.lowercased().replacingOccurrences(of: "[^a-z0-9]+", with: "-", options: .regularExpression)
-                .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+    static func allocateLabel(next: () -> UUID = { UUID() },
+                              reserve: (String) throws -> URL?) throws -> URL {
+        for _ in 0..<16 {
+            let label = "krr." + next().uuidString.lowercased()
+            if let file = try reserve(label) { return file }
         }
-        let suffix = slug(purpose)
-        return "kanban.rememory." + slug(repository.lastPathComponent) + (suffix.isEmpty ? "" : "." + suffix)
+        throw WatcherError(message: "Could not reserve a watcher label. Try again.")
     }
 
     static func owns(_ label: String, file: URL, bytes: Data, records: URL = records) -> Bool {
@@ -24,7 +24,7 @@ enum ManagedWatchers {
 
     static func create(repository: URL, executable: URL, engine: String, interval: Int, label: String,
                        agents: URL, records: URL, checkCollision: () throws -> Void) throws -> URL {
-        guard label.range(of: #"^kanban\.rememory\.[a-z0-9][a-z0-9.-]*$"#, options: .regularExpression) != nil,
+        guard label.range(of: #"^krr\.[a-f0-9-]+$"#, options: .regularExpression) != nil,
               interval > 0,
               ["codex", "claude"].contains(engine), executable.lastPathComponent == engine,
               FileManager.default.isExecutableFile(atPath: executable.path) else {

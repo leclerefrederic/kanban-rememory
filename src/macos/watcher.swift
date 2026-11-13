@@ -71,13 +71,17 @@ enum LaunchAgents {
         }
     }
 
-    static func requireAvailable(_ label: String) throws {
-        let installed = directory.appendingPathComponent(label + ".plist")
-        let (code, output) = try call(["print", "\(domain)/\(label)"])
-        guard !FileManager.default.fileExists(atPath: installed.path),
-              code != 0, output.localizedCaseInsensitiveContains("could not find service") else {
-            throw WatcherError(message: "The label is already in use or cannot be checked.")
+    static func isAvailable(_ label: String) throws -> Bool {
+        for folder in [directory, ManagedWatchers.inactive, ManagedWatchers.records] {
+            let file = folder.appendingPathComponent(label + ".plist")
+            if FileManager.default.fileExists(atPath: file.path) { return false }
         }
+        let (code, output) = try call(["print", "\(domain)/\(label)"])
+        if code == 0 { return false }
+        guard output.localizedCaseInsensitiveContains("could not find service") else {
+            throw WatcherError(message: "Cannot check the launchd label: \(output)")
+        }
+        return true
     }
 
     static func status(_ watcher: Watcher) throws -> ServiceStatus {
