@@ -312,3 +312,7 @@ class AdoptionTests(unittest.TestCase):
                 source = source.replace("\nspecifications:", "\nfiche_ids:")
             document.write_text(source)
         self.run_board("validate")
+
+
+if __name__ == "__main__":
+    unittest.main()
