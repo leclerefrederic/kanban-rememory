@@ -195,21 +195,21 @@ class KanbanBoardTests(unittest.TestCase):
         lot.mkdir(parents=True)
         description = lot / "description.md"
         description.write_text("# Lot\n")
-        self.assertIn("at least one frozen specification", self.run_board("validate", expected=1))
+        self.assertIn("at least one approved specification", self.run_board("validate", expected=1))
         frozen = self.root / "project/specs/frozen/fiche-001-r1.md"
         original = frozen.read_bytes()
         digest = sha256(original).hexdigest()
         description.write_text(f"- Fiche: FICHE-001 | 2 | project/specs/frozen/fiche-001-r1.md | {digest}\n")
-        self.assertIn("matching frozen ID, revision, and path", self.run_board("validate", expected=1))
+        self.assertIn("matching approved ID, revision, and path", self.run_board("validate", expected=1))
         description.write_text(f"- Fiche: FICHE-001 | 1 | project/specs/frozen/fiche-001-r1.md | {digest}\n")
         frozen.write_bytes(original + b"\nEdited after approval.\n")
-        self.assertIn("Frozen specification content changed", self.run_board("validate", expected=1))
+        self.assertIn("Approved specification content changed", self.run_board("validate", expected=1))
         frozen.write_bytes(original)
         card = self.board / "backlog/task-00000001-linked.md"
         card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001, FICHE-002, FICHE-003\n")
         result = self.run_board("validate", expected=1)
         self.assertIn("Specification FICHE-002 is outside batch Lot-001", result)
-        self.assertIn("Specification is not ready or frozen: FICHE-003", result)
+        self.assertIn("Specification is not ready or approved: FICHE-003", result)
         card.write_text("- Lot ID: Lot-999\n")
         self.assertIn("Unknown batch", self.run_board("validate", expected=1))
         card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001\n")
@@ -233,11 +233,14 @@ class KanbanBoardTests(unittest.TestCase):
         subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                         "commit", "-qm", "Approve Lot"], cwd=self.root, check=True)
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+        approved_folder = fiche.parent.with_name("approved")
+        fiche.parent.rename(approved_folder)
+        fiche = approved_folder / fiche.name
         command = ("verify-approval", "Lot-001", revision)
         self.run_board(*command)
         changed = original + b"External edit\n"
         fiche.write_bytes(changed)
-        self.assertIn("Frozen specification content changed", self.run_board(*command, expected=1))
+        self.assertIn("Approved specification content changed", self.run_board(*command, expected=1))
         description.write_text(approved.replace(digest, sha256(changed).hexdigest()))
         self.run_board("validate")
         self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
@@ -254,13 +257,13 @@ class KanbanBoardTests(unittest.TestCase):
             document_id = "Batch-001" if name == "description.md" else f"Batch-001-{Path(name).stem.title()}"
             source = source.replace("id: null", f'id: "{document_id}"').replace("batch: null", 'batch: "Batch-001"')
             source = source.replace("status: draft", "status: ready").replace(
-                "specifications: []", 'specifications: [{"id":"SPEC-001","revision":"1","path":"project/specs/frozen/spec-001-r1.md"}]'
+                "specifications: []", 'specifications: [{"id":"SPEC-001","revision":"1","path":"project/specs/approved/spec-001-r1.md"}]'
             )
             (lot / name).write_text(source)
 
     def test_digest_free_approval_and_closure(self):
         self.run_board("init", "--template", "short", "--apply")
-        fiche = self.root / "project/specs/frozen/spec-001-r1.md"
+        fiche = self.root / "project/specs/approved/spec-001-r1.md"
         fiche.parent.mkdir(parents=True)
         original = b'- Fiche ID: SPEC-001\n- Revision: 1\n'
         fiche.write_bytes(original)
@@ -282,7 +285,7 @@ class KanbanBoardTests(unittest.TestCase):
 
     def test_yaml_lot_cross_references(self):
         self.run_board("init", "--template", "short", "--apply")
-        fiche = self.root / "project/specs/frozen/spec-001-r1.md"
+        fiche = self.root / "project/specs/approved/spec-001-r1.md"
         fiche.parent.mkdir(parents=True)
         fiche.write_text('---\ntype: specification\nid: "SPEC-001"\nrevision: "1"\n---\n')
         lot = self.root / "project/batches/batch-001"

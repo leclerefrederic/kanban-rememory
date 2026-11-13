@@ -25,7 +25,7 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 - The tested commit, environment, prerequisites, and technical evidence in `tests.md`.
 - The Closure evidence section of `report.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
-- Git: Batch branch, authorized merge, tag, closing commit, and push. For a rejected Batch, keep code and tests on the archived branch. Stage only the frozen Specifications, Batch records, relevant Cards, and approved Backlog records for the closing commit on `main`.
+- Git: Batch branch, authorized merge, tag, closing commit, and push. For a rejected Batch, keep code and tests on the archived branch. Stage only the approved Specifications, Batch records, relevant Cards, and approved Backlog records for the closing commit on `main`.
 
 ## Forbidden
 
@@ -57,3 +57,5 @@ Cards remain independent of Batches and may link to a Specification. Record stan
 - Short summary of what is delivered and a pointer to `project/batches/Batch-XXX/tests.md`.
 
 For pickup and closure in a project with the Batch module installed, follow the Batch operations guide in the project documentation.
+
+Use the approved Specification revisions pinned by the Batch. Ask Specification Agent to prepare a new draft revision if scope changes.

@@ -1,6 +1,6 @@
 # Project directory template
 
-Copy the reusable files from the kit and create or merge the root AGENTS.md as described in the [installation guide](../getting-started.md). Add this structure alongside the project's existing code and tests.
+Copy the reusable files from the kit and create or merge the root AGENTS.md as described in the installation guide. Add this structure alongside the project's existing code and tests.
 
 ```text
 repository/
@@ -39,7 +39,7 @@ project/
 ├── specs/
 │   ├── draft/
 │   ├── ready/
-│   └── frozen/
+│   └── approved/
 └── batches/
     └── batch-001/
         ├── description.md
@@ -47,6 +47,6 @@ project/
         └── report.md
 ```
 
-The Specification directory determines its state. A Batch pins the approved Specifications in `project/specs/frozen/`. Its Journal is `report.md`. Cards stay in `project/kanban/` and can reference a Batch or Specifications by ID.
+The Specification directory determines its state. A Batch pins the approved Specifications in `project/specs/approved/`. Its Journal is `report.md`. Cards stay in `project/kanban/` and can reference a Batch or Specifications by ID.
 
 Use lowercase names for workflow directories. The project template describes the layout. The installation guide lists the files to copy. Each project starts with its own workflow configuration, Cards, Specifications, Batches, and dated journals.

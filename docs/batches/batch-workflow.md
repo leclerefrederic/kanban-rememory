@@ -1,10 +1,19 @@
 # Specifications, Delivery Batches, and Cards
 
-See the [project directory template](../templates/project-layout.md). Projects using Batches create `project/specs/draft/`, `project/specs/ready/`, `project/specs/frozen/`, and `project/batches/` in the product repository. The folder determines a Specification's state. Start from the [Specification template](../templates/specification.md). Keep the Specification ID across revisions and assign each revision its own filename.
+| Directory | Specification state |
+| --- | --- |
+| `draft/` | Being written or revised. |
+| `ready/` | Ready to propose for Batch approval. Return it to draft if it needs clarification. |
+| `approved/` | Exact revision approved for a Batch. Keep its contents and path stable. |
 
-A Batch groups one or more Specifications. On approval, freeze the selected revisions in `project/specs/frozen/` and create the Batch as `ready`. Copy the [Description](../templates/description.md), [UAT](../templates/tests.md), and [Journal](../templates/report.md) templates into a folder such as `project/batches/batch-001/`. The directory name is the stable Batch ID. In the Description header, record each selected Specification in the `specifications` list with `id`, `revision`, and repository-relative `path`. The list order sets the priority. Add execution constraints only when the list cannot express them. The pinned file must carry the same Specification ID and revision. Keep frozen revisions at their approved paths. The approval commit records the exact contents. Run `validate` for reference consistency and `verify-approval` against the trusted commit before pickup and closure. Historical Batches with a digest retain their original validation.
+Start a new revision in draft when an approved Specification changes. Reuse an approved revision as-is in another Batch when it still fits, including after rejection of a delivery. The Batch records the delivery decision.
 
-Cards track Development Agent's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. Cards may reference Specifications in `ready` or `frozen`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
+
+See the [project directory template](../templates/project-layout.md). Projects using Batches create `project/specs/draft/`, `project/specs/ready/`, `project/specs/approved/`, and `project/batches/` in the product repository. The folder determines a Specification's state. Start from the [Specification template](../templates/specification.md). Keep the Specification ID across revisions and assign each revision its own filename.
+
+A Batch groups one or more Specifications. On approval, move the selected revisions from ready to `project/specs/approved/` and create the Batch as `ready`. Copy the [Description](../templates/description.md), [UAT](../templates/tests.md), and [Journal](../templates/report.md) templates into a folder such as `project/batches/batch-001/`. The directory name is the stable Batch ID. In the Description header, record each selected Specification in the `specifications` list with `id`, `revision`, and repository-relative `path`. The list order sets the priority. Add execution constraints only when the list cannot express them. The pinned file must carry the same Specification ID and revision. Keep approved revisions at their approved paths. The approval commit records the exact contents. Run `validate` for reference consistency and `verify-approval` against the trusted commit before pickup and closure. Historical Batches with a digest retain their original validation.
+
+Cards track Development Agent's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. Cards may reference Specifications in `ready` or `approved`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
 
 Run `python3 tools/manage-kanban-board.py validate` to check the mapping. See the [agent roles](../agents/work-in-a-project.md#batch-workflow-roles).
 

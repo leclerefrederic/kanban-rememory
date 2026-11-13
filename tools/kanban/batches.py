@@ -38,8 +38,10 @@ def project_reference(path):
     relative = Path(path)
     if relative.parts and relative.parts[0] == "specs":
         relative = Path("project") / path.lower()
-    if relative.as_posix() == "project/specs/frozen/fiche-001-r1.md":
-        migrated = PROJECT / "specs/frozen/spec-001-r1.md"
+    if relative.parts[:3] == ("project", "specs", "frozen"):
+        migrated = PROJECT / "specs/approved" / relative.name
+        if relative.name == "fiche-001-r1.md" and not migrated.is_file():
+            migrated = migrated.with_name("spec-001-r1.md")
         if migrated.is_file():
             return migrated
     return ROOT / relative
@@ -62,8 +64,8 @@ def validate_lot_mapping(card_paths):
         findings.append(f"{path.relative_to(ROOT)}: {message}")
 
     fiches = set()
-    frozen = {}
-    for state in ("ready", "frozen"):
+    approved = {}
+    for state in ("ready", "approved", "frozen"):
         for path in (PROJECT / "specs" / state).glob("*.md"):
             content = path.read_bytes()
             source = content.decode("utf-8")
@@ -72,8 +74,8 @@ def validate_lot_mapping(card_paths):
             if not fiche_id:
                 continue
             fiches.add(fiche_id)
-            if state == "frozen":
-                frozen[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
+            if state != "ready":
+                approved[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
 
     lots = {}
     for path in batch_descriptions():
@@ -115,17 +117,17 @@ def validate_lot_mapping(card_paths):
                         (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
                 report(path, "Specification entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
-            pinned = frozen.get(project_reference(parts[2]).relative_to(ROOT).as_posix())
+            pinned = approved.get(project_reference(parts[2]).relative_to(ROOT).as_posix())
             if not pinned or pinned[:2] != tuple(parts[:2]):
-                report(path, "Specification entry must pin a matching frozen ID, revision, and path.")
+                report(path, "Specification entry must pin a matching approved ID, revision, and path.")
                 continue
             if parts[3] is not None and pinned[2] != parts[3]:
-                report(path, f"Frozen specification content changed: {parts[2]}")
+                report(path, f"Approved specification content changed: {parts[2]}")
             if parts[0] in selected:
                 report(path, f"Duplicate specification in batch: {parts[0]}")
             selected.add(parts[0])
         if not selected:
-            report(path, "A batch requires at least one frozen specification.")
+            report(path, "A batch requires at least one approved specification.")
 
     for path in card_paths:
         source = path.read_text(encoding="utf-8")
@@ -148,7 +150,7 @@ def validate_lot_mapping(card_paths):
             if not fiche_id:
                 continue
             if fiche_id not in fiches:
-                report(path, f"Specification is not ready or frozen: {fiche_id}")
+                report(path, f"Specification is not ready or approved: {fiche_id}")
             elif lot_id in lots and fiche_id not in lots[lot_id]:
                 report(path, f"Specification {fiche_id} is outside batch {lot_id}")
     return findings
