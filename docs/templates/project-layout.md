@@ -1,15 +1,20 @@
 # Project directory template
 
-Copy the reusable files from the kit and create or merge the root AGENTS.md as described in the installation guide. Add this structure alongside the project's existing code and tests.
+Copy the reusable files from the kit and create or merge the root AGENTS.md as described in the [installation guide](../getting-started.md). Add this structure alongside the project's existing code and tests.
 
 ```text
 repository/
 ├── AGENTS.md
-├── README.md
 ├── docs/
 │   ├── agents/
+│   │   └── roles/
+│   ├── kanban/
 │   └── templates/
+│       ├── card.md
+│       └── project-layout.md
 ├── tools/
+│   ├── manage-kanban-board.py
+│   └── kanban/
 └── project/
     ├── kanban/
     │   ├── workflow.json
@@ -19,13 +24,15 @@ repository/
     │   ├── completion/
     │   └── archive/
     └── rememory/
+        ├── README.md
+        └── daily-template.md
 ```
 
 The tree shows the Standard workflow. Run `init` after approval to create `project/kanban/workflow.json` and one directory per approved stage. The workflow file lists the actual stages. Keep Cards in their stage directories and daily execution notes in `project/rememory/`.
 
 ## With the Batch module
 
-Add these paths when the project adopts Batches. Create a Batch directory when preparing a specific Batch.
+Copy the guides under `docs/batches/` and the four Batch templates under `docs/templates/` as listed in the installation guide. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch.
 
 ```text
 project/
