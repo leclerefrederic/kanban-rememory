@@ -40,7 +40,7 @@ enum LaunchAgents {
                   executable.hasPrefix("/") else { return nil }
             let name = URL(fileURLWithPath: executable).lastPathComponent
             guard let engine = ["codex": "Codex", "claude": "Claude Code"][name] else { return nil }
-            return Watcher(file: file, label: label, engine: engine, executable: executable, plist: plist, editable: false)
+            return Watcher(file: file, label: label, engine: engine, executable: executable, plist: plist, editable: directory == ManagedWatchers.inactive && ManagedWatchers.owns(label, file: file, bytes: bytes))
         }.sorted { $0.label < $1.label }
     }
 
@@ -62,6 +62,15 @@ enum LaunchAgents {
         if code != 0 { throw WatcherError(message: output.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
 
+    static func requireAvailable(_ label: String) throws {
+        let installed = directory.appendingPathComponent(label + ".plist")
+        let (code, output) = try call(["print", "\(domain)/\(label)"])
+        guard !FileManager.default.fileExists(atPath: installed.path),
+              code != 0, output.localizedCaseInsensitiveContains("could not find service") else {
+            throw WatcherError(message: "The label is already in use or cannot be checked.")
+        }
+    }
+
     static func status(_ watcher: Watcher) throws -> ServiceStatus {
         let (code, output) = try call(["print", "\(domain)/\(watcher.label)"])
         if code == 0 { return ServiceStatus(output) }
@@ -70,35 +79,26 @@ enum LaunchAgents {
     }
 
     static func change(_ watcher: Watcher, interval: Int?) throws {
-        guard let current = try discover(in: directory).first(where: { $0.id == watcher.id }),
-              current.editable, NSDictionary(dictionary: current.plist).isEqual(to: watcher.plist) else {
-            throw WatcherError(message: "The watcher changed or cannot be managed. Refresh and try again.")
+        guard let current = try discover(in: ManagedWatchers.inactive).first(where: { $0.id == watcher.id }),
+              current.editable, NSDictionary(dictionary: current.plist).isEqual(to: watcher.plist),
+              !(try status(watcher)).loaded else {
+            throw WatcherError(message: "Only a verified, disabled watcher can be edited or deleted.")
         }
+        let record = ManagedWatchers.records.appendingPathComponent(watcher.file.lastPathComponent)
         let original = try Data(contentsOf: watcher.file)
-        let service = try status(watcher)
-        guard !service.active else { throw WatcherError(message: "Wait for the current run to finish.") }
-        var updated = watcher.plist
-        if let interval { updated["StartInterval"] = interval }
-        let replacement = try interval.map { _ in
-            try PropertyListSerialization.data(fromPropertyList: updated, format: .xml, options: 0)
-        }
-        if service.loaded { try checked(["bootout", "\(domain)/\(watcher.label)"]) }
-        do {
-            if let replacement {
-                try replacement.write(to: watcher.file, options: .atomic)
-                if service.loaded { try checked(["bootstrap", domain, watcher.file.path]) }
-            } else {
-                try FileManager.default.removeItem(at: watcher.file)
-            }
-        } catch {
-            let operationError = error
-            do {
+        if let interval {
+            var updated = watcher.plist
+            updated["StartInterval"] = interval
+            let replacement = try PropertyListSerialization.data(fromPropertyList: updated, format: .xml, options: 0)
+            try replacement.write(to: watcher.file, options: .atomic)
+            do { try replacement.write(to: record, options: .atomic) }
+            catch {
                 try original.write(to: watcher.file, options: .atomic)
-                if service.loaded { try checked(["bootstrap", domain, watcher.file.path]) }
-            } catch {
-                throw WatcherError(message: "Change failed: \(operationError.localizedDescription). Recovery failed: \(error.localizedDescription)")
+                throw error
             }
-            throw operationError
+        } else {
+            try FileManager.default.removeItem(at: watcher.file)
+            try FileManager.default.removeItem(at: record)
         }
     }
 }

@@ -22,6 +22,11 @@ struct WatcherView: View {
     @State private var watchers: [Watcher] = []
     @State private var selection: URL?
     @State private var statuses: [URL: ServiceStatus] = [:]
+    @State private var checkedRepository: URL?
+    @State private var creating = false
+    @State private var engine = "codex"
+    @State private var executable = ""
+    @State private var purpose = ""
     @State private var editing = false
     @State private var deleting = false
     @State private var seconds = ""
@@ -49,6 +54,7 @@ struct WatcherView: View {
                         LabeledContent("Working directory", value: watcher.plist["WorkingDirectory"] as? String ?? "Unknown")
                         LabeledContent("Trigger", value: watcher.trigger)
                         LabeledContent("Service state", value: statuses[watcher.id]?.state ?? "Unknown")
+                        LabeledContent("Last run", value: history[watcher.label]?.latest?.date.formatted() ?? "Unknown")
                         LabeledContent("Last result", value: history[watcher.label]?.latest?.result ?? "Unknown")
                     }
                     Section("Recent Runs") {
@@ -61,7 +67,7 @@ struct WatcherView: View {
                     if watcher.editable {
                         Button("Delete Watcher", role: .destructive) { deleting = true }
                     } else {
-                        Text("This watcher is read-only.").foregroundStyle(.secondary)
+                        Text("Only disabled watchers created by KRR can be edited or deleted.").foregroundStyle(.secondary)
                     }
                 }.formStyle(.grouped)
                 .toolbar {
@@ -72,6 +78,9 @@ struct WatcherView: View {
                         }
                         try LaunchAgents.checked(["kickstart", "\(LaunchAgents.domain)/\(watcher.label)"])
                     }}.disabled(statuses[watcher.id]?.loaded != true || statuses[watcher.id]?.active != false)
+                    if watcher.editable {
+                        Button("Activate Watcher") { perform { try ManagedWatchers.activate(watcher) } }
+                    }
                     Button("Edit Watcher") {
                         seconds = watcher.interval.map(String.init) ?? ""
                         editing = true
@@ -102,7 +111,45 @@ struct WatcherView: View {
                 Text("Select a Codex or Claude Code watcher.").foregroundStyle(.secondary)
                     .toolbar { Button("Refresh") { perform(refresh) } }
             }
-        }.frame(minWidth: 770, minHeight: 460)
+        }.toolbar {
+            Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
+        }
+        .sheet(isPresented: $creating) {
+            if let repository = checkedRepository {
+                let label = ManagedWatchers.label(for: repository, purpose: purpose)
+                Form {
+                    LabeledContent("Repository", value: repository.path)
+                    Picker("Engine", selection: $engine) {
+                        Text("Codex").tag("codex")
+                        Text("Claude Code").tag("claude")
+                    }
+                    TextField("Absolute executable path", text: $executable)
+                    TextField("Interval in seconds", text: $seconds)
+                    TextField("Purpose suffix (optional)", text: $purpose)
+                    LabeledContent("LaunchAgent label", value: label)
+                    Text("The watcher is created disabled. Activation schedules a status check.")
+                    HStack {
+                        Button("Cancel") { creating = false }
+                        Button("Create Disabled Watcher") {
+                            guard let interval = Int(seconds) else { return }
+                            creating = false
+                            perform {
+                                try verify(repository)
+                                let file = try ManagedWatchers.create(
+                                    repository: repository, executable: URL(fileURLWithPath: executable),
+                                    engine: engine, interval: interval, label: label,
+                                    agents: ManagedWatchers.inactive, records: ManagedWatchers.records
+                                ) {
+                                    try LaunchAgents.requireAvailable(label)
+                                }
+                                selection = file
+                            }
+                        }.disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/"))
+                    }
+                }.formStyle(.grouped).frame(width: 560, height: 380)
+            }
+        }
+        .frame(minWidth: 770, minHeight: 460)
         .task {
             history = (try? JSONDecoder().decode([String: RunHistory].self, from: storedHistory)) ?? [:]
             perform(refresh)
@@ -116,10 +163,42 @@ struct WatcherView: View {
         } message: { Text(message) }
     }
 
+    private func chooseRepository() {
+        guard ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil else { return }
+        let panel = NSOpenPanel()
+        panel.title = "Select Repository Root"
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let directory = panel.url else { return }
+        do {
+            try verify(directory)
+            checkedRepository = directory
+            seconds = "300"
+            purpose = ""
+            executable = ""
+            creating = true
+        } catch {
+            message = error.localizedDescription
+            failed = true
+        }
+    }
+
+    private func verify(_ directory: URL) throws {
+        guard let validator = Bundle.main.url(forResource: "manage-kanban-board",
+                                              withExtension: "py", subdirectory: "validator") else {
+            throw WatcherError(message: "The bundled board validator is missing. Rebuild the app.")
+        }
+        try RepositoryPreflight.check(directory, validator: validator)
+    }
+
     private func refresh() throws {
         let fixture = ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"]
         let directory = fixture.map { URL(fileURLWithPath: $0, isDirectory: true) } ?? LaunchAgents.directory
         watchers = FileManager.default.fileExists(atPath: directory.path) ? try LaunchAgents.discover(in: directory) : []
+        if fixture == nil && FileManager.default.fileExists(atPath: ManagedWatchers.inactive.path) {
+            watchers += try LaunchAgents.discover(in: ManagedWatchers.inactive)
+        }
         var refreshed: [URL: ServiceStatus] = [:]
         for watcher in watchers where fixture == nil {
             guard let status = try? LaunchAgents.status(watcher) else { continue }

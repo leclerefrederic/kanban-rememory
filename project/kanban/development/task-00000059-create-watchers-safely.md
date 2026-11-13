@@ -1,0 +1,23 @@
+---
+type: card
+id: "TASK-00000059"
+batch: "Batch-003"
+specifications: ["SPEC-002"]
+---
+# TASK-00000059 — Create and manage watchers safely
+
+- Owner: Development Agent
+- Dependencies: Batch-002 closed. Batch-003 has explicit User priority.
+
+## Expected outcome
+
+Implement and verify SPEC-002 revision 2.
+
+## Acceptance criteria
+
+- [ ] Verify repository preflight, watcher creation and management, and the icon.
+
+## History
+
+- 2026-11-13 — Authorized and moved to Development.
+- 2026-11-13 — Connected New Watcher to repository selection and bundled validation. The signed app builds. Swift smoke checks passed for this repository, a nested path, a plain Git repository, and a board missing a stage. Installation and activation remain pending.

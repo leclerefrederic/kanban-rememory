@@ -2,7 +2,7 @@
 type: batch
 id: "Batch-003"
 specifications: [{"id":"SPEC-002","revision":"2","path":"project/specs/approved/spec-002-r2.md"}]
-status: ready
+status: in-progress
 ---
 # Kanban Rememory Runner follow-up
 

@@ -16,3 +16,7 @@ The User approved SPEC-002 revision 2 and authorized development of Batch-003.
 Pending.
 
 ## Closure evidence
+
+### Development verification
+
+The signed macOS build succeeds. Four repository preflight cases and isolated creation for both engines passed. Collision tests preserved the original bytes and unrecognized ownership was refused. Editing and deletion are limited to disabled, app-owned watchers. Activation and Run Now still need verification with isolated live LaunchAgents. The Finder and Dock icon result remains open.
