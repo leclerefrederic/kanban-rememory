@@ -18,8 +18,4 @@ Verify that the matching commit records the closed status and the same decision.
 
 Development Agent records the closing trailer and expected Git refs in the Closure evidence section of report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
 
-## Replay the pilot acceptance scenarios
-
-From a fresh kit clone, run `python3 tools/replay-batch-uat.py /tmp/batch-uat-replay` with a path that does not yet exist. The command creates a separate Git repository and prints the tested and closing commits. Use the three records at `uat-delivered` for the pending-decision scenario and those at `main` for the closed scenario. Compare each answer with the commits printed by the fixture and verify the closing trailer and tag in Git.
-
 For historical records, use the original ID and `Lot-Closure` trailer. Include the historical `lots/` or `Lots/` path in the Git log query when the closure predates the directory migration.

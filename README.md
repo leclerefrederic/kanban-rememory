@@ -56,7 +56,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](docs/agents/adoption.md).
 
-For the optional Batch module, also copy `docs/batch-workflow.md`, `docs/batch-operations.md`, `docs/batch-handoff.md`, `Specification.md`, `description.md`, `tests.md`, and `report.md` under `docs/templates/`, and `tools/replay-batch-uat.py`.
+For the optional Batch module, also copy `docs/batch-workflow.md`, `docs/batch-operations.md`, `docs/batch-handoff.md`, `specification.md`, `description.md`, `tests.md`, and `report.md` under `docs/templates/`.
 
 Kanban shows the official task status. Rememory records decisions, what was verified, and where to resume. Git preserves the history of both.
 
