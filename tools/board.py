@@ -134,8 +134,16 @@ def fiche_entries(source):
 def project_reference(path):
     relative = Path(path)
     if relative.parts and relative.parts[0] == "specs":
-        return PROJECT / path.lower()
+        relative = Path("project") / path.lower()
+    if relative.as_posix() == "project/specs/frozen/fiche-001-r1.md":
+        migrated = PROJECT / "specs/frozen/spec-001-r1.md"
+        if migrated.is_file():
+            return migrated
     return ROOT / relative
+
+
+def batch_slug(identifier):
+    return re.sub(r"^lot-", "batch-", identifier.lower())
 
 
 def batch_descriptions():
@@ -167,7 +175,7 @@ def validate_lot_mapping(card_paths):
     lots = {}
     for path in batch_descriptions():
         lot_id = header_value(path.read_text(encoding="utf-8"), "id") or header_value(path.read_text(encoding="utf-8"), "lot") or path.parent.name
-        if not isinstance(lot_id, str) or lot_id.lower() != path.parent.name.lower():
+        if not isinstance(lot_id, str) or batch_slug(lot_id) != path.parent.name.lower() and lot_id.lower() != path.parent.name.lower():
             report(path, "Batch ID must match the directory name.")
             continue
         selected = set()
@@ -623,7 +631,7 @@ def verify_approval(lot_id, revision):
     if kind.returncode or kind.stdout.strip() != b"commit":
         raise ValueError("The trusted approval commit is unavailable.")
 
-    matches = [path for path in batch_descriptions() if path.parent.name.lower() == lot_id.lower()]
+    matches = [path for path in batch_descriptions() if path.parent.name.lower() in (lot_id.lower(), batch_slug(lot_id))]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one description for {lot_id}.")
     description = matches[0]
