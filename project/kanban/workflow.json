@@ -2,13 +2,11 @@
   "stages": [
     "backlog",
     "development",
-    "code-review",
     "completion",
     "cancellation"
   ],
   "active": [
-    "development",
-    "code-review"
+    "development"
   ],
   "completed": "completion",
   "wip_limit": 1,
@@ -19,11 +17,6 @@
       "cancellation"
     ],
     "development": [
-      "code-review",
-      "cancellation"
-    ],
-    "code-review": [
-      "development",
       "completion",
       "cancellation"
     ]
