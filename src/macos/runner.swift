@@ -2,7 +2,23 @@ import AppKit
 import SwiftUI
 
 final class RunnerDelegate: NSObject, NSApplicationDelegate {
+    private var statusItem: NSStatusItem?
+    var openWatchers: (() -> Void)?
+
+    @objc private func showWatchers() {
+        NSApp.activate(ignoringOtherApps: true)
+        openWatchers?()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil {
+            let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+            item.button?.title = "KRR"
+            item.button?.toolTip = "Open Kanban Rememory Runner"
+            item.button?.target = self
+            item.button?.action = #selector(showWatchers)
+            statusItem = item
+        }
         if let url = Bundle.main.url(forResource: "app-icon", withExtension: "icns"),
            let icon = NSImage(contentsOf: url) {
             NSApplication.shared.applicationIconImage = icon
@@ -15,7 +31,10 @@ struct Runner: App {
     @AppStorage("appearance") private var appearance = "System"
     @NSApplicationDelegateAdaptor(RunnerDelegate.self) private var delegate
     var body: some Scene {
-        WindowGroup("Kanban Rememory Runner") { WatcherView().preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light) }.defaultSize(width: 420, height: 390)
+        WindowGroup("Kanban Rememory Runner", id: "watchers") {
+            WatcherView(registerOpenAction: { delegate.openWatchers = $0 })
+                .preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light)
+        }.windowResizability(.contentSize)
     }
 }
 
@@ -25,6 +44,14 @@ private struct WatcherProfile: Codable {
 }
 
 struct WatcherView: View {
+    var registerOpenAction: ((@escaping () -> Void) -> Void)?
+    @Environment(\.openWindow) private var openWindow
+    @State private var repositoryPath = ""
+    @State private var repositoryFeedback = ""
+    @State private var availableEngines: [String: String] = [:]
+    @State private var choosingIcon = false
+    @State private var editingTarget: Watcher?
+    private let iconNames = ["Folder", "Code", "Document", "Server", "Terminal", "Tools", "Bolt", "Clock", "Branch", "Package", "Cloud", "Settings"]
     @State private var watchers: [Watcher] = []
     @State private var selection: URL?
     @State private var disabledInstallations: Set<URL> = []
@@ -33,7 +60,6 @@ struct WatcherView: View {
     @State private var checkingRepository = false
     @State private var creating = false
     @State private var engine = "codex"
-    @State private var executable = ""
     @AppStorage("appearance") private var appearance = "System"
     @AppStorage("watcher-profiles") private var storedProfiles = Data()
     @State private var profiles: [String: WatcherProfile] = [:]
@@ -41,8 +67,7 @@ struct WatcherView: View {
     @State private var icon = "folder"
     @State private var settings = false
     @State private var details = false
-    private let icons = ["folder", "chevron.left.forwardslash.chevron.right", "doc.text", "server.rack", "terminal", "gearshape"]
-    @State private var editing = false
+    private let icons = ["folder", "chevron.left.forwardslash.chevron.right", "doc.text", "server.rack", "terminal", "wrench", "bolt", "clock", "arrow.triangle.branch", "shippingbox", "cloud", "gearshape"]
     @State private var deleting = false
     @State private var seconds = ""
     @State private var message = ""
@@ -53,10 +78,14 @@ struct WatcherView: View {
     private var selected: Watcher? { watchers.first { $0.id == selection } }
 
     var body: some View {
-        watcherList.navigationTitle("Watchers")
+        Group {
+            if creating { watcherForm }
+            else { watcherList }
+        }.navigationTitle("Watchers")
         .toolbar {
 
-            Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
+            if !creating {
+                Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
                 .disabled(checkingRepository || !live)
             Button { settings.toggle() } label: { Label("Settings", systemImage: "gearshape") }
                 .popover(isPresented: $settings) {
@@ -68,6 +97,7 @@ struct WatcherView: View {
                     }.pickerStyle(.segmented).labelsHidden()
                     }.padding().frame(width: 280)
                 }
+                    }
         }
         .sheet(isPresented: $details) {
             if let watcher = selected {
@@ -85,27 +115,6 @@ struct WatcherView: View {
                 }.formStyle(.grouped).frame(width: 480, height: 320)
             }
         }
-        .sheet(isPresented: $editing) {
-            if let watcher = selected {
-                Form {
-                    TextField("Watcher Name", text: $watcherName)
-                    iconPicker
-                    if watcher.editable { TextField("Interval in seconds", text: $seconds) }
-                    HStack {
-                        Button("Cancel") { editing = false }
-                        Button("Save") {
-                            editing = false
-                            perform {
-                                if watcher.editable, let interval = Int(seconds), interval != watcher.interval {
-                                    try LaunchAgents.change(watcher, interval: interval)
-                                }
-                                saveProfile(watcher.label)
-                            }
-                        }.disabled(cleanName.isEmpty || (watcher.editable && (Int(seconds) ?? 0) <= 0))
-                    }
-                }.formStyle(.grouped).frame(width: 380, height: 220)
-            }
-        }
         .confirmationDialog("Delete this watcher?", isPresented: $deleting) {
             Button("Delete Watcher", role: .destructive) {
                 guard let watcher = selected else { return }
@@ -116,62 +125,11 @@ struct WatcherView: View {
                 }
             }
         }
-        .sheet(isPresented: $creating) {
-            if let repository = checkedRepository {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("New Watcher").font(.title2.bold())
-                    Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
-                        GridRow { Text("Repository"); Text(repository.lastPathComponent).foregroundStyle(.secondary) }
-                        GridRow { Text("Watcher Name"); TextField("Watcher Name", text: $watcherName).labelsHidden() }
-                        GridRow {
-                            Text("Engine")
-                            Picker("Engine", selection: $engine) {
-                                Text("Codex").tag("codex")
-                                Text("Claude Code").tag("claude")
-                            }.pickerStyle(.segmented).labelsHidden()
-                        }
-                        GridRow { Text("Executable"); TextField("/opt/homebrew/bin/codex", text: $executable).labelsHidden() }
-                        GridRow { Text("Interval (seconds)"); TextField("300", text: $seconds).labelsHidden() }
-                        GridRow { Text("Icon"); iconPicker.labelsHidden() }
-                    }.textFieldStyle(.roundedBorder)
-                    Divider()
-                    HStack {
-                        Text("New watchers start disabled.").font(.caption).foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Cancel") { creating = false }.keyboardShortcut(.cancelAction)
-                        Button("Create Watcher") {
-                            guard let interval = Int(seconds) else { return }
-                            creating = false
-                            Task { @MainActor in
-                                do {
-                                    try await verify(repository)
-                                    perform {
-                                        let file = try ManagedWatchers.allocateLabel { label in
-                                            guard try LaunchAgents.isAvailable(label) else { return nil }
-                                            do {
-                                                return try ManagedWatchers.create(
-                                                    repository: repository, executable: URL(fileURLWithPath: executable),
-                                                    engine: engine, interval: interval, label: label,
-                                                    agents: ManagedWatchers.inactive, records: ManagedWatchers.records
-                                                ) {}
-                                            } catch let error as CocoaError where error.code == .fileWriteFileExists {
-                                                return nil
-                                            }
-                                        }
-                                        saveProfile(file.deletingPathExtension().lastPathComponent)
-                                    }
-                                } catch {
-                                    message = error.localizedDescription
-                                    failed = true
-                                }
-                            }
-                        }.buttonStyle(.borderedProminent).tint(.teal)
-                            .disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/") || cleanName.isEmpty)
-                    }
-                }.padding(24).frame(width: 460)
-            }
+        .frame(width: 470, height: 380)
+        .onAppear {
+            let showWindow = openWindow
+            registerOpenAction? { showWindow(id: "watchers") }
         }
-        .frame(minWidth: 390, minHeight: 280)
         .task {
             profiles = (try? JSONDecoder().decode([String: WatcherProfile].self, from: storedProfiles)) ?? [:]
             history = (try? JSONDecoder().decode([String: RunHistory].self, from: storedHistory)) ?? [:]
@@ -263,13 +221,10 @@ struct WatcherView: View {
                 Menu {
                     Button("Details") { selection = watcher.id; details = true }
                     if isManaged(watcher) {
+                        if !watcher.editable { Text("Deactivate to edit") }
                         Button("Edit Watcher") {
-                            selection = watcher.id
-                            watcherName = displayName(watcher)
-                            icon = profiles[watcher.label]?.icon ?? "folder"
-                            seconds = watcher.interval.map(String.init) ?? ""
-                            editing = true
-                        }
+                            beginEdit(watcher)
+                        }.disabled(!watcher.editable)
                     }
                     if ManagedWatchers.installedAndOwned(watcher) && live {
                         if disabledInstallations.contains(watcher.id) {
@@ -301,10 +256,123 @@ struct WatcherView: View {
     private var cleanName: String { watcherName.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     private var iconPicker: some View {
-        Picker("Icon", selection: $icon) {
-            ForEach(Array(zip(icons, ["Folder", "Code", "Document", "Server", "Terminal", "Tools"])), id: \.0) {
-                Label($0.1, systemImage: $0.0).tag($0.0)
+        Button { choosingIcon.toggle() } label: {
+            HStack {
+                Image(systemName: icon).foregroundStyle(.teal)
+                Text(iconNames[icons.firstIndex(of: icon) ?? 0])
+                Image(systemName: "chevron.down").font(.caption)
             }
+        }
+        .popover(isPresented: $choosingIcon, arrowEdge: .bottom) {
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(36), spacing: 6), count: 6), spacing: 6) {
+                ForEach(icons.indices, id: \.self) { index in
+                    Button {
+                        icon = icons[index]
+                        choosingIcon = false
+                    } label: {
+                        Image(systemName: icons[index]).frame(width: 30, height: 30)
+                            .overlay(alignment: .bottomTrailing) {
+                                if icon == icons[index] { Image(systemName: "checkmark.circle.fill").font(.caption2) }
+                            }
+                    }.buttonStyle(.borderless)
+                        .background(icon == icons[index] ? Color.teal.opacity(0.3) : .clear,
+                                    in: RoundedRectangle(cornerRadius: 6))
+                        .accessibilityLabel(iconNames[index])
+                        .help(iconNames[index])
+                }
+            }.padding(10)
+        }
+    }
+
+    private var watcherForm: some View {
+        VStack(alignment: .leading, spacing: 13) {
+            Text(editingTarget == nil ? "New Watcher" : "Edit Watcher").font(.title2.bold())
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 9) {
+                GridRow { Text("Watcher Name"); TextField("Watcher Name", text: $watcherName) }
+                GridRow {
+                    Text("Repository")
+                    HStack {
+                        TextField("Paste a folder path", text: $repositoryPath)
+                            .onSubmit { checkRepository() }
+                        if checkedRepository != nil {
+                            Image(systemName: "checkmark.circle").foregroundStyle(.teal)
+                                .accessibilityLabel("Repository validated")
+                        }
+                        Button("Browse…", action: browseRepository)
+
+                    }
+                }
+                GridRow {
+                    Text("")
+                    HStack {
+                        Text(repositoryFeedback).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        Spacer()
+                        if checkedRepository == nil { Button("Verify", action: checkRepository).disabled(checkingRepository) }
+                    }
+                }
+                GridRow {
+                    Text("Engine")
+                    Picker("Engine", selection: $engine) {
+                        Text("Codex").tag("codex").disabled(availableEngines["codex"] == nil)
+                        Text("Claude Code").tag("claude").disabled(availableEngines["claude"] == nil)
+                    }.pickerStyle(.segmented).labelsHidden()
+                }
+                if availableEngines.isEmpty {
+                    GridRow {
+                        Text("")
+                        HStack {
+                            Text("No supported CLI detected").font(.caption)
+                        }
+                    }
+                }
+                GridRow {
+                    Text("Run every")
+                    HStack { TextField("5", text: $seconds).frame(width: 65); Text("minutes") }
+                }
+                GridRow { Text("Icon"); iconPicker }
+            }.textFieldStyle(.roundedBorder)
+            Spacer(minLength: 0)
+            Divider()
+            HStack {
+                Spacer()
+                Button("Cancel") { creating = false }.keyboardShortcut(.cancelAction)
+                Button(editingTarget == nil ? "Create Watcher" : "Save", action: saveWatcher)
+                    .buttonStyle(.borderedProminent).tint(.teal)
+                    .disabled(checkedRepository == nil || availableEngines[engine] == nil || cleanName.isEmpty
+                              || intervalSeconds == nil || checkingRepository)
+            }
+        }.padding(20)
+        .onChange(of: repositoryPath) { value in
+            if value != checkedRepository?.path { checkedRepository = nil; repositoryFeedback = "" }
+        }
+    }
+
+    private var intervalSeconds: Int? {
+        guard let minutes = Double(seconds), minutes.isFinite,
+              minutes >= 1.0 / 60, minutes <= Double(Int32.max) / 60 else { return nil }
+        return Int((minutes * 60).rounded())
+    }
+
+    private func saveWatcher() {
+        guard let repository = checkedRepository, let path = availableEngines[engine],
+              let interval = intervalSeconds else { return }
+        perform {
+            if let watcher = editingTarget {
+                try LaunchAgents.change(watcher, interval: interval, repository: repository,
+                                        executable: URL(fileURLWithPath: path), engine: engine)
+                saveProfile(watcher.label)
+            } else {
+                let file = try ManagedWatchers.allocateLabel { label in
+                    guard try LaunchAgents.isAvailable(label) else { return nil }
+                    do {
+                        return try ManagedWatchers.create(repository: repository, executable: URL(fileURLWithPath: path),
+                                                          engine: engine, interval: interval, label: label,
+                                                          agents: ManagedWatchers.inactive, records: ManagedWatchers.records) {}
+                    } catch let error as CocoaError where error.code == .fileWriteFileExists { return nil }
+                }
+                saveProfile(file.deletingPathExtension().lastPathComponent)
+            }
+            creating = false
         }
     }
 
@@ -351,44 +419,78 @@ struct WatcherView: View {
     }
 
     private func chooseRepository() {
-        guard ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil else { return }
+        guard live else { return }
+        editingTarget = nil
+        checkedRepository = nil
+        repositoryPath = ""
+        repositoryFeedback = ""
+        watcherName = ""
+        seconds = "5"
+        icon = "folder"
+        detectEngines()
+        creating = true
+    }
+
+    private func beginEdit(_ watcher: Watcher) {
+        editingTarget = watcher
+        watcherName = displayName(watcher)
+        icon = profiles[watcher.label]?.icon ?? "folder"
+        seconds = String(Double(watcher.interval ?? 300) / 60)
+        detectEngines()
+        engine = watcher.engine == "Codex" ? "codex" : "claude"
+        if FileManager.default.isExecutableFile(atPath: watcher.executable) { availableEngines[engine] = watcher.executable }
+        repositoryPath = watcher.plist["WorkingDirectory"] as? String ?? ""
+        creating = true
+        checkRepository()
+    }
+
+    private func detectEngines() {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let paths = (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init)
+        availableEngines = [:]
+        for name in ["codex", "claude"] {
+            availableEngines[name] = (paths + [home + "/.local/bin", home + "/.npm-global/bin", "/opt/homebrew/bin", "/usr/local/bin", "/usr/bin"])
+                .filter { $0.hasPrefix("/") }.map { $0 + "/" + name }
+                .first { FileManager.default.isExecutableFile(atPath: $0) }
+        }
+        engine = availableEngines["codex"] != nil ? "codex" : "claude"
+    }
+
+    private func browseRepository() {
         let panel = NSOpenPanel()
-        panel.title = "Select Repository Root"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        checkingRepository = true
         panel.begin { response in
-            guard response == .OK, let directory = panel.url else {
-                checkingRepository = false
-                return
-            }
-            Task { @MainActor in
-                defer { checkingRepository = false }
-                do {
-                    try await verify(directory)
-                    checkedRepository = directory
-                    seconds = "300"
-                    watcherName = directory.lastPathComponent
-                    icon = "folder"
-                    executable = ""
-                    creating = true
-                } catch {
-                    message = error.localizedDescription
-                    failed = true
-                }
-            }
+            guard response == .OK, let url = panel.url else { return }
+            repositoryPath = url.path
+            checkRepository()
         }
     }
 
-    private func verify(_ directory: URL) async throws {
-        guard let resources = Bundle.main.resourceURL else {
-            throw WatcherError(message: "Open the installed application bundle to access its validator.")
+    private func checkRepository() {
+        let path = (repositoryPath.trimmingCharacters(in: .whitespacesAndNewlines) as NSString).expandingTildeInPath
+        guard !checkingRepository, path.hasPrefix("/"), let resources = Bundle.main.resourceURL else { return }
+        let input = repositoryPath
+        checkingRepository = true
+        repositoryFeedback = "Checking repository…"
+        Task { @MainActor in
+            defer { checkingRepository = false }
+            do {
+                let validator = resources.appendingPathComponent("validator/manage-kanban-board.py")
+                let root = try await Task.detached {
+                    try RepositoryPreflight.check(URL(fileURLWithPath: path), validator: validator, resolveRoot: true)
+                }.value
+                guard repositoryPath == input else { return }
+                checkedRepository = root
+                repositoryPath = root.path
+                repositoryFeedback = ""
+            } catch {
+                if repositoryPath == input {
+                    checkedRepository = nil
+                    repositoryFeedback = error.localizedDescription
+                }
+            }
         }
-        let validator = resources.appendingPathComponent("validator/manage-kanban-board.py")
-        try await Task.detached(priority: .userInitiated) {
-            try RepositoryPreflight.check(directory, validator: validator)
-        }.value
     }
 
     private func refresh() throws {

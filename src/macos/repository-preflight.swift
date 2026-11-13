@@ -1,11 +1,13 @@
 import Foundation
 
 enum RepositoryPreflight {
-    static func check(_ directory: URL, validator: URL, requiresBatchLayout: Bool = true) throws {
+    @discardableResult
+    static func check(_ selectedDirectory: URL, validator: URL, requiresBatchLayout: Bool = true,
+                      resolveRoot: Bool = false) throws -> URL {
         let process = Process()
         let output = Pipe()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
-        process.arguments = ["-C", directory.path, "rev-parse", "--show-toplevel"]
+        process.arguments = ["-C", selectedDirectory.path, "rev-parse", "--show-toplevel"]
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
         try process.run()
@@ -15,8 +17,8 @@ enum RepositoryPreflight {
             throw WatcherError(message: "Select a Git worktree.")
         }
         let path = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .newlines)
-        guard URL(fileURLWithPath: path, isDirectory: true).resolvingSymlinksInPath().path
-                == directory.resolvingSymlinksInPath().path else {
+        let directory = URL(fileURLWithPath: path, isDirectory: true).resolvingSymlinksInPath()
+        guard resolveRoot || directory.path == selectedDirectory.resolvingSymlinksInPath().path else {
             throw WatcherError(message: "Select the repository root: \(path)")
         }
         let board = directory.appendingPathComponent("project/kanban", isDirectory: true)
@@ -65,6 +67,7 @@ enum RepositoryPreflight {
             throw WatcherError(message: String(decoding: details, as: UTF8.self))
         }
 
+        return directory
     }
 
     private struct Workflow: Decodable {

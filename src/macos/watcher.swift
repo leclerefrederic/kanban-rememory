@@ -91,7 +91,8 @@ enum LaunchAgents {
         throw WatcherError(message: output)
     }
 
-    static func change(_ watcher: Watcher, interval: Int?) throws {
+    static func change(_ watcher: Watcher, interval: Int?, repository: URL? = nil,
+                       executable: URL? = nil, engine: String? = nil) throws {
         guard let current = try discover(in: ManagedWatchers.inactive).first(where: { $0.id == watcher.id }),
               current.editable, NSDictionary(dictionary: current.plist).isEqual(to: watcher.plist),
               !(try status(watcher)).loaded else {
@@ -102,6 +103,17 @@ enum LaunchAgents {
         if let interval {
             var updated = watcher.plist
             updated["StartInterval"] = interval
+            if let repository { updated["WorkingDirectory"] = repository.path }
+            if let executable, let engine {
+                guard ["codex", "claude"].contains(engine), executable.lastPathComponent == engine,
+                      FileManager.default.isExecutableFile(atPath: executable.path) else {
+                    throw WatcherError(message: "Select a usable engine executable.")
+                }
+                if executable.path != watcher.executable || engine != (watcher.engine == "Codex" ? "codex" : "claude") {
+                    updated["ProgramArguments"] = ManagedWatchers.invocation(executable: executable, engine: engine)
+                    updated["EnvironmentVariables"] = ManagedWatchers.environment(executable: executable)
+                }
+            }
             let replacement = try PropertyListSerialization.data(fromPropertyList: updated, format: .xml, options: 0)
             try replacement.write(to: watcher.file, options: .atomic)
             do { try replacement.write(to: record, options: .atomic) }

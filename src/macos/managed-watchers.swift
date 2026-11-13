@@ -22,6 +22,18 @@ enum ManagedWatchers {
         return (try? Data(contentsOf: records.appendingPathComponent(label + ".plist"))) == bytes
     }
 
+    static func invocation(executable: URL, engine: String) -> [String] {
+        let prompt = "Inspect this Kanban Rememory project and summarize its current board status. Do not change files, pick up or close a Batch, or publish anything."
+        let arguments = engine == "codex"
+            ? ["--ask-for-approval", "never", "exec", "--sandbox", "read-only", prompt]
+            : ["-p", "--permission-mode", "plan", "--tools", "", "--", prompt]
+        return [executable.path] + arguments
+    }
+
+    static func environment(executable: URL) -> [String: String] {
+        ["PATH": executable.deletingLastPathComponent().path + ":/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"]
+    }
+
     static func create(repository: URL, executable: URL, engine: String, interval: Int, label: String,
                        agents: URL, records: URL, checkCollision: () throws -> Void) throws -> URL {
         guard label.range(of: #"^krr\.[a-f0-9-]+$"#, options: .regularExpression) != nil,
@@ -31,14 +43,10 @@ enum ManagedWatchers {
             throw WatcherError(message: "Choose a valid engine executable, label and interval.")
         }
         try checkCollision()
-        let prompt = "Inspect this Kanban Rememory project and summarize its current board status. Do not change files, pick up or close a Batch, or publish anything."
-        let arguments = engine == "codex"
-            ? ["--ask-for-approval", "never", "exec", "--sandbox", "read-only", prompt]
-            : ["-p", "--permission-mode", "plan", "--tools", "", "--", prompt]
         let plist: [String: Any] = [
-            "Label": label, "ProgramArguments": [executable.path] + arguments,
+            "Label": label, "ProgramArguments": invocation(executable: executable, engine: engine),
             "WorkingDirectory": repository.path, "StartInterval": interval, "RunAtLoad": false,
-            "EnvironmentVariables": ["PATH": executable.deletingLastPathComponent().path + ":/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"]
+            "EnvironmentVariables": environment(executable: executable)
         ]
         let bytes = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
         for folder in [agents, records] {
