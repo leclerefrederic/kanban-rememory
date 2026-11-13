@@ -8,7 +8,7 @@ A Git-based workflow for tracking tasks, recording evidence, and handing work ov
 | [Kanban guide](docs/kanban.md) | Workflow policies, columns, IDs, and transitions |
 | [Software development profile](docs/software-development.md) | Example delivery stages, engineering checks, and feedback loops |
 | [Task card guide](docs/card-guide.md) | Required card content and the distinction between stage and state |
-| [Board commands](tools/kanban-board.py) | Workflow setup, card creation, stage view, guarded moves, and validation |
+| [Board commands](tools/manage-kanban-board.py) | Workflow setup, card creation, stage view, guarded moves, and validation |
 | [Optional Batch workflow](docs/batch-workflow.md) | Specification and Batch templates and stable ID mapping |
 | [Card template](docs/templates/card.md) | Outcome, scope, dependencies, and acceptance criteria |
 | [Rememory guide](project/rememory/README.md) | Record of decisions, verification, and next steps |
@@ -29,7 +29,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | `docs/agents/` | `adoption.md`, `working-instructions.md`, `actor-user.md`, `actor-specification-agent.md`, `actor-development-agent.md` |
    | `docs/` | `kanban.md`, `software-development.md`, `card-guide.md`
    | `docs/templates/` | `card.md`, `Project-layout.md` |
-   | `tools/` | `kanban-board.py` |
+   | `tools/` | `manage-kanban-board.py` |
    | `project/rememory/` | `README.md`, `daily-template.md` |
 
    In the target repository's root `AGENTS.md`, create or merge this entry:
@@ -43,15 +43,15 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 2. Follow the [guided adoption interview](docs/agents/adoption.md) to select a template or agree on a custom workflow. From the target repository root, preview the result. This example uses the standard template.
 
    ```sh
-   python3 tools/kanban-board.py init --template standard --wip-limit 1 --timezone Europe/Paris
+   python3 tools/manage-kanban-board.py init --template standard --wip-limit 1 --timezone Europe/Paris
    ```
 
 3. After approval, apply the same configuration and verify the board.
 
    ```sh
-   python3 tools/kanban-board.py init --template standard --wip-limit 1 --timezone Europe/Paris --apply
-   python3 tools/kanban-board.py validate
-   python3 tools/kanban-board.py show
+   python3 tools/manage-kanban-board.py init --template standard --wip-limit 1 --timezone Europe/Paris --apply
+   python3 tools/manage-kanban-board.py validate
+   python3 tools/manage-kanban-board.py show
    ```
 
    Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](docs/agents/adoption.md).

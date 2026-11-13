@@ -14,7 +14,7 @@ INSTALL_FILES = (
     "docs/agents/actor-user.md", "docs/agents/actor-specification-agent.md", "docs/agents/actor-development-agent.md",
     "docs/kanban.md", "docs/software-development.md",
     "docs/card-guide.md", "docs/templates/card.md", "docs/templates/Project-layout.md",
-    "tools/kanban-board.py", "project/rememory/README.md", "project/rememory/daily-template.md",
+    "tools/manage-kanban-board.py", "project/rememory/README.md", "project/rememory/daily-template.md",
 )
 
 
@@ -36,7 +36,7 @@ class AdoptionTests(unittest.TestCase):
 
     def run_board(self, *args, expected=0):
         result = subprocess.run(
-            [sys.executable, "tools/kanban-board.py", *args],
+            [sys.executable, "tools/manage-kanban-board.py", *args],
             cwd=self.root, capture_output=True, text=True,
         )
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)

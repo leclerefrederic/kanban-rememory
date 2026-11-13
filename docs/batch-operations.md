@@ -4,7 +4,7 @@
 
 Specification Agent records the explicit User approval with the exact Batch ID, ordered mission, and frozen Specification revisions. It makes the approved snapshot available to Development Agent through the handoff. Before starting development, Development Agent checks the ready files against that approval and creates the Git approval commit from the matching snapshot. If the approval or snapshot is unavailable or the files differ, stop and ask the User. Keep this commit on a dedicated approval ref. Record its full commit ID in the Batch's operating record. The approval ref must be available to the coding agent. Capture approval separately from the later acceptance decision.
 
-Before pickup, run the board validator and run `python3 tools/kanban-board.py verify-approval Batch-001 APPROVED_COMMIT_ID` with the full commit ID from the trusted approval record. The command compares the ready Description and each pinned Specification byte for byte. Obtain the commit ID from the approval record independently of the files being checked. If they differ, stop and surface the discrepancy. Keep the approval record when the Batch closes.
+Before pickup, run the board validator and run `python3 tools/manage-kanban-board.py verify-approval Batch-001 APPROVED_COMMIT_ID` with the full commit ID from the trusted approval record. The command compares the ready Description and each pinned Specification byte for byte. Obtain the commit ID from the approval record independently of the files being checked. If they differ, stop and surface the discrepancy. Keep the approval record when the Batch closes.
 
 ## Take ownership
 
