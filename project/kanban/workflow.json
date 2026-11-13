@@ -3,14 +3,12 @@
     "backlog",
     "development",
     "code-review",
-    "deployment",
     "completion",
     "cancellation"
   ],
   "active": [
     "development",
-    "code-review",
-    "deployment"
+    "code-review"
   ],
   "completed": "completion",
   "wip_limit": 1,
@@ -25,12 +23,6 @@
       "cancellation"
     ],
     "code-review": [
-      "development",
-      "deployment",
-      "completion",
-      "cancellation"
-    ],
-    "deployment": [
       "development",
       "completion",
       "cancellation"
