@@ -9,6 +9,14 @@ from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, anchors,
                     markdown_files, markdown_lines)
 
 
+# Preserve the exact historical references recorded before this policy.
+HISTORICAL_CARD_REFERENCES = {
+    ("project/batches/batch-001/report.md", "TASK-00000029"): 1,
+    ("project/batches/batch-002/report.md", "TASK-00000058"): 1,
+}
+BATCH_CARD_ID = re.compile(r"\bTASK-[0-9]{8}\b", re.IGNORECASE)
+
+
 def validate(workflow):
     findings = []
     by_id = defaultdict(list)
@@ -31,11 +39,27 @@ def validate(workflow):
 
     for path in markdown_files():
         name = path.relative_to(ROOT)
+        batch_record = len(name.parts) >= 4 and name.parts[:2] in {
+            ("project", "batches"), ("project", "lots"), ("project", "Lots"),
+        }
+        if batch_record:
+            references = defaultdict(int)
+            for match in BATCH_CARD_ID.finditer(path.read_text(encoding="utf-8")):
+                references[match[0].upper()] += 1
+            for task_id, count in references.items():
+                if count > HISTORICAL_CARD_REFERENCES.get((name.as_posix(), task_id), 0):
+                    findings.append(f"{name}: Batch records cannot reference Card {task_id}")
         for line in markdown_lines(path.read_text(encoding="utf-8")):
             prose = re.sub(r"`+[^\x60]*`+", "", line)
             for match in LINK.finditer(prose):
                 href = match[1] or match[2]
                 url = urlsplit(href)
+                if batch_record and url.path:
+                    link_path = unquote(url.path)
+                    board = ROOT / "project" / "kanban"
+                    resolved = (path.parent / link_path).resolve()
+                    if resolved.is_relative_to(board) or re.search(r"(?:^|/)project/kanban(?:/|$)", link_path):
+                        findings.append(f"{name}: Batch records cannot link to Kanban paths: {href}")
                 if url.scheme or url.netloc:
                     continue
                 target = path.parent / unquote(url.path) if url.path else path
