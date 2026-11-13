@@ -11,7 +11,7 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 - Analyze `description.md` and the linked specs, then break the work down into its own kanban cards.
 - Commit automated tests with the product code on the Batch branch. Use the existing test layout. Follow the mission order priorities and adjust execution order for technical dependencies.
 - Record technical decisions, blockers, and verification evidence on cards. Specification Agent writes the Batch Journal.
-- Record the delivered commit, environment, prerequisites, and links to technical evidence in `tests.md`, then set the batch to `delivered` and notify the User on Telegram.
+- Record the delivered commit, environment, prerequisites, and links to technical evidence in `tests.md`, then set the batch to `delivered` and notify the User through the configured channel.
 - Report blockers to the User (see "When to stop and ask").
 - Verify that the User decision in `report.md` applies to the commit tested in `tests.md`, then close the batch:
   - `validated`: merge the branch into `main`, push `main`, tag `batch-XXX`.
@@ -48,14 +48,8 @@ Cards remain independent of Batches and may link to a Specification. Record stan
 
 - Ambiguous or contradictory specification: ask, do not guess.
 - A change of scope seems necessary: stop and escalate, do not absorb it.
-- The same blocker survives two different attempts: stop, notify the User on Telegram and wait.
+- The same blocker survives two different attempts: stop, notify the User through the configured channel and wait.
 
-## Delivery notification (Telegram)
+## Batch notifications
 
-- Batch identifier and title.
-- Test environment URL and name of the test account (never the password: it stays in the local, git-ignored `project/kanban/secrets-test.md`).
-- Short summary of what is delivered and a pointer to `project/batches/Batch-XXX/tests.md`.
-
-For pickup and closure in a project with the Batch module installed, follow the Batch operations guide in the project documentation.
-
-Use the approved Specification revisions pinned by the Batch. Ask Specification Agent to prepare a new draft revision if scope changes.
+When Telegram is enabled, use `docs/agents/configure-telegram.md` to send delivery, blocker, and verified closure notifications. Record the outcome or next action in the Batch records before sending. Use the same blocker ID on retries.

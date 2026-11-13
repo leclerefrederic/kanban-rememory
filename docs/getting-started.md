@@ -40,3 +40,5 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 For the optional Batch module, also copy `docs/batches/batch-workflow.md`, `docs/batches/start-and-close-batches.md`, `docs/batches/resume-a-batch.md`, `project-specification.md`, `batch-description.md`, `batch-tests.md`, and `batch-report.md` under `docs/templates/`.
 
 See the [project directory template](templates/project-layout.md) for the installed layout.
+
+For optional delivery notifications, follow [Configure Telegram](agents/configure-telegram.md).
