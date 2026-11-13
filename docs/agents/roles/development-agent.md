@@ -53,3 +53,7 @@ Cards remain independent of Batches and may link to a Specification. Record stan
 ## Batch notifications
 
 When Telegram is enabled, use `docs/agents/configure-telegram.md` to send delivery, blocker, and verified closure notifications. Record the outcome or next action in the Batch records before sending. Use the same blocker ID on retries.
+
+## Debt and correction
+
+Follow the procedure under “Record debt and resume acceptance” in `docs/batches/start-and-close-batches.md`. Fix blocking defects on the open Batch branch within the approved scope and deliver a new candidate revision for acceptance. Before publishing, verify that blocking defects are resolved and all required scenarios have passed. On rejection, archive the candidate and preserve the debt and outstanding test records in the partial closing commit.

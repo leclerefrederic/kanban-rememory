@@ -34,3 +34,7 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 ## Availability
 
 A batch waits in `delivered` until the User runs the UAT and decides. A new Batch can start after closure. Queued standalone tasks become eligible at delivery.
+
+## Debt and delivery decisions
+
+Use the procedure under “Record debt and resume acceptance” in `docs/batches/start-and-close-batches.md` to review defects and outstanding tests. When a blocking defect remains, request correction in the open Batch or reject the delivery. Accept only after required tests pass and explicitly decide whether to defer any remaining nonblocking defects.

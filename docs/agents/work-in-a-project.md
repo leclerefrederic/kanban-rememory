@@ -28,3 +28,5 @@ For a project using Batches, read the role that applies before editing project f
 - [User](roles/user.md)
 - [Specification Agent](roles/specification-agent.md)
 - [Development Agent](roles/development-agent.md)
+
+When adopting the Batch module, read the shared procedure under “Record debt and resume acceptance” in `docs/batches/start-and-close-batches.md` before preparing or executing a Batch. Both agents use the same test and debt records when handing work back for correction.
