@@ -18,3 +18,5 @@ Record defect references, severity, acceptance impact, and related test IDs. Lis
 ## Closure evidence
 
 The User approved SPEC-003 revision 1 and authorized development.
+
+- Approval commit: `2813b0518c67b4dbd7d16d75225c8c76701de1fb`.

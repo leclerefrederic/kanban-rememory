@@ -45,6 +45,9 @@ enum RepositoryPreflight {
             }
         }
 
+        guard FileManager.default.isReadableFile(atPath: validator.path) else {
+            throw WatcherError(message: "Cannot read the bundled validator at \(validator.path).")
+        }
         let validation = Process()
         let diagnostics = Pipe()
         validation.executableURL = URL(fileURLWithPath: "/usr/bin/python3")

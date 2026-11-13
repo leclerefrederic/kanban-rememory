@@ -23,6 +23,7 @@ struct WatcherView: View {
     @State private var selection: URL?
     @State private var statuses: [URL: ServiceStatus] = [:]
     @State private var checkedRepository: URL?
+    @State private var checkingRepository = false
     @State private var creating = false
     @State private var engine = "codex"
     @State private var executable = ""
@@ -113,6 +114,7 @@ struct WatcherView: View {
             }
         }.toolbar {
             Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
+                .disabled(checkingRepository)
         }
         .sheet(isPresented: $creating) {
             if let repository = checkedRepository {
@@ -133,8 +135,10 @@ struct WatcherView: View {
                         Button("Create Disabled Watcher") {
                             guard let interval = Int(seconds) else { return }
                             creating = false
-                            perform {
-                                try verify(repository)
+                            Task { @MainActor in
+                                do {
+                                    try await verify(repository)
+                                    perform {
                                 let file = try ManagedWatchers.create(
                                     repository: repository, executable: URL(fileURLWithPath: executable),
                                     engine: engine, interval: interval, label: label,
@@ -142,7 +146,12 @@ struct WatcherView: View {
                                 ) {
                                     try LaunchAgents.requireAvailable(label)
                                 }
-                                selection = file
+                                        selection = file
+                                    }
+                                } catch {
+                                    message = error.localizedDescription
+                                    failed = true
+                                }
                             }
                         }.disabled((Int(seconds) ?? 0) <= 0 || !executable.hasPrefix("/"))
                     }
@@ -170,26 +179,37 @@ struct WatcherView: View {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        guard panel.runModal() == .OK, let directory = panel.url else { return }
-        do {
-            try verify(directory)
-            checkedRepository = directory
-            seconds = "300"
-            purpose = ""
-            executable = ""
-            creating = true
-        } catch {
-            message = error.localizedDescription
-            failed = true
+        checkingRepository = true
+        panel.begin { response in
+            guard response == .OK, let directory = panel.url else {
+                checkingRepository = false
+                return
+            }
+            Task { @MainActor in
+                defer { checkingRepository = false }
+                do {
+                    try await verify(directory)
+                    checkedRepository = directory
+                    seconds = "300"
+                    purpose = ""
+                    executable = ""
+                    creating = true
+                } catch {
+                    message = error.localizedDescription
+                    failed = true
+                }
+            }
         }
     }
 
-    private func verify(_ directory: URL) throws {
-        guard let validator = Bundle.main.url(forResource: "manage-kanban-board",
-                                              withExtension: "py", subdirectory: "validator") else {
-            throw WatcherError(message: "The bundled board validator is missing. Rebuild the app.")
+    private func verify(_ directory: URL) async throws {
+        guard let resources = Bundle.main.resourceURL else {
+            throw WatcherError(message: "Open the installed application bundle to access its validator.")
         }
-        try RepositoryPreflight.check(directory, validator: validator)
+        let validator = resources.appendingPathComponent("validator/manage-kanban-board.py")
+        try await Task.detached(priority: .userInitiated) {
+            try RepositoryPreflight.check(directory, validator: validator)
+        }.value
     }
 
     private func refresh() throws {
