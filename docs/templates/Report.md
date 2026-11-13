@@ -8,6 +8,8 @@ batch: null
 
 [Description](Description.md) · [Tests](Tests.md)
 
+## Delivery summary and gaps
+
 ## User decision
 
 ## Closure evidence

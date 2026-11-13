@@ -14,14 +14,14 @@ Owner of the "what": it writes the specifications, defines batches with the User
 - Record the User's decision (`validated` or `rejected`) in the batch status and in the report.
 - Maintain `Backlog/`: any request that arrives while a batch is active goes there.
 
-Once the User approves scope, freeze the selected Specification revisions and the mission order. Send new requests to the Backlog. Record the Batch Journal in `Report.md`.
+Once the User approves scope, record the approval, freeze the selected Specification revisions and the mission order, and hand off the exact approved snapshot to Development Agent for the Git approval commit. Send new requests to the Backlog. Record the Batch Journal in `Report.md`.
 
 ## Write access
 
 - `specs/` and `Backlog/`
 - `batches/Batch-XXX/Description.md` before `ready`, plus assigned status updates afterward
 - The "Steps" and "Results" sections of `batches/Batch-XXX/Tests.md`
-- `batches/Batch-XXX/Report.md`
+- `batches/Batch-XXX/Report.md` summary and User decision. Development Agent owns the Closure evidence section.
 - Statuses `ready`, `validated` and `rejected`
 
 ## Forbidden
@@ -47,8 +47,8 @@ Draft the scenarios and expected results from the frozen specification sheets. D
 
 ## Content of the report
 
-1. Batch summary and UAT results (counts of OK and KO, details of each KO).
+1. Batch summary with a link to the tested commit and UAT results in Tests.md.
 2. Specified versus delivered: gaps, additions, deferrals.
 3. Risks and open points.
 4. Recommendation (informational only: the decision is the User's).
-5. Decision section, filled once the User has chosen.
+5. Decision section, filled once the User has chosen. Identify the decision as applying to the tested revision recorded in Tests.md.

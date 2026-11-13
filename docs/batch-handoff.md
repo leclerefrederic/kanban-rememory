@@ -4,7 +4,7 @@ Read the Batch's Description, UAT, and Journal in that order. Use Description fo
 
 ## Delivered and awaiting a decision
 
-Confirm that Description says `delivered`, UAT identifies the full tested commit, and the Journal records a pending decision. Verify that the commit exists in Git and matches the revision identified in the Journal if it repeats the value. Report that revision and ask for the User's explicit decision. OK or KO results are evidence for that decision.
+Confirm that Description says `delivered`, UAT identifies the full tested commit, and the Journal shows the decision is pending. Verify that the commit exists in Git and matches the revision identified in the Journal if it repeats the value. Report that revision and ask for the User's explicit decision. OK or KO results are evidence for that decision.
 
 ## Closed
 
@@ -16,7 +16,7 @@ git log main --format='%H %(trailers:key=Batch-Closure,valueonly)' -- batches/Ba
 
 Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Batch tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, report that closure is complete.
 
-When writing the Journal, record the closing trailer and the expected Git refs. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
+Development Agent records the closing trailer and expected Git refs in the Closure evidence section of Report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
 
 ## Replay the pilot acceptance scenarios
 

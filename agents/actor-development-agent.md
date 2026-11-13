@@ -6,29 +6,30 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 
 ## Responsibilities
 
-- At the scheduled check, pick up a Batch with status `ready` after verifying that no other Batch is active.
+- Before pickup, check the ready files against the User approval handed off by Specification Agent. Create and verify the Git approval commit. Pick up the Batch after verifying that no other Batch is active.
 - Set the batch to `in-progress` and create the branch `batch-XXX` from `main`.
 - Analyze `Description.md` and the linked specs, then break the work down into its own kanban cards.
 - Commit automated tests with the product code on the Batch branch. Use the existing test layout. Follow the mission order priorities and adjust execution order for technical dependencies.
 - Record technical decisions, blockers, and verification evidence on cards. Specification Agent writes the Batch Journal.
-- Fill in the environment and prerequisites in Specification Agent’s `Tests.md`, then set the batch to `delivered` and notify the User on Telegram.
+- Record the delivered commit, environment, prerequisites, and links to technical evidence in `Tests.md`, then set the batch to `delivered` and notify the User on Telegram.
 - Report blockers to the User (see "When to stop and ask").
-- Close the batch after the User's decision:
+- Verify that the User decision in `Report.md` applies to the commit tested in `Tests.md`, then close the batch:
   - `validated`: merge the branch into `main`, push `main`, tag `batch-XXX`.
   - `rejected`: archive the branch as `archive/batch-XXX` (never merged), push it. Work restarts from `main` in a new batch.
-- Set the status to `closed`, then make one closing commit on `main` and push, and notify the User.
+- Record closure evidence in the dedicated section of `Report.md`. Set the status to `closed` in the closing commit, verify publication, then notify the User.
 
 ## Write access
 
 - Code and tests.
 - `kanban/` (cards): its internal organization is its own.
-- The "Environment" section of `batches/Batch-XXX/Tests.md`.
+- The tested commit, environment, prerequisites, and technical evidence in `Tests.md`.
+- The Closure evidence section of `Report.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
 - Git: Batch branch, authorized merge, tag, closing commit, and push. For a rejected Batch, keep code and tests on the archived branch. Stage only the frozen Specifications, Batch records, relevant Cards, and approved Backlog records for the closing commit on `main`.
 
 ## Forbidden
 
-- Editing `specs/`, `Backlog/`, `Description.md` or `Report.md`.
+- Editing `specs/`, `Backlog/`, or Batch records outside the assigned fields and statuses.
 - Setting `ready`, `validated` or `rejected`.
 - Committing on `main` other than the merge of a validated batch and the closing commit.
 - Committing batch files (`batches/`) on the batch branch.

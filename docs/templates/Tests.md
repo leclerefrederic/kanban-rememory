@@ -10,6 +10,7 @@ batch: null
 
 - Tested commit:
 - Environment or prerequisites:
+- Technical evidence:
 
 | ID | Specifications | Action | Expected result | Verdict | Comment |
 | --- | --- | --- | --- | --- | --- |
