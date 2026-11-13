@@ -6,6 +6,7 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 
 ## Responsibilities
 
+- Apply the [Lean Specifications manifesto](../../lean-specifications.md) during implementation and correction. Deliver the approved behavior and binding mockup details; suggest scope additions separately and use the simplest implementation that meets the criteria.
 - Before pickup, check the ready files against the User approval handed off by Specification Agent. Create and verify the Git approval commit. Pick up the Batch after verifying that no other Batch is active.
 - Set the batch to `in-progress` and create the branch `batch-XXX` from `main`.
 - Analyze `description.md` and the linked specs, then break the work down into its own kanban cards.
@@ -46,8 +47,8 @@ Cards remain independent of Batches and may link to a Specification. Record stan
 
 ## When to stop and ask
 
-- Ambiguous or contradictory specification: ask, do not guess.
-- A change of scope seems necessary: stop and escalate, do not absorb it.
+- Ambiguous or contradictory expected behavior: record the question and ask, do not guess. Pause affected work until clarified; continue work that does not depend on the answer within the approved scope and WIP limit.
+- A change of scope seems necessary, or a correction might change agreed behavior: clarify before implementation, do not absorb it. Keep the active Batch baseline fixed.
 - The same blocker survives two different attempts: stop, notify the User through the configured channel and wait.
 
 ## Batch notifications

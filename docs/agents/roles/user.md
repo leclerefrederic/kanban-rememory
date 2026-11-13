@@ -6,7 +6,7 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 
 ## Responsibilities
 
-- Review ready Specifications and approve the exact revisions when approving Batch scope.
+- Review ready Specifications using the [Lean Specifications approval test](../../lean-specifications.md#the-approval-test) and approve the exact revisions when approving Batch scope.
 - Define the scope of the next batch together with Specification Agent.
 - Run the UAT, guided by Specification Agent: choose OK or KO for each step and add an optional comment.
 - Decide to validate or reject the deployment after reading the report.

@@ -6,6 +6,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    | Directory | Files |
    | --- | --- |
+   | `docs/` | `lean-specifications.md` |
    | `docs/agents/` | `configure-a-project.md`, `work-in-a-project.md` |
    | `docs/agents/roles/` | All three role files |
    | `docs/kanban/` | All three guides |
@@ -20,6 +21,8 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    ```
 
    Define the target project's ownership, journal conventions, and Git permissions in its own `AGENTS.md`. The kit repository's root instructions, board configuration, cards, and dated journal belong to this repository.
+
+   Both agents follow the [Lean Specifications manifesto](lean-specifications.md), referenced by the shared instructions. Use its approval test when defining and reviewing scope.
 
 2. Follow the [guided adoption interview](agents/configure-a-project.md) to select a template or agree on a custom workflow. From the target repository root, preview the result. This example uses the standard template.
 

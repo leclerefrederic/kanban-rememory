@@ -1,5 +1,7 @@
 # Specifications, Delivery Batches, and Cards
 
+Write and review Specifications using the [Lean Specifications manifesto](../lean-specifications.md). Apply its approval test before proposing a ready Specification for Batch approval. Record value in Expected outcome, agreed behavior and binding mockup details in Scope, and setup, action, and expected result in Acceptance criteria. Use the existing template sections; link test results and debt records from the Batch records during delivery.
+
 | Directory | Specification state |
 | --- | --- |
 | `draft/` | Being written or revised. |

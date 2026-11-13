@@ -6,6 +6,7 @@ Copy the reusable files from the kit and create or merge the root AGENTS.md as d
 repository/
 ├── AGENTS.md
 ├── docs/
+│   ├── lean-specifications.md
 │   ├── agents/
 │   │   └── roles/
 │   ├── kanban/

@@ -10,6 +10,7 @@ import unittest
 
 KIT = Path(__file__).resolve().parents[1]
 INSTALL_FILES = (
+    "docs/lean-specifications.md",
     "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md",
     "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
     "docs/kanban/board-guide.md", "docs/kanban/software-development-workflow.md",
