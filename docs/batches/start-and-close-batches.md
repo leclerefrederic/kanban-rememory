@@ -28,3 +28,11 @@ Keep the recovery ref until the remote main and archive branch or tag have been 
 The procedure is manual. Scheduled closure is pending. See Kanban card TASK-00000039 for closure priority and retry criteria. Enable scheduled pickup only after verifying coordination in the deployment environment.
 
 For a fresh session handling a delivered or closed Batch, see [the handoff guide](resume-a-batch.md).
+
+## Protect acceptance builds
+
+For a Batch delivering a build artifact, keep a local JSON guard record with the trusted `base_revision` and `authorized_cards`. Run `python3 tools/guard-batch-work.py change RECORD --card TASK-ID` before changing code, build scripts, or delivery artifacts. Put unrelated work in Backlog until delivery. Keep the guard record outside the artifact directory.
+
+Run `python3 tools/guard-batch-work.py freeze RECORD --artifact PATH` before starting acceptance. Keep the recorded artifact in place and run `verify RECORD` before resuming acceptance. If the User agrees to replace the build, record the affected tests as pending and use `freeze RECORD --artifact PATH --restart`.
+
+Before publishing an accepted delivery to main, record `verification` with `revision` and `technical_checks: "passed"`. For changes to `build-app.sh`, also record `full_build: "passed"` after a successful full build. Record `decision` with the User-approved `revision` and `result: "accepted"`. Run `python3 tools/guard-batch-work.py publish RECORD` as a required step before pushing. Keep evidence of each check in the Batch records.
