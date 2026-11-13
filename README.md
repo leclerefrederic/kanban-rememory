@@ -8,4 +8,4 @@ Kanban Rememory is a Git and Markdown kit for teams and coding agents that need 
 
 For example, a Specification might require a booking export to preserve accents and commas. A Delivery Batch groups that Specification with any others to be reviewed together. Cards track the implementation and automated tests. The Batch records the revision reviewed and the user's decision.
 
-[Get started](docs/getting-started.md) · [Kanban guide](docs/kanban.md) · [Delivery Batch workflow](docs/batch-workflow.md)
+[Get started](docs/getting-started.md) · [Kanban guide](docs/kanban/board-guide.md) · [Delivery Batch workflow](docs/batches/batch-workflow.md)

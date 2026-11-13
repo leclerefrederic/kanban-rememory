@@ -2,11 +2,11 @@
 
 ## First access
 
-Check for `project/kanban/workflow.json` before resuming or creating cards. If it is missing, follow the [guided adoption interview](adoption.md). Offer express setup with a short, standard, or long software template or custom setup with a guided interview. Present the resulting stage folders and policies and wait for approval before wiring the board. Resume normal work once the approved configuration and folders pass validation.
+Check for `project/kanban/workflow.json` before resuming or creating cards. If it is missing, follow the [guided adoption interview](configure-a-project.md). Offer express setup with a short, standard, or long software template or custom setup with a guided interview. Present the resulting stage folders and policies and wait for approval before wiring the board. Resume normal work once the approved configuration and folders pass validation.
 
 ## Resume work
 
-1. Read the [Kanban guide](../kanban.md), review the cards in progress, then check the relevant backlog.
+1. Read the [Kanban guide](../kanban/board-guide.md), review the cards in progress, then check the relevant backlog.
 2. Identify the card and its owner. Read the latest relevant Rememory entry and specifications, and check the Git state.
 3. Verify dependencies and resume at the next authorized action. Report discrepancies between the card, journal, and evidence.
 
@@ -25,6 +25,6 @@ Use the `TASK` prefix. For a single owner, keep the journal in the root `project
 
 For a project using Batches, read the role that applies before editing project files. Specification Agent folder instructions should point to the Specification Agent role file.
 
-- [User](actor-user.md)
-- [Specification Agent](actor-specification-agent.md)
-- [Development Agent](actor-development-agent.md)
+- [User](roles/user.md)
+- [Specification Agent](roles/specification-agent.md)
+- [Development Agent](roles/development-agent.md)

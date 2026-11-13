@@ -44,7 +44,7 @@ def check_workflow(workflow):
 def load_workflow():
     path = PROJECT / "kanban/workflow.json"
     if not path.is_file():
-        raise ValueError("No workflow configured. Follow docs/agents/adoption.md before using the board.")
+        raise ValueError("No workflow configured. Follow docs/agents/configure-a-project.md before using the board.")
     workflow = check_workflow(json.loads(path.read_text(encoding="utf-8")))
     missing = [stage for stage in workflow["stages"] if not (PROJECT / "kanban" / stage).is_dir()]
     if missing:

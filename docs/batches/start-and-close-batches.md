@@ -27,4 +27,4 @@ Keep the recovery ref until the remote main and archive branch or tag have been 
 
 The procedure is manual. Scheduled closure is pending. See Kanban card TASK-00000039 for closure priority and retry criteria. Enable scheduled pickup only after verifying coordination in the deployment environment.
 
-For a fresh session handling a delivered or closed Batch, see [the handoff guide](batch-handoff.md).
+For a fresh session handling a delivered or closed Batch, see [the handoff guide](resume-a-batch.md).

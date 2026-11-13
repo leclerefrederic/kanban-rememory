@@ -10,10 +10,10 @@ import unittest
 
 KIT = Path(__file__).resolve().parents[1]
 INSTALL_FILES = (
-    "docs/agents/adoption.md", "docs/agents/working-instructions.md",
-    "docs/agents/actor-user.md", "docs/agents/actor-specification-agent.md", "docs/agents/actor-development-agent.md",
-    "docs/kanban.md", "docs/software-development.md",
-    "docs/card-guide.md", "docs/templates/card.md", "docs/templates/Project-layout.md",
+    "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md",
+    "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
+    "docs/kanban/board-guide.md", "docs/kanban/software-development-workflow.md",
+    "docs/kanban/write-task-cards.md", "docs/templates/card.md", "docs/templates/project-layout.md",
     "tools/manage-kanban-board.py", "project/rememory/README.md", "project/rememory/daily-template.md",
 )
 
@@ -31,7 +31,7 @@ class KanbanBoardTests(unittest.TestCase):
         shutil.copytree(KIT / "tools/kanban", self.root / "tools/kanban",
                         ignore=shutil.ignore_patterns("__pycache__"))
         (self.root / "AGENTS.md").write_text(
-            "Read the [shared working instructions](docs/agents/working-instructions.md) "
+            "Read the [shared working instructions](docs/agents/work-in-a-project.md) "
             "before adopting the kit or working on cards.\n", encoding="utf-8",
         )
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)

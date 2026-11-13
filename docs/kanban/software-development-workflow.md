@@ -4,7 +4,7 @@ This profile applies [Kanban University's Official Guide to the Kanban Method](h
 
 ## Visualize the work and make policies explicit
 
-Track a feature, fix, or maintenance change as a card with an observable outcome. Split large changes into independently verifiable slices where possible. Each stage has its own folder. Move the same card between folders as work advances or returns for rework. The folder identifies the current stage. Use the [card guide](card-guide.md) for required fields and states. Make queues and blockers visible, including work waiting for a reviewer or a release.
+Track a feature, fix, or maintenance change as a card with an observable outcome. Split large changes into independently verifiable slices where possible. Each stage has its own folder. Move the same card between folders as work advances or returns for rework. The folder identifies the current stage. Use the [card guide](write-task-cards.md) for required fields and states. Make queues and blockers visible, including work waiting for a reviewer or a release.
 
 | Folder | Example stage | Entry or exit policy |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ Agree on what delivery means for each kind of work. A documentation change may f
 
 Set an overall limit and add stage limits where queues need control. Count cards waiting in review or for release, including blocked cards. Pull the highest-ranked eligible card only when the relevant capacity is available. If review is full, help review or unblock work before pulling another change. If the team allows urgent exceptions, record who authorized them, why, and how the team will return within the limit.
 
-During replenishment, order eligible work and clarify the next items. During flow reviews, start with blocked and aging cards and look at the queues nearest delivery. Use the [flow measures](kanban.md#measure-and-improve-flow) to identify recurring delays. Keep the original start date through handoffs, rework, and blockers.
+During replenishment, order eligible work and clarify the next items. During flow reviews, start with blocked and aging cards and look at the queues nearest delivery. Use the [flow measures](board-guide.md#measure-and-improve-flow) to identify recurring delays. Keep the original start date through handoffs, rework, and blockers.
 
 ## Use feedback to improve the workflow
 
