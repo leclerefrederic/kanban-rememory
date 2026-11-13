@@ -15,9 +15,14 @@ The User approved SPEC-002 revision 1 and explicitly authorized development of B
 
 The User accepted the partial delivery after completing acceptance testing on 2026-11-13. UAT-01 passed. UAT-03 passed for isolated storage only. UAT-02 remains blocked, and UAT-04 failed. The icon fix was deferred to Batch-003.
 
-The acceptance runs used local builds. The exact tested Git revision was not recorded at the time of testing and must be established before publishing closure.
+The User accepted the locally tested prototype. Commit `455afcb98a4df24c0f8b6658ed65bb61869d7aed` captures the final source and was rebuilt and signature-verified after the decision. Earlier UAT runs used uncommitted local builds.
 
 ## Closure evidence
+
+- Delivery revision and tag target: `455afcb98a4df24c0f8b6658ed65bb61869d7aed`
+- Closing paths: `project/batches/batch-002/{description,tests,report}.md`, TASK-00000058 card transition, and `project/rememory/2026-11-13.md`.
+- Tag: `refs/tags/batch-002`
+- Closing trailer: `Batch-Closure: Batch-002`
 
 Approval commit: `07313de` on `refs/heads/batch-approval/batch-002`.
 
