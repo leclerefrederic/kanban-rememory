@@ -6,7 +6,7 @@ A Batch groups one or more Specifications. On approval, freeze the selected revi
 
 Cards track Development Agent's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. Cards may reference Specifications in `ready` or `frozen`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
 
-Run `python3 tools/board.py validate` to check the mapping. See the [agent roles](agents/working-instructions.md#batch-workflow-roles).
+Run `python3 tools/kanban-board.py validate` to check the mapping. See the [agent roles](agents/working-instructions.md#batch-workflow-roles).
 
 For Git approval evidence, pickup coordination, and closure recovery, follow the [Batch operations guide](batch-operations.md).
 
