@@ -2,6 +2,7 @@
 
 from collections import defaultdict
 import re
+import subprocess
 from urllib.parse import unquote, urlsplit
 
 from .batches import validate_lot_mapping
@@ -15,6 +16,28 @@ HISTORICAL_CARD_REFERENCES = {
     ("project/batches/batch-002/report.md", "TASK-00000058"): 1,
 }
 BATCH_CARD_ID = re.compile(r"\bTASK-[0-9]{8}\b", re.IGNORECASE)
+
+
+def archived_specification_resource(source, target):
+    active = PROJECT / "specs/resources/active"
+    if source.parent != PROJECT / "specs/approved" or not target.is_relative_to(active):
+        return False
+    archived = PROJECT / "specs/resources/archived" / target.relative_to(active)
+    if not archived.is_file():
+        return False
+    spec_path = source.relative_to(ROOT).as_posix()
+    resource_path = target.relative_to(ROOT).as_posix()
+    history = subprocess.check_output(
+        ["git", "log", "--all", "--format=%H", "--", spec_path, resource_path], cwd=ROOT, text=True
+    )
+    for commit in history.splitlines():
+        original = subprocess.run(["git", "show", f"{commit}:{spec_path}"], cwd=ROOT, capture_output=True)
+        if original.returncode or original.stdout != source.read_bytes():
+            continue
+        resource = subprocess.run(["git", "show", f"{commit}:{resource_path}"], cwd=ROOT, capture_output=True)
+        if resource.returncode == 0 and resource.stdout == archived.read_bytes():
+            return True
+    return False
 
 
 def validate(workflow):
@@ -65,6 +88,8 @@ def validate(workflow):
                 target = path.parent / unquote(url.path) if url.path else path
                 if not target.exists() and path.is_relative_to(PROJECT / "batches"):
                     target = target.with_name(target.name.lower())
+                if not target.exists() and archived_specification_resource(path, target.resolve()):
+                    continue
                 if not target.exists():
                     findings.append(f"{name}: missing link target {href}")
                 elif url.fragment and target.suffix.lower() == ".md" and target.is_file():

@@ -40,3 +40,11 @@ git log origin/main --full-history --name-status -- ':(glob)project/kanban/**/ta
 This identifies the commits that introduced or changed the Card on that branch. Fetch the remote first if you need its latest state. Record a tested code revision separately from the commit that published the Card. The publication commit cannot contain its own hash, and a Git commit date does not establish when it was pushed.
 
 The move command records stage transitions in the Card's History section. Record changes within a stage, such as a blocker, when they happen. Git only shows transitions captured by commits. For a Batch, keep the current state in Description and record significant transitions, the decision, the tested revision and closing references in the Journal.
+
+## Specification resources
+
+Store shared attachments in `project/specs/resources/active/`. In the Specification's Resources section, link each required file and explain its purpose. Link existing repository files directly when they already serve that purpose.
+
+Include every required resource in the Git approval snapshot. Check that each link resolves to a tracked file in that snapshot. Use the recorded approval commit to open the Specification and its resources together when reconstructing a historical delivery. Change a required resource through a new Specification revision.
+
+When no Specification still needs a file for ongoing or planned work, move it to `project/specs/resources/archived/` and preserve its filename. Keep approved Specifications unchanged. Historical links resolve within the approval snapshot, which retains the exact file at its original path.
