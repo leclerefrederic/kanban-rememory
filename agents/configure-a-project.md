@@ -26,7 +26,7 @@ Ask one question at a time. Summarize what you understood before moving on. Offe
 2. **Identify queues and rework.** Ask “Where did the work wait, and where did it go when checks failed?” If changes regularly wait after review, propose a separate Deployment stage. If delivery happens at merge, propose moving directly to Completion.
 3. **Define the start and finish.** Ask “Which move starts the clock, and what evidence lets us call the work delivered?” Offer concrete choices such as a merged PR, a deployment with a successful check, or acceptance by the requester. Confirm how abandoned work is recorded.
 4. **Agree on selection and capacity.** Ask who authorizes a start and how to select the next eligible card. For solo work, suggest one active card as a starting limit. For a team, ask how many cards it can actively review and deliver at once. Count blocked cards and cards waiting inside the active workflow.
-5. **Set the journal conventions.** Confirm the project time zone and who keeps the journal. Suggest the root `project/rememory/` folder for a single owner.
+5. **Set the journal conventions.** Confirm the project time zone and who keeps the journal. Suggest the root `project/rememory/` folder for a single owner and create it after approval; the kit's [daily template](templates/daily-template.md) is not copied there.
 
 Present a compact proposal listing each stage, its folder name, the conditions to enter and leave it, allowed moves including rework, which stages count toward WIP, the overall limit, and the finish evidence. Ask the user to approve or amend it. Wait for approval before creating or moving stage folders or writing the workflow configuration.
 

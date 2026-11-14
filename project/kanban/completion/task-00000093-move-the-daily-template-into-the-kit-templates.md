@@ -16,16 +16,20 @@ Move `project/rememory/daily-template.md` into `agents/templates/` so copying `a
 
 ## Acceptance criteria
 
-- [ ] The template lives in `agents/templates/` and `project/rememory/` no longer holds it.
-- [ ] References updated in `agents/templates/project-layout.md`, `agents/install-in-a-project.md`, `agents/maintain-rememory.md` and `INSTALL_FILES` in `agents/tools/test-kanban-board.py`.
-- [ ] The User confirmed where the template lands in a target project.
-- [ ] Adoption tests and board validation pass.
+- [x] The template lives in `agents/templates/` and `project/rememory/` no longer holds it.
+- [x] References updated in `agents/templates/project-layout.md`, `agents/install-in-a-project.md`, `agents/maintain-rememory.md` and `INSTALL_FILES` in `agents/tools/test-kanban-board.py`.
+- [x] The User confirmed where the template lands in a target project.
+- [x] Adoption tests and board validation pass.
 
 ## Execution and evidence
 
-- State:
-- Actual start:
-- Actual finish:
+- State: completed
+- Actual start: 2026-11-14
+- Actual finish: 2026-11-14
 - Blocker:
 
 ## History
+
+- 2026-11-14T10:46:05+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-14T10:47:07+01:00 — Stage moved from `development` to `completion`.

@@ -12,9 +12,8 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | `agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md` |
    | `agents/roles/` | All three role files |
    | `agents/kanban/` | All three operating references |
-   | `agents/templates/` | `kanban-card.md`, `project-layout.md` |
+   | `agents/templates/` | `kanban-card.md`, `project-layout.md`, `daily-template.md` |
    | `agents/tools/` | `manage-kanban-board.py` and the `kanban/` package |
-   | `project/rememory/` | `daily-template.md` |
 
    In the target repository's root `AGENTS.md`, create or merge this entry:
 

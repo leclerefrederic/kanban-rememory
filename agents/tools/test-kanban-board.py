@@ -24,7 +24,7 @@ INSTALL_FILES = (
     "agents/roles/user.md", "agents/roles/specification-agent.md", "agents/roles/development-agent.md",
     "agents/kanban/board-guide.md", "agents/kanban/software-development-workflow.md",
     "agents/kanban/write-task-cards.md", "agents/templates/kanban-card.md", "agents/templates/project-layout.md",
-    "agents/tools/manage-kanban-board.py", "agents/maintain-rememory.md", "project/rememory/daily-template.md",
+    "agents/tools/manage-kanban-board.py", "agents/maintain-rememory.md", "agents/templates/daily-template.md",
 )
 
 
@@ -68,6 +68,7 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("- Owner: Test team", card.read_text())
         card.write_text(card.read_text().replace("## Acceptance criteria\n", "## Acceptance criteria\n\n- [ ] Verified.\n", 1))
         journal = self.root / "project/rememory/journal.md"
+        journal.parent.mkdir(parents=True, exist_ok=True)
         journal.write_text(
             f"[Criteria](../kanban/{stages[0]}/{card.name}#acceptance-criteria)\n"
             "`[Example](../kanban/backlog/task-00000001-example.md)`\n"

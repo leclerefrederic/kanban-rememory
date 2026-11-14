@@ -16,6 +16,7 @@ repository/
 │   ├── roles/
 │   ├── templates/
 │   │   ├── kanban-card.md
+│   │   ├── daily-template.md
 │   │   └── project-layout.md
 │   └── tools/
 │       ├── manage-kanban-board.py
@@ -29,7 +30,6 @@ repository/
     │   ├── completion/
     │   └── cancellation/
     └── rememory/
-        └── daily-template.md
 ```
 
 The tree shows the Standard workflow. Run `init` after approval to create `project/kanban/workflow.json` and one directory per approved stage. The workflow file lists the actual stages. Keep Cards in their stage directories and daily execution notes in `project/rememory/`.
