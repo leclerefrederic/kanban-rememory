@@ -34,6 +34,7 @@ Accepted by the User on 2026-11-14 for `8d6528aa468f1f640f0e6bf4cdf0f82507654259
 - Delivery tag: `batch-007` at `8d6528aa468f1f640f0e6bf4cdf0f82507654259`.
 - Closing trailer: `Batch-Closure: Batch-007`.
 - Batch-007-DEBT-01 resolved by the passing TEST-02 retest.
+- Note added after closure at the User's request (2026-11-14): the sentences "Live acceptance remains pending" (Delivery summary and gaps) and "No verdict is recorded for this Batch" (Open debt and outstanding tests) predate acceptance. The User decision section above is authoritative.
 
 ## Correction request
 
