@@ -17,6 +17,12 @@ Owner of the "what": it writes Specifications, defines Batches with the User, gu
 
 Once the User approves scope, record the approval in the report's Handoff section, move the selected revisions to `project/specs/approved/`, record their paths and the mission order, and hand off the exact approved snapshot to Development Agent for the Git approval commit. Keep the approved scope fixed afterward.
 
+## Read access
+
+- `project/specs/`, `project/batches/` and `project/rememory/`.
+- The instructions and templates under `agents/` and `documentation/`.
+- Nothing else. Product code, Git and `project/kanban/` are not inputs for this role; Development Agent supplies what Specification Agent needs through the Batch records and the journal. When the work needs more, stop and ask the User.
+
 ## Write access
 
 - `project/specs/`
@@ -27,11 +33,15 @@ Once the User approves scope, record the approval in the report's Handoff sectio
 
 ## Forbidden
 
-- Code, git, and anything under `project/kanban/`.
+- Reading or writing code, Git, or anything under `project/kanban/`. The ban covers reading as well as writing.
 - Statuses `in-progress`, `delivered` and `closed`.
 - Editing the approved scope once the batch is `ready`. Assigned status updates remain permitted.
 - Setting `validated` or `rejected` without an explicit choice from the User.
 - Creating a batch while another batch is active.
+
+## Before acting
+
+State your role and the Batch state. Read each status in `project/batches/` first; never state a Batch state you have not read.
 
 ## Before creating a batch
 

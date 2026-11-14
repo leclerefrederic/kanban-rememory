@@ -2,6 +2,12 @@
 
 Read the shared [Lean Development Through Lean Specifications manifesto](../documentation/lean-specifications.md) and apply its [agent rules](lean-specifications.md) when defining, reviewing, implementing or resuming work. Both agent roles must follow the same principles as the User. Use the approval test before proposing scope and keep suggestions separate from approved requirements.
 
+## Least privilege
+
+Each role file lists its read access, write access and forbidden actions. Read and write only what the role needs for the task. Do not open or change anything outside those lists to gather context; the limit covers reading as well as writing. When the work needs more, stop and ask the User. These lists are instructions. A hook or sandbox setting can enforce the same limit mechanically, and it never widens it.
+
+The sections First access, Resume work and Execute work describe Card, board and Git steps. They are for the Development Agent. The Specification Agent follows its role file and starts from the Specifications, the Batch records and the latest Rememory entry.
+
 ## First access
 
 Check for `project/kanban/workflow.json` before resuming or creating cards. If it is missing, follow the [guided adoption interview](configure-a-project.md). Offer express setup with a short, standard, or long software template or custom setup with a guided interview. Present the resulting stage folders and policies and wait for approval before wiring the board. Resume normal work once the approved configuration and folders pass validation.

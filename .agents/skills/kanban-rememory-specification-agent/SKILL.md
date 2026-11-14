@@ -27,4 +27,4 @@ This skill only routes you to the kit's instructions. It restates no rule: the d
 
 ## Before acting
 
-State your role, the Batch state (or that there is no Batch), and the next authorized action. If the records disagree, report it and keep the Batch at its current state.
+State your role, the Batch state you read in `project/batches/` (or that none exists there), and the next authorized action. If the records disagree, report it and keep the Batch at its current state.

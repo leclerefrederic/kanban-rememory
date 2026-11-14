@@ -19,6 +19,12 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 - Verify that the User decision in `report.md` applies to the commit tested in `tests.md`, then follow the closure procedure in `agents/batches/start-and-close-batches.md`, including recovery publication before final publication. Accepted work is merged and tagged; rejected code remains on the archive branch.
 - Record closure evidence in the dedicated section of `report.md`. Set the status to `closed` in the closing commit, verify publication, then notify the User.
 
+## Read access
+
+- Code and tests, `project/kanban/`, `project/batches/`, `project/rememory/`, and the documentation.
+- Specifications only from `project/specs/approved/` and `project/specs/resources/`. Draft and ready revisions are not input for this role.
+- Nothing else. When the work needs more, stop and ask the User.
+
 ## Write access
 
 - Code and tests.
@@ -30,7 +36,7 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 
 ## Forbidden
 
-- Editing `project/specs/` or Batch records outside the assigned fields and statuses.
+- Editing `project/specs/` or Batch records outside the assigned fields and statuses. Reading `project/specs/draft/` or `ready/` is also outside this role.
 - Setting `ready`, `validated` or `rejected`.
 - Publishing Batch implementation on `main` before acceptance. For Batch work, only the accepted merge and closing records belong on main; standalone commits follow project permissions.
 - Committing batch files (`project/batches/`) on the batch branch.
