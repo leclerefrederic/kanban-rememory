@@ -502,6 +502,20 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertEqual(push(closed, closed).returncode, 0)  # Already closed on the remote.
         self.assertEqual(push(closed, "1" * 40).returncode, 0)  # Unknown remote commit.
 
+    def test_skills_are_valid_and_reference_existing_files(self):
+        skills = sorted((KIT / "agents/skills").glob("*/SKILL.md"))
+        self.assertEqual(len(skills), 3)
+        for skill in skills:
+            with self.subTest(skill=skill.parent.name):
+                text = skill.read_text()
+                header = re.match(r"---\nname: (\S+)\ndescription: (.+)\n---\n", text)
+                self.assertTrue(header, "name and description are required")
+                self.assertEqual(header.group(1), skill.parent.name)
+                self.assertLessEqual(len(header.group(2)), 1024)
+                for path in set(re.findall(r"`((?:agents|project)/[\w./-]+|AGENTS\.md)`", text)):
+                    if path != "project/kanban/workflow.json":
+                        self.assertTrue((KIT / path).exists(), path)
+
     def test_notification_batch_id_preview(self):
         environment = {**os.environ, "TELEGRAM_CHAT_ID": "42", "TELEGRAM_EVENTS": "delivered"}
         environment.pop("TELEGRAM_BOT_TOKEN", None)

@@ -12,6 +12,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | `agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md` |
    | `agents/roles/` | All three role files |
    | `agents/kanban/` | All three operating references |
+   | `agents/skills/` | Optional: the three `SKILL.md` entry points, one per work mode (standalone, Specification Agent, Development Agent) |
    | `agents/templates/` | `kanban-card.md`, `project-layout.md`, `daily-template.md` |
    | `agents/tools/` | `manage-kanban-board.py` and the `kanban/` package |
 

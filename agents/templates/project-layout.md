@@ -14,6 +14,7 @@ repository/
 │   ├── maintain-rememory.md
 │   ├── kanban/
 │   ├── roles/
+│   ├── skills/
 │   ├── templates/
 │   │   ├── kanban-card.md
 │   │   ├── daily-template.md
