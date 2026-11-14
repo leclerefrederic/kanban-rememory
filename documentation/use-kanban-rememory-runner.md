@@ -1,4 +1,4 @@
-# Use the macOS companion
+# Use Kanban Rememory Runner
 
 Kanban Rememory Runner, or KRR, is an optional native macOS app for managing repository watchers using the Codex or Claude Code command-line engines. The Markdown framework works independently of the app.
 
@@ -6,7 +6,9 @@ Kanban Rememory Runner, or KRR, is an optional native macOS app for managing rep
 
 A watcher associates a repository, an engine and a cadence. Current watchers request a read-only board summary. They do not yet start development, dispatch corrections or close Batches automatically. Automated Batch dispatch remains work to implement.
 
-Ask Development Agent to prepare the app and provide its exact location and startup instructions. The app needs a supported installed engine and a repository configured for Kanban Rememory. Its current repository check also requires the Specification and Batch directories.
+## Before you start
+
+Ask Development Agent to prepare the app and provide its exact location and startup instructions. The app needs a supported installed engine and a repository configured for Kanban Rememory. Its current repository check also requires the Specification and Batch directories. If you have not adopted the framework yet, [start a project](start-a-project.md) first.
 
 ## Create a watcher
 

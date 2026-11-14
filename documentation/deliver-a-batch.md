@@ -1,6 +1,6 @@
-# Deliver a change
+# Deliver a Batch
 
-This guide describes a delivery using Specifications and a Batch. For standalone work, the outcome and checks live directly on a Card maintained by the Development Agent, under the project's agreed delivery rules.
+This guide describes a delivery using Specifications and a Batch. For standalone work, see [Assign a task](assign-a-task.md): its outcome and checks live directly on a Card maintained by Development Agent, under the project's agreed delivery rules.
 
 ## From a request to an approved scope
 
@@ -34,7 +34,7 @@ A delivered Batch can return to development for an authorized correction of a bl
 
 Specification Agent guides you through the prepared tests. Development Agent identifies the candidate, environment and technical evidence. You give the verdict for each case; the agent records it and guides the next one.
 
-A failed case may leave other cases runnable. A blocking defect prevents acceptance and triggers correction or a rejection decision. See [acceptance and debt](acceptance-and-debt.md) for the detailed rules.
+A failed case may leave other cases runnable. A blocking defect prevents acceptance and triggers correction or a rejection decision. See [Test and accept a Batch](test-and-accept-a-batch.md) for the detailed rules.
 
 ## Accept or reject
 
@@ -48,4 +48,4 @@ Unchanged approved Specifications can be selected again for another Batch. Their
 
 An interrupted session resumes the existing work and evidence. An interrupted closure is completed before a new Batch starts. Earlier test results remain tied to their original candidate; they are not silently transferred to changed code.
 
-You should be able to ask what is approved, what is running, what has been verified and what decision comes next. The agent uses the project records to answer.
+You should be able to ask what is approved, what is running, what has been verified and what decision comes next. The agent uses the project records to answer. [Resume work](resume-work.md) explains what to expect after a break or a change of agent.

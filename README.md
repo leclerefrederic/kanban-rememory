@@ -103,7 +103,7 @@ Start with the [project setup guide](documentation/start-a-project.md). Your age
 
 Today, agents execute the workflow through project instructions and tools in their sessions. The repository supplies the memory, rules, and checks; a separate scheduler must invoke an agent for unattended runs. Automated Batch dispatch still needs implementation.
 
-**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [Runner guide](documentation/runner.md) explains what you can do with it today. The framework works independently of the app.
+**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. [Use Kanban Rememory Runner](documentation/use-kanban-rememory-runner.md) explains what you can do with it today. The framework works independently of the app.
 
 Companion applications live under `apps/`. KRR keeps its sources and local builds together in [apps/krr/](apps/krr/).
 
@@ -115,11 +115,14 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 | --- | --- |
 | Find the human-readable documentation | [Guide index](documentation/index.md) |
 | Adopt the framework with your agent | [Start a project](documentation/start-a-project.md) |
+| Give the agent work and set its priority | [Assign a task](documentation/assign-a-task.md) |
 | Understand the roles, board and connected records | [Understand the framework](documentation/understand-the-framework.md) |
 | Keep scope lean | [The manifesto](documentation/lean-specifications.md) |
-| Follow a delivery from request to closure | [Deliver a change](documentation/deliver-a-change.md) |
+| Follow a delivery from request to closure | [Deliver a Batch](documentation/deliver-a-batch.md) |
 | See what the five connected records look like | [A complete example](documentation/index.md#a-complete-example) |
-| Understand verdicts, corrections and debt | [Acceptance and debt](documentation/acceptance-and-debt.md) |
-| Use the macOS companion | [Runner guide](documentation/runner.md) |
+| Test a candidate and decide on delivery | [Test and accept a Batch](documentation/test-and-accept-a-batch.md) |
+| Continue after a break or change of agent | [Resume work](documentation/resume-work.md) |
+| Explain a problem and follow its correction | [Report a defect](documentation/report-a-defect.md) |
+| Use the macOS companion | [Use Kanban Rememory Runner](documentation/use-kanban-rememory-runner.md) |
 
 Human guides live in `documentation/`. Agent operating instructions have their own [index](agents/index.md) under `agents/`; record templates live in `agents/templates/`.

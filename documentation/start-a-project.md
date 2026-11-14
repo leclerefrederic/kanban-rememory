@@ -18,16 +18,14 @@ The optional Specification and Batch workflow adds an explicit agreement about a
 
 ## Give the first request
 
-Describe who needs to achieve what and what gets in the way today. Relevant examples, screenshots or mockups help explain the outcome. The Specification Agent clarifies the request and records any attachments with their purpose. For a mockup, agree which aspects must be reproduced.
+Describe who needs to achieve what and what gets in the way today. Relevant examples, screenshots or mockups help explain the outcome. Your agent clarifies the request and uses the agreed standalone or Batch workflow. When a Specification is needed, Specification Agent records attachments with their purpose; for a mockup, agree which aspects must be reproduced.
 
 You review the proposed behavior and acceptance criteria. Suggestions remain suggestions until agreed. The Development Agent creates its own implementation Cards when authorized work is ready to be tracked.
 
-Before work starts, you should be able to explain the expected result, the agreed scope, how it will be checked and what the agent is authorized to do. The agent should be able to recover those decisions from the project records.
+Before work starts, you should be able to explain the expected result, the agreed scope, how it will be checked and what the agent is authorized to do. The agent should be able to recover those decisions from the project records. [Assign a task](assign-a-task.md) shows how to phrase the request and follow its progress.
 
 ## Resume an existing project
 
-Ask the agent to recover the current state before starting new work. It reads the records and checks the repository. You should receive the current delivery or task, any blocker, the latest verified result and the next authorized action.
+If the repository already uses Kanban Rememory, follow [Resume work](resume-work.md). The agent recovers the existing records and next authorized action instead of repeating setup.
 
-If an existing Batch is awaiting acceptance, that is the delivery to review. If a record conflicts with the actual files, the agent reports the discrepancy before proceeding. External edits can happen; they need to be reconciled with the approved baseline.
-
-Next: [deliver a change](deliver-a-change.md).
+Next: [assign a task](assign-a-task.md), or [deliver a Batch](deliver-a-batch.md) when you need an agreed delivery scope.

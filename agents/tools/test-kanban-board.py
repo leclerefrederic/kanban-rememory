@@ -13,9 +13,10 @@ import unittest
 KIT = Path(__file__).resolve().parents[2]
 INSTALL_FILES = (
     "documentation/index.md", "documentation/understand-the-framework.md",
-    "documentation/start-a-project.md", "documentation/deliver-a-change.md",
-    "documentation/acceptance-and-debt.md", "documentation/runner.md",
+    "documentation/start-a-project.md", "documentation/deliver-a-batch.md",
+    "documentation/test-and-accept-a-batch.md", "documentation/use-kanban-rememory-runner.md",
     "documentation/lean-specifications.md",
+    "documentation/assign-a-task.md", "documentation/resume-work.md", "documentation/report-a-defect.md",
     "documentation/examples/project-specification.md", "documentation/examples/batch-description.md",
     "documentation/examples/kanban-card.md", "documentation/examples/batch-tests.md",
     "documentation/examples/batch-report.md",

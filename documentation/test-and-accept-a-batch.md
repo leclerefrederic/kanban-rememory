@@ -1,4 +1,4 @@
-# Acceptance and debt
+# Test and accept a Batch
 
 Acceptance checks whether the delivered result meets the approved behavior. The agent runs technical checks before delivery and then supports your review of the actual candidate. Your verdict is recorded as evidence, with the revision you tested.
 
@@ -41,4 +41,4 @@ If you reject the delivery, its report preserves both defects and tests still ow
 
 A defect keeps its original reference across deliveries. A later report records the verified correction and the accepted delivery that includes it. The closed original report remains unchanged. A rejected successor does not resolve debt in the published baseline.
 
-Return to [the delivery process](deliver-a-change.md) or the [guide index](index.md).
+To report a problem discovered outside the current case or after closure, see [Report a defect](report-a-defect.md). Return to [the Batch delivery process](deliver-a-batch.md) or the [guide index](index.md).
