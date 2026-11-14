@@ -22,6 +22,7 @@ def artifact_digest(path):
             raise ValueError("Acceptance artifacts must not contain symbolic links.")
         if entry.is_file():
             digest.update(str(entry.relative_to(path.parent)).encode() + b"\0")
+            digest.update(b"x" if entry.stat().st_mode & 0o111 else b"-")
             with entry.open("rb") as stream:
                 for chunk in iter(lambda: stream.read(65536), b""):
                     digest.update(chunk)

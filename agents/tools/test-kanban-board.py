@@ -466,6 +466,10 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("Record out-of-scope", guard({**record, "acceptance": None}, "change", "--card",
                                                    "TASK-00000002", expected=1))
         self.assertIn("passed", guard(record, "publish"))
+        os.chmod(self.root / "app/artifact", 0o755)  # A build that gains or loses its executable bit changed.
+        self.assertIn("changed", guard(record, "verify", expected=1))
+        os.chmod(self.root / "app/artifact", 0o644)
+        self.assertIn("passed", guard(record, "verify"))
         strict = {**record, "full_build_files": ["build-app.sh"]}
         self.assertIn("require a successful full build", guard(strict, "publish", expected=1))
         strict["verification"]["full_build"] = "passed"
@@ -483,6 +487,8 @@ class KanbanBoardTests(unittest.TestCase):
     def test_push_check_guards_only_batch_closure(self):
         shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
         shutil.copy(KIT / "agents/tools/check-batch-publication.py", self.root / "agents/tools")
+        shutil.copytree(KIT / "agents/tools/kanban", self.root / "agents/tools/kanban", dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("__pycache__"))
         description = self.root / "project/batches/batch-001/description.md"
         description.parent.mkdir(parents=True)
 
@@ -510,9 +516,13 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertEqual(push(closed, delivered, "refs/heads/other").returncode, 0)  # Not main.
         self.assertEqual(push(closed, closed).returncode, 0)  # Already closed on the remote.
         self.assertEqual(push(closed, "1" * 40).returncode, 0)  # Unknown remote commit.
+        quoted = commit('"closed"')
+        self.assertEqual(push(quoted, delivered).returncode, 1)  # A quoted status still closes the Batch.
 
     def test_push_check_passes_the_pushed_commit_to_the_guard(self):
         shutil.copy(KIT / "agents/tools/check-batch-publication.py", self.root / "agents/tools")
+        shutil.copytree(KIT / "agents/tools/kanban", self.root / "agents/tools/kanban", dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("__pycache__"))
         (self.root / "agents/tools/guard-batch-work.py").write_text(
             "import sys\nopen('guard-args.txt', 'w').write(' '.join(sys.argv[2:]))\n")
         description = self.root / "project/batches/batch-001/description.md"

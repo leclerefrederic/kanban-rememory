@@ -1,9 +1,10 @@
 """Pre-push check: run the Batch publish guard when a push to main closes a Batch."""
 
 from pathlib import Path
-import re
 import subprocess
 import sys
+
+from kanban.files import header_value
 
 ZERO = "0" * 40
 
@@ -21,8 +22,10 @@ def statuses(sha):
     for path in (git("ls-tree", "-r", "--name-only", sha, "project/batches/") or "").splitlines():
         parts = path.split("/")
         if len(parts) == 4 and parts[3] == "description.md":
-            match = re.search(r"^status:\s*(\S+)", git("show", f"{sha}:{path}") or "", re.MULTILINE)
-            found[parts[2]] = match.group(1) if match else None
+            try:
+                found[parts[2]] = header_value(git("show", f"{sha}:{path}") or "", "status")
+            except ValueError:
+                found[parts[2]] = None
     return found
 
 
