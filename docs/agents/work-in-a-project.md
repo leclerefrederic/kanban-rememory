@@ -1,6 +1,6 @@
 # Working instructions
 
-Read and apply [Lean Development Through Lean Specifications](../guides/lean-specifications.md) when defining, reviewing, or implementing work. Use its approval test before proposing scope and keep suggestions separate from approved requirements.
+Read the shared [Lean Development Through Lean Specifications manifesto](../guides/lean-specifications.md) and apply its [agent rules](lean-specifications.md) when defining, reviewing, implementing or resuming work. Both agent roles must follow the same principles as the User. Use the approval test before proposing scope and keep suggestions separate from approved requirements.
 
 ## First access
 

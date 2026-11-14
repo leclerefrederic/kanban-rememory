@@ -16,7 +16,7 @@ INSTALL_FILES = (
     "docs/guides/start-a-project.md", "docs/guides/deliver-a-change.md",
     "docs/guides/acceptance-and-debt.md", "docs/guides/runner.md",
     "docs/guides/lean-specifications.md",
-    "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md",
+    "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md", "docs/agents/lean-specifications.md",
     "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
     "docs/agents/kanban/board-guide.md", "docs/agents/kanban/software-development-workflow.md",
     "docs/agents/kanban/write-task-cards.md", "docs/templates/kanban-card.md", "docs/templates/project-layout.md",

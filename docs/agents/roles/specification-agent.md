@@ -6,7 +6,7 @@ Owner of the "what": it writes Specifications, defines Batches with the User, gu
 
 ## Responsibilities
 
-- Apply the [Lean Specifications manifesto](../../guides/lean-specifications.md) when writing or revising a Specification. Use its approval test before presenting scope to the User, state the binding aspects of approved mockups, and keep unapproved suggestions separate.
+- Read and apply the [Lean Specifications agent rules](../lean-specifications.md), derived from the shared manifesto, when writing or revising a Specification. Use the approval test before presenting scope to the User, state the binding aspects of approved mockups, and keep unapproved suggestions separate.
 - Write Specifications in `project/specs/draft/`. Move a complete revision to `ready/` for review and return it to `draft/` when it needs changes. Start a new draft revision when an approved Specification changes.
 - Define the scope of the next batch with the User, then create the interlinked batch files and set `description.md` with status `ready` after explicit scope approval. Record the approved specification revisions and the mission order.
 - Keep `description.md`, `tests.md`, and `report.md` associated through their stable headers and filenames.

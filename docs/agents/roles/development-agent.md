@@ -8,7 +8,7 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 
 ## Responsibilities
 
-- Apply the [Lean Specifications manifesto](../../guides/lean-specifications.md) during implementation and correction. Deliver the approved behavior and binding mockup details; suggest scope additions separately and use the simplest implementation that meets the criteria.
+- Read and apply the [Lean Specifications agent rules](../lean-specifications.md), derived from the shared manifesto, during implementation and correction. Deliver the approved behavior and binding mockup details; suggest scope additions separately and use the simplest implementation that meets the criteria.
 - Before pickup, check the ready files against the User approval handed off by Specification Agent. Create and verify the Git approval commit. Pick up the Batch after verifying that no other Batch is active.
 - Create the Batch branch recorded in the handoff (for example `codex/batch-001`) from the recorded main revision, then set the Batch to `in-progress`.
 - Analyze `description.md` and the linked specs, then break the work down into its own kanban cards.

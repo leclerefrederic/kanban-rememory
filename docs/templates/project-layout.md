@@ -11,6 +11,7 @@ repository/
 │   │   ├── lean-specifications.md
 │   │   └── ...
 │   ├── agents/
+│   │   ├── lean-specifications.md
 │   │   ├── kanban/
 │   │   └── roles/
 │   └── templates/
