@@ -24,6 +24,7 @@ INSTALL_FILES = (
     "documentation/examples/batch-report.md",
     "agents/configure-a-project.md", "agents/work-in-a-project.md", "agents/lean-specifications.md",
     "agents/roles/user.md", "agents/roles/specification-agent.md", "agents/roles/development-agent.md",
+    "agents/roles/orchestrator.md", "agents/orchestrate-work.md",
     "agents/kanban/board-guide.md", "agents/kanban/software-development-workflow.md",
     "agents/kanban/write-task-cards.md", "agents/templates/kanban-card.md", "agents/templates/project-layout.md",
     "agents/tools/manage-kanban-board.py", "agents/maintain-rememory.md", "agents/templates/daily-template.md",
@@ -595,7 +596,13 @@ class KanbanBoardTests(unittest.TestCase):
 
     def test_skills_are_valid_and_reference_existing_files(self):
         skills = sorted((KIT / "agents/skills").glob("*/SKILL.md"))
-        self.assertEqual(len(skills), 3)
+        expected = {
+            "kanban-rememory-development-agent", "kanban-rememory-orchestrator",
+            "kanban-rememory-specification-agent", "kanban-rememory-standalone",
+        }
+        self.assertEqual({skill.parent.name for skill in skills}, expected)
+        orchestrator = KIT / "agents/skills/kanban-rememory-orchestrator/SKILL.md"
+        self.assertIn("`agents/roles/orchestrator.md`", orchestrator.read_text())
         for skill in skills:
             with self.subTest(skill=skill.parent.name):
                 text = skill.read_text()
@@ -622,7 +629,7 @@ class KanbanBoardTests(unittest.TestCase):
             return result.stdout + result.stderr
 
         self.assertIn("Out of date", sync("--check", expected=1))
-        self.assertIn("updated 6 skill folder(s)", sync())
+        self.assertIn("updated 8 skill folder(s)", sync())
         for target in (".claude/skills", ".agents/skills"):
             for skill in (self.root / "agents/skills").iterdir():
                 if not (skill / "SKILL.md").is_file():

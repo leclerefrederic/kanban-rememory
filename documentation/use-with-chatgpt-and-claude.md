@@ -23,9 +23,13 @@ A branch adds help for one assistant. It can make a rule easier to follow or enf
 | Role limits | Written in the role instructions. The role files also carry their read and write limits in a header that the Claude check reads | Optional check for a session started as a named agent (`claude --agent`): a `PreToolUse` hook refuses an action outside the role and names the agent to use. Sessions without a named agent are not restricted | Advisory in this version: the tool call carries no agent identity and no tested per-session setting declares a role. Sandbox and approval settings can add their own limit |
 | Distribution | Files of the kit, copied into each discovery folder by a script | Same copy; a plugin is possible but not built | Same copy; a plugin is possible but not built |
 
-Both assistants find the same skill file format in their own folder, so one skill text can serve both. The kit's three skills live in `agents/skills/`; they only point to the existing instructions. A script in the kit copies them into the two discovery folders, and can report a copy that has drifted from the kit. Hooks differ. Claude Code can attach a hook to a skill. Codex loads project hooks only after you trust the project and review the hook. Codex does not support an "ask" answer from a hook, so branch hooks must only allow or deny.
+Both assistants find the same skill file format in their own folder, so one skill text can serve both. The kit's skills live in `agents/skills/`; they point to their operating instructions. A script in the kit copies them into the two discovery folders, and can report a copy that has drifted from the kit. Hooks differ. Claude Code can attach a hook to a skill. Codex loads project hooks only after you trust the project and review the hook. Codex does not support an "ask" answer from a hook, so branch hooks must only allow or deny.
 
 A hook is a safety net, not the only protection. The role instructions and the Batch checks remain the rule; a hook only makes an assistant stop earlier. Two optional checks exist today: the push check for Batches, and the Claude Code role check described in [Configure the Claude Code role check](../agents/configure-claude-role-hook.md). Neither protects a session or tool that is not listed there.
+
+## Coordinate from one chat
+
+In a Codex or Claude Code project chat, ask to use the `kanban-rememory-orchestrator` skill. The [KR Orchestrator](../agents/roles/orchestrator.md) frames a Card or Batch, asks for your approval and uses the host's available subagent mechanism for Development. If the host cannot delegate, the session keeps the approved handoff available and explains the blocker.
 
 ## Where each assistant draws its lines
 

@@ -58,7 +58,7 @@ Start with Cards and Rememory. Add the optional Specification and Batch module w
 
 ## How the work runs
 
-Two AI roles share the work. The **Specification Agent** helps you turn “I want this” into agreed behavior and guides acceptance. The **Development Agent** implements, tests, maintains Cards, and handles authorized Git operations. The same AI can wear both hats in separate sessions. It still has to remember which one is on.
+The Specification and Development roles share the work. The **Specification Agent** helps you turn “I want this” into agreed behavior and guides acceptance. The **Development Agent** implements, tests, maintains Cards, and handles authorized Git operations. In Codex or Claude Code, the optional [KR Orchestrator](agents/roles/orchestrator.md) can keep the work in one chat. It brings you decisions and delegates approved implementation to a distinct Development Agent. Ask to use the `kanban-rememory-orchestrator` skill in your project chat.
 
 With the Batch module, the delivery loop looks like this:
 

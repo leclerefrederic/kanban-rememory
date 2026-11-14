@@ -41,7 +41,7 @@ Use the `CARD` prefix. For a single owner, keep the journal in the root `project
 
 Cards and Rememory support standalone work. Its approved outcome, scope, and checks live on the Card; a Specification and Batch are optional. Follow the project's Git permissions for standalone delivery. Batch approval, branch, and closure rules apply only to Batch work.
 
-For a project using Batches, read the role that applies before editing project files. Configure each agent's project instructions to read this file and its role; use the role links below. The same agent may perform the roles in separate sessions while preserving their responsibilities. Specification Agent records scope and acceptance; Development Agent owns implementation, Cards, and Git. New standalone work waits until an active Batch is delivered and must preserve its acceptance candidate.
+For a project using Batches, read the role that applies before editing project files. Configure each agent's project instructions to read this file and its role; use the role links below. The same agent may perform the roles in separate sessions while preserving their responsibilities. A [KR Orchestrator](roles/orchestrator.md) can coordinate the same chat while a distinct Development Agent executes the authorized handoff. Specification Agent records scope and acceptance; Development Agent owns implementation, Cards, and Git. New standalone work waits until an active Batch is delivered and must preserve its acceptance candidate.
 
 - [User](roles/user.md)
 - [Specification Agent](roles/specification-agent.md)
