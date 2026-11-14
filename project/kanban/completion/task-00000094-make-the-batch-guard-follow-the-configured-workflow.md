@@ -9,6 +9,7 @@ specifications: []
 
 - Owner: Development Agent
 - Dependencies:
+- Priority: Taken before TASK-00000093 at the User's request; real defect, no dependency, no pending decision.
 
 ## Expected outcome
 
@@ -16,16 +17,20 @@ Make `agents/tools/guard-batch-work.py` generic: read the active stage from `pro
 
 ## Acceptance criteria
 
-- [ ] The guard works with a workflow whose active stage is not `development`.
-- [ ] The full-build rule stays available for KRR through the Batch record (list of strengthened-check files, empty by default) and is not imposed on other projects.
-- [ ] Tests for both cases are added to `agents/tools/test-kanban-board.py` and pass.
-- [ ] No change to the meaning of any role or Batch rule.
+- [x] The guard works with a workflow whose active stage is not `development`.
+- [x] The full-build rule stays available for KRR through the Batch record (list of strengthened-check files, empty by default) and is not imposed on other projects.
+- [x] Tests for both cases are added to `agents/tools/test-kanban-board.py` and pass.
+- [x] No change to the meaning of any role or Batch rule.
 
 ## Execution and evidence
 
-- State:
-- Actual start:
-- Actual finish:
+- State: completed
+- Actual start: 2026-11-14
+- Actual finish: 2026-11-14
 - Blocker:
 
 ## History
+
+- 2026-11-14T10:38:45+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-14T10:40:03+01:00 — Stage moved from `development` to `completion`.

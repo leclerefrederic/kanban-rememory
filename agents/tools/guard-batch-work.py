@@ -28,6 +28,16 @@ def artifact_digest(path):
     return digest.hexdigest()
 
 
+def active_card(card):
+    path = Path("project/kanban/workflow.json")
+    if not path.exists():
+        raise ValueError("project/kanban/workflow.json is required.")
+    stages = json.loads(path.read_text()).get("active")
+    if not stages:
+        raise ValueError("workflow.json must list its active stages.")
+    return any(any(Path("project/kanban", stage).glob(card.lower() + "-*.md")) for stage in stages)
+
+
 def verify_artifact(candidate):
     if not candidate or not Path(candidate["path"]).exists():
         raise ValueError("The acceptance artifact is missing.")
@@ -51,8 +61,7 @@ def main():
         if args.operation in {"change", "correct"}:
             if not re.fullmatch(r"[A-Z][A-Z0-9]*-[0-9]{8}", args.card or ""):
                 raise ValueError("An active Card ID is required.")
-            active = Path("project/kanban/development").glob(args.card.lower() + "-*.md")
-            if args.card not in record["authorized_cards"] or not any(active):
+            if args.card not in record["authorized_cards"] or not active_card(args.card):
                 raise ValueError("Record out-of-scope work in Backlog and defer it.")
             if args.operation == "correct":
                 if not frozen or not args.blocking_test or record.get("correction"):
@@ -100,8 +109,9 @@ def main():
                     ["git", "diff", "--name-only", revision(record["base_revision"]), frozen["revision"]],
                     text=True,
                 ).splitlines()
-                if any(Path(path).name == "build-app.sh" for path in changed) and checks.get("full_build") != "passed":
-                    raise ValueError("Build-script changes require a successful full build.")
+                strict = set(record.get("full_build_files", []))
+                if any(Path(path).name in strict for path in changed) and checks.get("full_build") != "passed":
+                    raise ValueError("Changes to " + ", ".join(sorted(strict)) + " require a successful full build.")
                 if record.get("decision") != {"revision": frozen["revision"], "result": "accepted"}:
                     raise ValueError("Record the User's acceptance of the exact revision.")
                 subprocess.run(["git", "merge-base", "--is-ancestor", frozen["revision"], current], check=True)

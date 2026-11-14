@@ -423,6 +423,53 @@ class KanbanBoardTests(unittest.TestCase):
             path.write_text(record + "\n")
         self.run_board("validate")
 
+    def test_batch_guard_uses_workflow_and_configured_build_files(self):
+        shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
+        self.run_board("init", "--template", "short", "--apply")
+        workflow = self.board / "workflow.json"
+        config = json.loads(workflow.read_text())
+        config["active"] = ["review"]
+        config["stages"].insert(1, "review")
+        workflow.write_text(json.dumps(config))
+        (self.board / "review").mkdir()
+        (self.board / "review/task-00000001-example.md").write_text("card\n")
+
+        def git(*args):
+            return subprocess.check_output(["git", "-c", "user.name=Test", "-c", "user.email=t@example.invalid",
+                                            *args], cwd=self.root, text=True).strip()
+
+        def guard(record, *args, expected=0):
+            path = self.root / "record.json"
+            path.write_text(json.dumps(record))
+            result = subprocess.run([sys.executable, "agents/tools/guard-batch-work.py", *args, "record.json"],
+                                    cwd=self.root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+            return result.stdout + result.stderr
+
+        (self.root / "app").mkdir()
+        (self.root / "app/artifact").write_text("build\n")
+        git("add", "."); git("commit", "-qm", "base")
+        base = git("rev-parse", "HEAD")
+        (self.root / "build-app.sh").write_text("echo build\n")
+        git("add", "build-app.sh"); git("commit", "-qm", "build script")
+        head = git("rev-parse", "HEAD")
+        digest = subprocess.check_output([sys.executable, "-c",
+            "import importlib.util as u;s=u.spec_from_file_location('g','agents/tools/guard-batch-work.py');"
+            "m=u.module_from_spec(s);s.loader.exec_module(m);from pathlib import Path;"
+            "print(m.artifact_digest(Path('app/artifact')))"], cwd=self.root, text=True).strip()
+        record = {"authorized_cards": ["TASK-00000001"], "base_revision": base,
+                  "acceptance": {"revision": head, "path": str(self.root / "app/artifact"), "sha256": digest},
+                  "verification": {"revision": head, "technical_checks": "passed"},
+                  "decision": {"revision": head, "result": "accepted"}}
+        self.assertIn("passed", guard({**record, "acceptance": None}, "change", "--card", "TASK-00000001"))
+        self.assertIn("Record out-of-scope", guard({**record, "acceptance": None}, "change", "--card",
+                                                   "TASK-00000002", expected=1))
+        self.assertIn("passed", guard(record, "publish"))
+        strict = {**record, "full_build_files": ["build-app.sh"]}
+        self.assertIn("require a successful full build", guard(strict, "publish", expected=1))
+        strict["verification"]["full_build"] = "passed"
+        self.assertIn("passed", guard(strict, "publish"))
+
     def test_notification_batch_id_preview(self):
         environment = {**os.environ, "TELEGRAM_CHAT_ID": "42", "TELEGRAM_EVENTS": "delivered"}
         environment.pop("TELEGRAM_BOT_TOKEN", None)
