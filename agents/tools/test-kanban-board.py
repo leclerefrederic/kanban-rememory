@@ -16,7 +16,7 @@ INSTALL_FILES = (
     "documentation/start-a-project.md", "documentation/deliver-a-batch.md",
     "documentation/test-and-accept-a-batch.md", "documentation/use-kanban-rememory-runner.md",
     "documentation/lean-specifications.md",
-    "documentation/assign-a-task.md", "documentation/resume-work.md", "documentation/report-a-defect.md",
+    "documentation/assign-a-task.md", "documentation/resume-work.md", "documentation/report-a-defect.md", "documentation/use-with-chatgpt-and-claude.md",
     "documentation/examples/project-specification.md", "documentation/examples/batch-description.md",
     "documentation/examples/kanban-card.md", "documentation/examples/batch-tests.md",
     "documentation/examples/batch-report.md",

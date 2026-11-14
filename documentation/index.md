@@ -15,6 +15,7 @@ Start with [Understand the framework](understand-the-framework.md) for the roles
 | Recover an interrupted session or handoff | [Resume work](resume-work.md) |
 | Describe a problem and track its resolution | [Report a defect](report-a-defect.md) |
 | Manage repository watchers on macOS | [Use Kanban Rememory Runner](use-kanban-rememory-runner.md) |
+| Use ChatGPT, Claude or both on one project | [Use with ChatGPT and Claude](use-with-chatgpt-and-claude.md) |
 
 The principles are shared by people and agents. These guides explain their meaning for you; the separate agent instructions define how to execute them. A guide does not grant an agent permission to change scope, accept a delivery, or publish code.
 

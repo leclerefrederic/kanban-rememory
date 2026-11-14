@@ -124,5 +124,6 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 | Continue after a break or change of agent | [Resume work](documentation/resume-work.md) |
 | Explain a problem and follow its correction | [Report a defect](documentation/report-a-defect.md) |
 | Use the macOS companion | [Use Kanban Rememory Runner](documentation/use-kanban-rememory-runner.md) |
+| Use ChatGPT, Claude or both on one project | [Use with ChatGPT and Claude](documentation/use-with-chatgpt-and-claude.md) |
 
 Human guides live in `documentation/`. Agent operating instructions have their own [index](agents/index.md) under `agents/`; record templates live in `agents/templates/`.
