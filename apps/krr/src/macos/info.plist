@@ -8,5 +8,6 @@
 <key>CFBundleShortVersionString</key><string>0.1</string>
 <key>CFBundleName</key><string>Kanban Rememory Runner</string>
 <key>CFBundlePackageType</key><string>APPL</string>
+<key>NSAppleEventsUsageDescription</key><string>Kanban Rememory Runner brings the Terminal window of a Claude Code session forward when it needs you, and minimizes it again.</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 </dict></plist>

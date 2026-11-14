@@ -133,6 +133,10 @@ struct WatcherView: View {
     @State private var failed = false
     @AppStorage("watcher-history") private var storedHistory = Data()
     @State private var history: [String: RunHistory] = [:]
+    @StateObject private var sessions = SessionStore()
+    @State private var startingSession = false
+    @State private var sessionRepository = ""
+    @State private var sessionTask = ""
 
     private var selected: Watcher? { watchers.first { $0.id == selection } }
 
@@ -146,6 +150,8 @@ struct WatcherView: View {
             if !creating {
                 Button(action: chooseRepository) { Label("New Watcher", systemImage: "plus") }
                 .disabled(checkingRepository || !live)
+            Button { startingSession = true } label: { Label("Claude Task", systemImage: "terminal") }
+                .disabled(!live)
             Button { settings.toggle() } label: { Label("Settings", systemImage: "gearshape") }
                 .popover(isPresented: $settings) {
                     VStack(alignment: .leading, spacing: 12) {
@@ -158,6 +164,7 @@ struct WatcherView: View {
                 }
                     }
         }
+        .sheet(isPresented: $startingSession) { sessionForm }
         .sheet(isPresented: $details) {
             if let watcher = selected {
                 Form {
@@ -211,7 +218,7 @@ struct WatcherView: View {
 
     private var watcherList: some View {
         Group {
-            if watchers.isEmpty {
+            if watchers.isEmpty && sessions.rows.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "folder").font(.system(size: 26)).foregroundStyle(.teal)
                     Text("No watchers").font(.headline)
@@ -220,9 +227,75 @@ struct WatcherView: View {
                         .disabled(checkingRepository || !live)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView { watcherGroup }
+                ScrollView {
+                    sessionGroup
+                    if !watchers.isEmpty { watcherGroup }
+                }
             }
         }
+    }
+
+    private var sessionGroup: some View {
+        Group {
+            if !sessions.rows.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Claude sessions").font(.headline)
+                    ForEach(sessions.rows) { row in
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(row.task).lineLimit(1)
+                            Spacer()
+                            Text(sessionState(row.state)).foregroundStyle(row.state == .ended ? .secondary : .primary)
+                        }
+                    }
+                }.padding([.top, .horizontal], 16)
+            }
+        }
+    }
+
+    private func sessionState(_ state: ClaudeSession.State) -> String {
+        switch state {
+        case .working: return "Working"
+        case .waiting: return "Waiting for you"
+        case .ended: return "Ended. You can no longer reply there."
+        }
+    }
+
+    private var sessionForm: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Claude Task").font(.title2.bold())
+            HStack {
+                TextField("Repository folder path", text: $sessionRepository)
+                Button("Browse…") {
+                    let panel = NSOpenPanel()
+                    panel.canChooseFiles = false
+                    panel.canChooseDirectories = true
+                    panel.begin { response in
+                        if response == .OK, let url = panel.url { sessionRepository = url.path }
+                    }
+                }
+            }
+            TextField("Task Claude Code is authorized to do", text: $sessionTask, axis: .vertical)
+                .lineLimit(3...6)
+            Text("Starting opens Claude Code in a minimized Terminal window. It comes forward when Claude needs you.")
+                .font(.caption).foregroundStyle(.secondary)
+            HStack {
+                Spacer()
+                Button("Cancel") { startingSession = false }.keyboardShortcut(.cancelAction)
+                Button("Start") {
+                    let path = (sessionRepository.trimmingCharacters(in: .whitespacesAndNewlines) as NSString).expandingTildeInPath
+                    perform {
+                        var isDirectory: ObjCBool = false
+                        guard path.hasPrefix("/"), FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+                              isDirectory.boolValue else { throw WatcherError(message: "Choose an existing folder.") }
+                        try sessions.start(task: sessionTask.trimmingCharacters(in: .whitespacesAndNewlines),
+                                           repository: URL(fileURLWithPath: path, isDirectory: true))
+                        startingSession = false
+                        sessionTask = ""
+                    }
+                }.buttonStyle(.borderedProminent).tint(.teal)
+                    .disabled(sessionRepository.isEmpty || sessionTask.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }.textFieldStyle(.roundedBorder).padding(20).frame(width: 420)
     }
 
     private var watcherGroup: some View {

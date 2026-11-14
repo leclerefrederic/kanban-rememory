@@ -9,7 +9,7 @@ mkdir -p "$output/Contents/MacOS"
 cp "$source_dir/info.plist" "$output/Contents/Info.plist"
 architecture="$(uname -m)"
 xcrun swiftc -module-cache-path "$scratch/module-cache" -target "$architecture-apple-macos13.0" -warnings-as-errors \
-  "$source_dir/runner.swift" "$source_dir/watcher.swift" "$source_dir/repository-preflight.swift" "$source_dir/managed-watchers.swift" -o "$output/Contents/MacOS/runner"
+  "$source_dir/runner.swift" "$source_dir/watcher.swift" "$source_dir/repository-preflight.swift" "$source_dir/managed-watchers.swift" "$source_dir/claude-sessions.swift" -o "$output/Contents/MacOS/runner"
 
 iconset="$scratch/app-icon.iconset"
 mkdir -p "$iconset" "$output/Contents/Resources"

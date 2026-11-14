@@ -46,6 +46,18 @@ Use the exact path and revision recorded in the Batch's tests when running accep
 
 The Watcher Name can change; the generated `krr.<uuid>` service label stays fixed. The menu-bar icon opens the app window.
 
+## Start a Claude Code task in a Terminal window
+
+Use **Claude Task** in the toolbar, choose the repository folder, describe the task you authorize and press **Start**. KRR opens Claude Code interactively in its own Terminal window and minimizes that window. The repository needs `agents/tools/krr-signal.py` and `agents/tools/configure-telegram.py`, and a detected `claude` executable. Claude Code asks for tool permissions in that window as usual.
+
+KRR appends instructions that make Claude run `python3 agents/tools/krr-signal.py waiting --id ID` before it asks you something, and `krr-signal.py resumed` once it continues. Only these explicit signals count; a slow command or silence never does. On `waiting`, KRR restores and raises that window, and sends one Telegram `attention` alert through `configure-telegram.py run --send`. The window comes forward even when Telegram is disabled or fails. When Claude resumes, KRR minimizes the window again. Repeating a signal with the same ID changes nothing. Other Terminal windows are never touched.
+
+The **Claude sessions** list shows Working, Waiting for you or Ended. When the window closes or Claude exits, the session is marked ended and cannot be answered. Sessions are not restored when KRR quits.
+
+The first use asks for macOS Automation permission to control Terminal; allow it under System Settings, Privacy & Security, Automation. Not covered: Claude Code's own permission dialogs, recovery after a session ends, answering from Telegram.
+
+Run the logic tests with `bash apps/krr/tests/macos/run-tests.sh` and `python3 agents/tools/test-krr-signal.py`.
+
 ## Repository checks
 
 Before creation, KRR checks the Git root, root `AGENTS.md`, readable `project/kanban/workflow.json`, every configured stage directory, the Batch directories listed above, and the bundled board validator's result. These are structural checks; they do not establish that product tests passed or that a Batch is accepted.
