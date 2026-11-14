@@ -37,7 +37,7 @@ If the original worktree is unavailable, fetch the recovery ref and inspect its 
 
 Keep the recovery ref until the remote main and archive branch or tag have been verified. Remove it only after verification. If a Batch was archived before a recovery ref existed, recover the closing records from a trusted copy before continuing.
 
-This procedure can be followed manually by Development Agent. The [scheduled-job procedure](../run-scheduled-batch-job.md) documents closure and recovery priority; it is not an installed scheduler. Automated dispatch of corrections, interrupted development, and pickup still requires implementation and end-to-end verification. The current KRR watcher requests a read-only board summary. Installing the kit or KRR does not enable autonomous Batch execution.
+This procedure can be followed manually by Development Agent. The [scheduled-job procedure](../run-scheduled-batch-job.md) documents closure and recovery priority; it is not an installed scheduler. Automated dispatch of corrections, interrupted development, and pickup still requires implementation and end-to-end verification. Installing the kit does not enable autonomous Batch execution.
 
 For a fresh session handling a delivered or closed Batch, see [the handoff guide](resume-a-batch.md).
 

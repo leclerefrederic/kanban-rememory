@@ -16,7 +16,7 @@ KIT = Path(__file__).resolve().parents[2]
 INSTALL_FILES = (
     "documentation/index.md", "documentation/understand-the-framework.md",
     "documentation/start-a-project.md", "documentation/deliver-a-batch.md",
-    "documentation/test-and-accept-a-batch.md", "documentation/use-kanban-rememory-runner.md",
+    "documentation/test-and-accept-a-batch.md",
     "documentation/lean-specifications.md",
     "documentation/assign-a-task.md", "documentation/resume-work.md", "documentation/report-a-defect.md", "documentation/use-with-chatgpt-and-claude.md",
     "documentation/examples/project-specification.md", "documentation/examples/batch-description.md",
@@ -667,12 +667,6 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertNotIn("codex/batch-", path.read_text(), str(path.relative_to(KIT)))
         self.assertNotIn("codex/batch-", readme)
 
-    def test_claude_watcher_has_only_read_tools(self):
-        source = (KIT / "apps/krr/src/macos/managed-watchers.swift").read_text()
-        match = re.search(r'"--tools", "([^"]*)"', source)
-        self.assertTrue(match, "The Claude invocation must name its tools.")
-        self.assertEqual(set(match.group(1).split(",")), {"Read", "Glob", "Grep"})
-
     def role_hook(self):
         shutil.copytree(KIT / "agents/roles", self.root / "agents/roles", dirs_exist_ok=True)
         sys.path.insert(0, str(KIT / "agents/tools"))
@@ -714,7 +708,7 @@ class KanbanBoardTests(unittest.TestCase):
         spec, dev = "specification-agent", "development-agent"
         # Specification Agent: out of role, with the other agent named and no override offered.
         for tool, fields in (("Read", {"file_path": "project/kanban/completion/task-1.md"}),
-                             ("Read", {"file_path": str(root / "apps/krr/src/macos/runner.swift")}),
+                             ("Read", {"file_path": str(root / "src/example.py")}),
                              ("Write", {"file_path": "agents/tools/guard-batch-work.py"}),
                              ("Edit", {"file_path": "project/rememory/2026-11-14.md"}),
                              ("Read", {"file_path": "project/specs/../kanban/backlog/x.md"}),
@@ -747,7 +741,7 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertTrue(message and "Specification Agent" in message, message)
         for tool, fields in (("Read", {"file_path": "project/specs/approved/spec-001-r1.md"}),
                              ("Write", {"file_path": "project/rememory/2026-11-14.md"}),
-                             ("Edit", {"file_path": "apps/krr/src/macos/runner.swift"}),
+                             ("Edit", {"file_path": "src/example.py"}),
                              ("Read", {"file_path": "project/kanban/backlog/x.md"}),
                              ("Bash", {"command": "git status"})):
             with self.subTest(agent=dev, tool=tool, fields=fields):

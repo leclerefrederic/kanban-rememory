@@ -1,6 +1,6 @@
 # Run the scheduled Development Agent job
 
-This is an agent procedure, not an executable scheduler or an installed recurring job. Closure and recovery have been exercised in isolated Git repositories. End-to-end scheduled dispatch, including correction and interrupted development, still needs implementation and verification. KRR currently invokes a read-only board summary and does not execute this procedure.
+This is an agent procedure, not an executable scheduler or an installed recurring job. Closure and recovery have been exercised in isolated Git repositories. End-to-end scheduled dispatch, including correction and interrupted development, still needs implementation and verification.
 
 Use the configured repository and its designated Batch worktree. Follow the shared working instructions and Development Agent role. Apply the coordination and publication rules in the [Batch operations guide](batches/start-and-close-batches.md).
 

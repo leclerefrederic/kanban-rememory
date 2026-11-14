@@ -21,6 +21,5 @@ Start with [shared working instructions](work-in-a-project.md) and the applicabl
 | Follow the planned scheduled-job procedure | [Scheduled job](run-scheduled-batch-job.md) |
 | Configure optional notifications | [Telegram](configure-telegram.md) |
 | Enable the optional Claude Code role check | [Claude Code role check](configure-claude-role-hook.md) |
-| Build and run the optional app | [Runner procedure](runner/build-and-run.md) |
 
 Copy only the required package into an adopting repository as described by the installation procedure.

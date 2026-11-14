@@ -103,10 +103,6 @@ Start with the [project setup guide](documentation/start-a-project.md). Your age
 
 Today, agents execute the workflow through project instructions and tools in their sessions. The repository supplies the memory, rules, and checks; a separate scheduler must invoke an agent for unattended runs. Automated Batch dispatch still needs implementation.
 
-**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. [Use Kanban Rememory Runner](documentation/use-kanban-rememory-runner.md) explains what you can do with it today. The framework works independently of the app.
-
-Companion applications live under `apps/`. KRR keeps its sources and local builds together in [apps/krr/](apps/krr/).
-
 We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the box. We also live with its rough edges, which is an excellent cure for optimistic documentation. This repository's Cards and delivery records are its own history; your agent installs the reusable pieces in yours.
 
 ## Pick your next move
@@ -123,7 +119,6 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 | Test a candidate and decide on delivery | [Test and accept a Batch](documentation/test-and-accept-a-batch.md) |
 | Continue after a break or change of agent | [Resume work](documentation/resume-work.md) |
 | Explain a problem and follow its correction | [Report a defect](documentation/report-a-defect.md) |
-| Use the macOS companion | [Use Kanban Rememory Runner](documentation/use-kanban-rememory-runner.md) |
 | Use ChatGPT, Claude or both on one project | [Use with ChatGPT and Claude](documentation/use-with-chatgpt-and-claude.md) |
 
 Human guides live in `documentation/`. Agent operating instructions have their own [index](agents/index.md) under `agents/`; record templates live in `agents/templates/`.
