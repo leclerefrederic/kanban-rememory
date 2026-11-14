@@ -542,6 +542,11 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("updated 1 skill folder(s)", sync("--target", "codex"))
         self.assertEqual((own / "SKILL.md").read_text(), "mine\n")
 
+    def test_installed_skills_match_the_kit(self):
+        result = subprocess.run([sys.executable, str(KIT / "agents/tools/sync-skills.py"), "--check"],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_notification_batch_id_preview(self):
         environment = {**os.environ, "TELEGRAM_CHAT_ID": "42", "TELEGRAM_EVENTS": "delivered"}
         environment.pop("TELEGRAM_BOT_TOKEN", None)
