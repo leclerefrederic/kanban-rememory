@@ -643,6 +643,12 @@ class KanbanBoardTests(unittest.TestCase):
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertIn("Preview:", result.stdout)
 
+    def test_claude_watcher_has_only_read_tools(self):
+        source = (KIT / "apps/krr/src/macos/managed-watchers.swift").read_text()
+        match = re.search(r'"--tools", "([^"]*)"', source)
+        self.assertTrue(match, "The Claude invocation must name its tools.")
+        self.assertEqual(set(match.group(1).split(",")), {"Read", "Glob", "Grep"})
+
     def test_each_delivery_of_a_batch_is_notified_once(self):
         spec = importlib.util.spec_from_file_location("notify_telegram", KIT / "agents/tools/notify-telegram.py")
         module = importlib.util.module_from_spec(spec)

@@ -26,7 +26,7 @@ enum ManagedWatchers {
         let prompt = "Inspect this Kanban Rememory project and summarize its current board status. Do not change files, pick up or close a Batch, or publish anything."
         let arguments = engine == "codex"
             ? ["--ask-for-approval", "never", "exec", "--sandbox", "read-only", prompt]
-            : ["-p", "--permission-mode", "plan", "--tools", "", "--", prompt]
+            : ["-p", "--permission-mode", "plan", "--tools", "Read,Glob,Grep", "--", prompt]
         return [executable.path] + arguments
     }
 
