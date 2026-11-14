@@ -68,4 +68,6 @@ See the [project directory template](templates/project-layout.md) for the instal
 
 For optional Telegram alerts when the User is needed or a task is finished, copy `agents/configure-telegram.md` and `agents/tools/notify-telegram.py`, then follow [Configure Telegram](configure-telegram.md).
 
+For the optional Claude Code role check, follow [Configure the Claude Code role check](configure-claude-role-hook.md). It copies `agents/tools/role-limit-hook.py`, `agents/tools/install-claude-role-hook.py` and `agents/claude/agents/`. The optional push check also needs the `agents/tools/kanban/` package already installed.
+
 For the optional macOS app, follow [KRR getting started](runner/build-and-run.md). Its current repository check also requires the Batch directory layout.

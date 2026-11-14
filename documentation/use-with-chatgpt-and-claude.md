@@ -20,12 +20,12 @@ A branch adds help for one assistant. It can make a rule easier to follow or enf
 | | Shared core | Claude branch | Codex branch |
 | --- | --- | --- | --- |
 | Skills | Same `SKILL.md` content (`name`, `description`, instructions) | Discovered in `.claude/skills/` | Discovered in `.agents/skills/` |
-| Role limits | Written in the role instructions. A script to check them mechanically is planned, not delivered | Planned: a `PreToolUse` hook calls that script and blocks a forbidden action | Planned: a `PreToolUse` hook calls that script and denies a forbidden action; sandbox and approval settings add a second limit |
+| Role limits | Written in the role instructions. The role files also carry their read and write limits in a header that the Claude check reads | Optional check for a session started as a named agent (`claude --agent`): a `PreToolUse` hook refuses an action outside the role and names the agent to use. Sessions without a named agent are not restricted | Advisory in this version: the tool call carries no agent identity and no tested per-session setting declares a role. Sandbox and approval settings can add their own limit |
 | Distribution | Files of the kit, copied into each discovery folder by a script | Same copy; a plugin is possible but not built | Same copy; a plugin is possible but not built |
 
 Both assistants find the same skill file format in their own folder, so one skill text can serve both. The kit's three skills live in `agents/skills/`; they only point to the existing instructions. A script in the kit copies them into the two discovery folders, and can report a copy that has drifted from the kit. Hooks differ. Claude Code can attach a hook to a skill. Codex loads project hooks only after you trust the project and review the hook. Codex does not support an "ask" answer from a hook, so branch hooks must only allow or deny.
 
-A hook is a safety net, not the only protection. The role instructions and the Batch checks remain the rule; a hook only makes an assistant stop earlier. Today only the Batch checks exist: the optional push check described below is the one delivered hook.
+A hook is a safety net, not the only protection. The role instructions and the Batch checks remain the rule; a hook only makes an assistant stop earlier. Two optional checks exist today: the push check for Batches, and the Claude Code role check described in [Configure the Claude Code role check](../agents/configure-claude-role-hook.md). Neither protects a session or tool that is not listed there.
 
 ## Where each assistant draws its lines
 
@@ -37,7 +37,11 @@ The two assistants do not organize their projects the same way, so the kit does 
 
 Because the roles can blur, the kit protects the **hand-offs**, not the conversations. Approval of a Specification is proven in Git. Your verdict on a delivery is recorded for the exact tested revision. A closed Card never changes. An optional check can also refuse a push that would close a Batch without your recorded acceptance. An agent asked to do the other role's work names the rule and sends you to the right agent. It cannot move work past these points without your decision. Assistants that cannot enforce rules in their own chat window, such as the chat apps, rely on these records and on the instructions only.
 
-Some details are not confirmed in the vendors' documentation, in particular whether repository hooks run in the desktop apps. The kit does not depend on them.
+Some details are not confirmed, in particular whether repository hooks run in the desktop apps. The kit does not depend on them.
+
+## What the Claude Code role check protects
+
+It protects a Claude Code session started as one of the two roles, and only for the file reads, file writes, searches, Git commands and visible shell paths of that role's limits. It does not protect: a session with no named agent, Codex, the chat applications, shell commands that hide the file they touch, other tools, or the check's own settings file, and it lets an action through when it fails. For these the limits are advisory. It was tested with the command line, which gives the session identity to the hook; whether it runs in the Claude Code desktop app is unconfirmed, and so are the Codex questions about the shell environment, sub-agents and a per-session role. The agent procedure lists each limit and each unconfirmed fact.
 
 ## What this means for you
 

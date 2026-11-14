@@ -27,6 +27,7 @@ INSTALL_FILES = (
     "agents/kanban/board-guide.md", "agents/kanban/software-development-workflow.md",
     "agents/kanban/write-task-cards.md", "agents/templates/kanban-card.md", "agents/templates/project-layout.md",
     "agents/tools/manage-kanban-board.py", "agents/maintain-rememory.md", "agents/templates/daily-template.md",
+    "agents/configure-claude-role-hook.md",
 )
 
 
@@ -676,6 +677,16 @@ class KanbanBoardTests(unittest.TestCase):
         finally:
             sys.path.pop(0)
         return module, module.load_roles(self.root)
+
+    def test_no_page_says_role_hooks_are_planned(self):
+        for folder in ("agents", "documentation"):
+            for path in (KIT / folder).rglob("*.md"):
+                text = path.read_text()
+                self.assertNotRegex(text, r"(?i)planned, not delivered|planned: a `PreToolUse`|role hooks? (is|are) planned",
+                                    str(path.relative_to(KIT)))
+        page = (KIT / "documentation/use-with-chatgpt-and-claude.md").read_text()
+        self.assertIn("configure-claude-role-hook.md", page)
+        self.assertIn("unconfirmed", (KIT / "agents/configure-claude-role-hook.md").read_text().lower())
 
     def test_role_headers_match_the_prose_lists(self):
         module, roles = self.role_hook()
