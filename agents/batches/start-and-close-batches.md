@@ -49,6 +49,8 @@ For a Batch delivering a build artifact, keep its guard at `<git-common-dir>/kan
 {"base_revision": "FULL_BASE_COMMIT", "authorized_cards": ["TASK-00000001"]}
 ```
 
+If the project has files whose changes need a full build before publication, such as a build script, add their file names when creating the record: `"full_build_files": ["build.sh"]`. Leave the field out when no file needs this check.
+
 Record the absolute guard path in `report.md` Handoff, not its Card IDs. The guard is local operational data shared by worktrees of that clone; it is not in a fresh clone. If it is unavailable, stop and recover the recorded revision, artifact and verification evidence before resuming. Keep it outside the artifact directory. Run `python3 agents/tools/guard-batch-work.py change RECORD --card TASK-ID` before changing code, build scripts, or delivery artifacts. Put unrelated work in Backlog until delivery. The guard enforces checks when invoked; it is not a Git hook or a replacement for acceptance review.
 
 Run `python3 agents/tools/guard-batch-work.py freeze RECORD --artifact PATH` before starting acceptance. Keep the recorded artifact in place and run `verify RECORD` before resuming acceptance. When a documented KO blocks required scenarios, record its test ID and run `python3 agents/tools/guard-batch-work.py correct RECORD --card TASK-ID --blocking-test TEST-ID`. The authorized Development card can then proceed through the change check. Preserve the frozen artifact and build the correction at a separate path. Publication stays blocked during correction.
