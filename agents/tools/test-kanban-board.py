@@ -745,6 +745,44 @@ class KanbanBoardTests(unittest.TestCase):
             self.assertIsNone(decide(agent, "Read", file_path="project/kanban/note.md"))
         self.assertIsNotNone(decide(spec, "Read", file_path="project/kanban/note.md"))
 
+    def test_role_hook_installer_previews_installs_and_removes_only_its_own(self):
+        shutil.copy(KIT / "agents/tools/install-claude-role-hook.py", self.root / "agents/tools")
+        shutil.copytree(KIT / "agents/claude", self.root / "agents/claude")
+        settings = self.root / ".claude/settings.json"
+        settings.parent.mkdir(parents=True)
+        other = {"matcher": "Bash", "hooks": [{"type": "command", "command": "echo mine"}]}
+        settings.write_text(json.dumps({"model": "x", "hooks": {"PreToolUse": [other], "Stop": []}}))
+
+        def install(*args, expected=0):
+            result = subprocess.run([sys.executable, "agents/tools/install-claude-role-hook.py", *args],
+                                    cwd=self.root, capture_output=True, text=True)
+            self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+            return result.stdout + result.stderr
+
+        before = settings.read_text()
+        self.assertIn("Preview only", install())
+        self.assertEqual(settings.read_text(), before)  # A preview writes nothing.
+        self.assertFalse((self.root / ".claude/agents").exists())
+        install("--apply")
+        data = json.loads(settings.read_text())
+        self.assertEqual(data["model"], "x")
+        self.assertEqual(data["hooks"]["Stop"], [])
+        self.assertEqual(data["hooks"]["PreToolUse"][0], other)
+        self.assertEqual(len(data["hooks"]["PreToolUse"]), 2)
+        self.assertIn("role-limit-hook.py", data["hooks"]["PreToolUse"][1]["hooks"][0]["command"])
+        for name in ("specification-agent.md", "development-agent.md"):
+            self.assertEqual((self.root / ".claude/agents" / name).read_bytes(),
+                             (KIT / "agents/claude/agents" / name).read_bytes())
+        self.assertIn("Nothing to change", install("--apply"))  # Idempotent.
+        self.assertEqual(len(json.loads(settings.read_text())["hooks"]["PreToolUse"]), 2)
+        install("--remove", "--apply")
+        data = json.loads(settings.read_text())
+        self.assertEqual(data["hooks"]["PreToolUse"], [other])
+        self.assertFalse((self.root / ".claude/agents/specification-agent.md").exists())
+        self.assertIn("Nothing to change", install("--remove", "--apply"))
+        settings.write_text("{not json")
+        self.assertIn("not valid JSON", install("--apply", expected=1))
+
     def test_role_hook_command_reads_the_session_identity(self):
         shutil.copytree(KIT / "agents/roles", self.root / "agents/roles", dirs_exist_ok=True)
 
