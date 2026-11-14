@@ -53,8 +53,10 @@ def main():
     parser.add_argument("--blocker-id")
     parser.add_argument("--send-to", help="Explicitly confirm the configured numeric chat ID")
     args = parser.parse_args()
-    if args.event != "test" and not re.fullmatch(r"Batch-[0-9]+", args.batch or ""):
+    if args.event != "test" and not re.fullmatch(r"Batch-[0-9]+", args.batch or "", re.IGNORECASE):
         parser.error("Provide a Batch ID such as Batch-001.")
+    if args.event != "test":
+        args.batch = "Batch-" + args.batch.split("-", 1)[1]
     if args.event == "blocked" and not re.fullmatch(r"[A-Za-z0-9-]{1,40}", args.blocker_id or ""):
         parser.error("Provide a stable blocker ID.")
     if args.event != "blocked" and args.blocker_id is not None:

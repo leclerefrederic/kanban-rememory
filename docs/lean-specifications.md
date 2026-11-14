@@ -20,7 +20,7 @@ Write acceptance criteria around observable behavior: setup, action, expected re
 
 ## 5. Change scope only by agreement
 
-Suggest improvements separately. Adding or changing behavior requires an approved Specification revision before implementation. A correction restores behavior already agreed. If it is unclear whether a proposed correction changes that behavior, clarify before implementing it. The approved baseline of an active Batch stays fixed. Link the Specification (intended behavior), test results (verified behavior), and debt records (unresolved defects), so each decision starts from evidence. Every observed defect is open debt until its correction is verified.
+Suggest improvements separately. Adding or changing behavior requires explicit approval recorded before implementation: in the Card for standalone work, or in a Specification revision for Batch work. A correction restores behavior already agreed. If it is unclear whether a proposed correction changes that behavior, clarify before implementing it. The approved baseline of an active Batch stays fixed. Link the approved scope (intended behavior), test results (verified behavior), and debt records (unresolved defects), so each decision starts from evidence. Every observed defect is open debt until its correction is verified.
 
 ## 6. Build the simplest thing that meets the criteria
 
@@ -34,4 +34,4 @@ For every requirement:
 - Who explicitly agreed to it?
 - How will we verify it?
 
-Then reread the Specification: **what can we remove without losing value?**
+Then reread the Specification, or the Card's scope for standalone work: **what can we remove without losing value?**

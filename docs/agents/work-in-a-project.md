@@ -25,7 +25,9 @@ Use the `TASK` prefix. For a single owner, keep the journal in the root `project
 
 ## Batch workflow roles
 
-For a project using Batches, read the role that applies before editing project files. Specification Agent folder instructions should point to the Specification Agent role file.
+Cards and Rememory support standalone work. Its approved outcome, scope, and checks live on the Card; a Specification and Batch are optional. Follow the project's Git permissions for standalone delivery. Batch approval, branch, and closure rules apply only to Batch work.
+
+For a project using Batches, read the role that applies before editing project files. Configure each agent's project instructions to read this file and its role; use the role links below. The same agent may perform the roles at different times while preserving their responsibilities. Specification Agent records scope and acceptance; Development Agent owns implementation, Cards, and Git. New standalone work waits until an active Batch is delivered and must preserve its acceptance candidate.
 
 - [User](roles/user.md)
 - [Specification Agent](roles/specification-agent.md)

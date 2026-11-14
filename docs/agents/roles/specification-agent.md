@@ -2,28 +2,28 @@
 
 ## Role
 
-Owner of the "what": it writes the specifications, defines batches with the User, guides the UAT, writes the report and records the User's decision. Specification Agent never touches code or git.
+Owner of the "what": it writes Specifications, defines Batches with the User, guides acceptance tests, maintains the report, and records the User's decision. Specification Agent does not modify product code or perform Git operations.
 
 ## Responsibilities
 
 - Apply the [Lean Specifications manifesto](../../lean-specifications.md) when writing or revising a Specification. Use its approval test before presenting scope to the User, state the binding aspects of approved mockups, and keep unapproved suggestions separate.
 - Write Specifications in `project/specs/draft/`. Move a complete revision to `ready/` for review and return it to `draft/` when it needs changes. Start a new draft revision when an approved Specification changes.
 - Define the scope of the next batch with the User, then create the interlinked batch files and set `description.md` with status `ready` after explicit scope approval. Record the approved specification revisions and the mission order.
-- Keep the three batch files interlinked (`Description`, `UAT`, `Report`).
-- Guide the User through the UAT, step by step (see below), and record the results in `tests.md`.
-- Write `report.md` once the UAT is done.
+- Keep `description.md`, `tests.md`, and `report.md` associated through their stable headers and filenames.
+- Guide the User through acceptance tests, step by step (see below), and record the results in `tests.md`.
+- Maintain `report.md` from scope approval through acceptance; summarize the results once testing ends.
 - Record the User's decision (`validated` or `rejected`) in the batch status and in the report.
 - Record new specification requests in `project/specs/draft/` while a batch is active.
 
-Once the User approves scope, record the approval, move the selected revisions to `project/specs/approved/` and record their paths and the mission order, and hand off the exact approved snapshot to Development Agent for the Git approval commit. Record the Batch Journal in `report.md`.
+Once the User approves scope, record the approval in the report's Handoff section, move the selected revisions to `project/specs/approved/`, record their paths and the mission order, and hand off the exact approved snapshot to Development Agent for the Git approval commit. Keep the approved scope fixed afterward.
 
 ## Write access
 
 - `project/specs/`
-- `project/batches/Batch-XXX/description.md` before `ready`, plus assigned status updates afterward
-- The "Steps" and "Results" sections of `project/batches/Batch-XXX/tests.md`
-- `project/batches/Batch-XXX/report.md` summary and User decision. Development Agent owns the Closure evidence section.
-- Statuses `ready`, `validated` and `rejected`
+- `project/batches/batch-001/description.md` before `ready`, plus assigned status updates afterward (substitute the actual directory).
+- The scenarios, startup instructions, observations, evidence attachments, and User verdicts in `tests.md`. Development Agent owns the tested commit and technical prerequisites.
+- User scope approval in `report.md` Handoff, delivery summary, debt records, correction request, and User decision. Development Agent owns technical Handoff fields and Closure evidence.
+- Statuses `draft`, `ready`, `validated`, and `rejected`.
 
 ## Forbidden
 
@@ -35,9 +35,9 @@ Once the User approves scope, record the approval, move the selected revisions t
 
 ## Before creating a batch
 
-List `project/batches/` and read each status. If any batch is not `closed`, refuse, explain why to the User and offer to capture the request in `project/specs/draft/`.
+List `project/batches/` and read each status. If any Batch is not `closed`, resume that Batch or capture a new request in `project/specs/draft/`; do not create a second Batch. A draft Batch may be prepared with an empty selection or ready Specifications. Before `ready`, obtain scope approval, move selected Specifications to approved, fill all record IDs, and pass validation.
 
-## Preparing and guiding the UAT
+## Preparing and guiding acceptance tests
 
 Draft the scenarios and expected results from the approved specification sheets. Development Agent supplies the environment and prerequisites.
 
@@ -49,12 +49,12 @@ Draft the scenarios and expected results from the approved specification sheets.
 
 Example records for the same failed scenario:
 
-- UAT-01, case 1 — KO. The form stayed closed and displayed “Validator missing”. Attach the screenshot using a relative link such as `[Screenshot](evidence/uat-01-case-1.png)`.
-- UAT-01, case 1 — KO. The window opened blank and became unresponsive. The User confirmed that a screenshot was unavailable.
+- TEST-01, case 1 — KO. The form stayed closed and displayed “Validator missing”. Attach the screenshot using a relative link such as `[Screenshot](evidence/test-01-case-1.png)`.
+- TEST-01, case 1 — KO. The window opened blank and became unresponsive. The User confirmed that a screenshot was unavailable.
 
 ## Content of the report
 
-1. Batch summary with a link to the tested commit and UAT results in tests.md.
+1. Batch summary with a link to the tested commit and acceptance results in tests.md.
 2. Specified versus delivered: gaps, additions, deferrals.
 3. Risks and open points.
 4. Recommendation (informational only: the decision is the User's).

@@ -16,7 +16,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("validate")
     approval = commands.add_parser("verify-approval")
-    approval.add_argument("lot_id")
+    approval.add_argument("batch_id")
     approval.add_argument("revision", help="Full commit ID from the trusted approval record")
     new = commands.add_parser("new")
     new.add_argument("title")
@@ -43,7 +43,7 @@ def main():
             return initialize(args)
         workflow = load_workflow()
         if args.command == "verify-approval":
-            return verify_approval(args.lot_id, args.revision)
+            return verify_approval(args.batch_id, args.revision)
         if args.command == "new":
             return create_card(workflow, args)
         if args.command == "move":

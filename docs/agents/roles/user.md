@@ -8,8 +8,8 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 
 - Review ready Specifications using the [Lean Specifications approval test](../../lean-specifications.md#the-approval-test) and approve the exact revisions when approving Batch scope.
 - Define the scope of the next batch together with Specification Agent.
-- Run the UAT, guided by Specification Agent: choose OK or KO for each step and add an optional comment.
-- Decide to validate or reject the deployment after reading the report.
+- Run acceptance tests guided by Specification Agent: choose OK or KO for each case. For a KO, explain what happened and supply a screenshot or state that it is unavailable.
+- Decide to accept or reject the tested delivery after reading the report.
 - Answer Development Agent when it is blocked or needs an intervention.
 
 ## Decisions that belong to the User alone
@@ -18,22 +18,22 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 - Validating or rejecting a batch.
 - Approving changes to the workflow and role definitions.
 
-## What the User does not do
+## Work delegated to agents
 
-- Write code or run git commands.
-- Edit batch files by hand: Specification Agent and Development Agent maintain them.
+- Agents implement the code, maintain project records, and perform authorized Git operations. Manual edits remain possible and must be checked against the approved baseline before work resumes.
 
 ## Interfaces
 
 | With | Channel |
 |---|---|
-| Specification Agent | Conversation (specs, scope, UAT run, report, decision) |
-| Development Agent | Telegram notifications, VS Code session |
-| Obsidian vault | Control point: a read-only view on the local project folder |
+| Specification Agent | Conversation (specs, scope, acceptance tests, report, decision) |
+| Development Agent | The project's chosen agent session; optional configured notifications |
+
+No particular editor or document viewer is required. Personal tools for viewing the repository are outside the framework's workflow.
 
 ## Availability
 
-A batch waits in `delivered` until the User runs the UAT and decides. A new Batch can start after closure. Queued standalone tasks become eligible at delivery.
+A batch waits in `delivered` until the User runs acceptance tests and decides. A new Batch can start after closure. Queued standalone tasks become eligible at delivery.
 
 ## Debt and delivery decisions
 

@@ -1,6 +1,8 @@
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -325,6 +327,108 @@ class KanbanBoardTests(unittest.TestCase):
                 source = source.replace("\nspecifications:", "\nfiche_ids:")
             document.write_text(source)
         self.run_board("validate")
+
+
+    def test_draft_batch_preparation_keeps_ready_requirements(self):
+        self.run_board("init", "--template", "short", "--apply")
+        batch = self.root / "project/batches/batch-001"
+        batch.mkdir(parents=True)
+        description = batch / "description.md"
+        draft = (KIT / "docs/templates/batch-description.md").read_text().replace(
+            "id: null", 'id: "Batch-001"')
+        description.write_text(draft)
+        self.run_board("validate")
+        description.write_text(draft.replace("status: draft", "status: []"))
+        self.assertIn("Unknown Batch status", self.run_board("validate", expected=1))
+        description.write_text(draft.replace("status: draft", "status: ready"))
+        result = self.run_board("validate", expected=1)
+        self.assertIn("at least one approved specification", result)
+        self.assertIn("Inconsistent YAML references for tests.md", result)
+
+        spec = self.root / "project/specs/ready/spec-001-r1.md"
+        spec.parent.mkdir(parents=True)
+        spec.write_text('---\ntype: specification\nid: "SPEC-001"\nrevision: "1"\n---\n')
+        selection = json.dumps([{"id": "SPEC-001", "revision": "1", "path": str(spec.relative_to(self.root))}])
+        prepared = draft.replace("specifications: []", "specifications: " + selection)
+        description.write_text(prepared)
+        self.run_board("validate")
+        description.write_text(prepared.replace('"revision": "1"', '"revision": "2"'))
+        self.assertIn("matching ready or approved", self.run_board("validate", expected=1))
+        self.populate_lot_templates(batch)
+        description.write_text(prepared.replace("status: draft", "status: ready"))
+        self.assertIn("matching approved", self.run_board("validate", expected=1))
+        approved = spec.parent.with_name("approved")
+        approved.mkdir()
+        spec.rename(approved / spec.name)
+        ready = description.read_text().replace("project/specs/ready/", "project/specs/approved/")
+        description.write_text(ready)
+        self.run_board("validate")
+        description.write_text(ready.replace("status: ready", "status: draft"))
+        report = batch / "report.md"
+        report.write_text(report.read_text().replace('batch: "Batch-001"', 'batch: "Batch-999"'))
+        self.assertIn("Inconsistent YAML references for report.md", self.run_board("validate", expected=1))
+
+    def test_batch_ids_and_approval_through_correction(self):
+        self.run_board("init", "--template", "short", "--apply")
+        spec = self.root / "project/specs/approved/spec-001-r1.md"
+        spec.parent.mkdir(parents=True)
+        spec.write_text('---\ntype: specification\nid: "SPEC-001"\nrevision: "1"\n---\n')
+        batch = self.root / "project/batches/batch-001"
+        batch.mkdir(parents=True)
+        self.assertIn("batch_id", self.run_board("verify-approval", "--help"))
+        for record_id in ("Batch-001", "batch-001"):
+            with self.subTest(record_id=record_id):
+                self.populate_lot_templates(batch)
+                for path in batch.glob("*.md"):
+                    path.write_text(path.read_text().replace("Batch-001", record_id))
+                self.run_board("validate")
+                subprocess.run(["git", "add", "project"], cwd=self.root, check=True)
+                subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                                "commit", "-qm", "Approve Batch"], cwd=self.root, check=True)
+                revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+                description = batch / "description.md"
+                original = description.read_text()
+                for status in ("ready", "in-progress", "delivered", "validated", "rejected", "closed"):
+                    description.write_text(original.replace("status: ready", "status: " + status))
+                    self.run_board("verify-approval", "batch-001", revision)
+                    self.run_board("verify-approval", "Batch-001", revision)
+                description.write_text(original.replace("status: ready", "status: draft"))
+                self.assertIn("past draft", self.run_board("verify-approval", "batch-001", revision, expected=1))
+                description.write_text(original + "\nChanged approved mission\n")
+                self.assertIn("Approval mismatch", self.run_board("verify-approval", "batch-001", revision, expected=1))
+
+    def test_batch_module_installation_and_worked_example(self):
+        shutil.copytree(KIT / "docs/batches", self.root / "docs/batches")
+        for name in ("project-specification.md", "batch-description.md", "batch-tests.md", "batch-report.md"):
+            shutil.copy(KIT / "docs/templates" / name, self.root / "docs/templates" / name)
+        shutil.copy(KIT / "docs/agents/run-scheduled-batch-job.md", self.root / "docs/agents")
+        shutil.copy(KIT / "tools/guard-batch-work.py", self.root / "tools")
+        self.run_board("init", "--template", "short", "--apply")
+        self.run_board("validate")
+        example = (self.root / "docs/batches/delivery-example.md").read_text()
+        records = re.findall(r"```markdown\n(.*?)\n```", example, re.DOTALL)
+        self.assertEqual(len(records), 4)
+        destinations = ("project/specs/approved/spec-001-r1.md", "project/batches/batch-001/description.md",
+                        "project/batches/batch-001/tests.md", "project/batches/batch-001/report.md")
+        for destination, record in zip(destinations, records):
+            path = self.root / destination
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(record + "\n")
+        self.run_board("validate")
+
+    def test_notification_batch_id_preview(self):
+        environment = {**os.environ, "TELEGRAM_CHAT_ID": "42", "TELEGRAM_EVENTS": "delivered"}
+        environment.pop("TELEGRAM_BOT_TOKEN", None)
+        for identifier in ("Batch-001", "batch-001", "BATCH-001", "bad-id"):
+            with self.subTest(identifier=identifier):
+                result = subprocess.run([sys.executable, str(KIT / "tools/notify-telegram.py"),
+                                         "delivered", "--batch", identifier], env=environment,
+                                        capture_output=True, text=True)
+                if identifier == "bad-id":
+                    self.assertNotEqual(result.returncode, 0)
+                else:
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("Preview:", result.stdout)
 
 
 if __name__ == "__main__":

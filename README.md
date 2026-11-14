@@ -79,7 +79,7 @@ This repository uses its own Cards and Rememory to evolve the framework. Its pro
 
 ## A little company on your Mac
 
-**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers: background jobs associated with a repository. Its [source lives here](src/macos/). The core Markdown workflow can be used independently of the app.
+**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers: background jobs associated with a repository. Current watchers request a read-only board summary; autonomous Batch dispatch is still to be implemented. Follow the [KRR startup guide](docs/runner/getting-started.md) to build and run it. The core Markdown workflow can be used independently of the app.
 
 ## Find your next step
 
@@ -90,4 +90,6 @@ This repository uses its own Cards and Rememory to evolve the framework. Its pro
 | Write a useful task Card | [Card guide](docs/kanban/write-task-cards.md) |
 | Keep requirements focused | [Lean Specifications manifesto](docs/lean-specifications.md) |
 | Organize a delivery and its acceptance | [Specification and Batch workflow](docs/batches/batch-workflow.md) |
+| See filled-in delivery records | [Worked delivery example](docs/batches/delivery-example.md) |
+| Build and start the macOS companion | [KRR getting started](docs/runner/getting-started.md) |
 | Understand the project layout | [Directory template](docs/templates/project-layout.md) |

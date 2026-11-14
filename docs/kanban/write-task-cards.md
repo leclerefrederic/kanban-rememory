@@ -20,6 +20,12 @@ Use the [task template](../templates/kanban-card.md) and see the [software examp
 At start, record the outcome, criteria, and authorization.
 
 ```markdown
+---
+type: card
+id: "TASK-00000042"
+batch: null
+specifications: []
+---
 # TASK-00000042 — Prevent duplicate invoice emails
 
 - Owner: Billing team
@@ -73,4 +79,4 @@ At completion, check the criteria and record the finish and evidence. In this ex
 
 A card can track work independently of a Batch. Record stable IDs in the optional YAML `batch` and `specifications` fields. A standalone task can leave both fields empty. The Batch pins its approved Specification revisions.
 
-Completed cards and closed Batch reports are historical records. Use a card's stable ID when an immutable record needs to refer to a card that can still move. The board refuses a move that would rewrite a completed card or a closed report at `project/batches/Batch-XXX/report.md`. It reports the affected document before changing files.
+Completed Cards and closed Batch reports are historical records. Use a Card's stable ID when another Card or journal needs to refer to it while it can still move. Batch records never contain Card references. The board refuses a move that would rewrite a completed Card or a closed report at a path such as `project/batches/batch-001/report.md`. It reports the affected document before changing files.

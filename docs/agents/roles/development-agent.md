@@ -2,21 +2,19 @@
 
 ## Role
 
-Owner of the "how": it builds, tests and delivers a batch, then closes it. It is the only actor that touches code and git. Development Agent maintains its own cards.
+Owner of the "how": it implements and verifies authorized work, maintains its Cards, and performs Git operations. For standalone work, follow the Card's approved scope and the project's Git permissions, including authorized commits to main. The Batch-specific responsibilities below apply when the work belongs to a Batch.
 
 ## Responsibilities
 
 - Apply the [Lean Specifications manifesto](../../lean-specifications.md) during implementation and correction. Deliver the approved behavior and binding mockup details; suggest scope additions separately and use the simplest implementation that meets the criteria.
 - Before pickup, check the ready files against the User approval handed off by Specification Agent. Create and verify the Git approval commit. Pick up the Batch after verifying that no other Batch is active.
-- Set the batch to `in-progress` and create the branch `batch-XXX` from `main`.
+- Create the Batch branch recorded in the handoff (for example `codex/batch-001`) from the recorded main revision, then set the Batch to `in-progress`.
 - Analyze `description.md` and the linked specs, then break the work down into its own kanban cards.
 - Commit automated tests with the product code on the Batch branch. Use the existing test layout. Follow the mission order priorities and adjust execution order for technical dependencies.
-- Record technical decisions, blockers, and verification evidence on cards. Specification Agent writes the Batch Journal.
+- Record technical decisions, blockers, and verification evidence on Cards and in Rememory. Maintain the technical fields in the Batch report's Handoff section. Specification Agent maintains the delivery narrative and acceptance records in the report.
 - Record the delivered commit, environment, prerequisites, and links to technical evidence in `tests.md`, then set the batch to `delivered` and notify the User through the configured channel.
 - Report blockers to the User (see "When to stop and ask").
-- Verify that the User decision in `report.md` applies to the commit tested in `tests.md`, then close the batch:
-  - `validated`: merge the branch into `main`, push `main`, tag `batch-XXX`.
-  - `rejected`: archive the branch as `archive/batch-XXX` (never merged), push it. Work restarts from `main` in a new batch.
+- Verify that the User decision in `report.md` applies to the commit tested in `tests.md`, then follow the closure procedure in `docs/batches/start-and-close-batches.md`, including recovery publication before final publication. Accepted work is merged and tagged; rejected code remains on the archive branch.
 - Record closure evidence in the dedicated section of `report.md`. Set the status to `closed` in the closing commit, verify publication, then notify the User.
 
 ## Write access
@@ -24,7 +22,7 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 - Code and tests.
 - `project/kanban/` (cards): its internal organization is its own.
 - The tested commit, environment, prerequisites, and technical evidence in `tests.md`.
-- The Closure evidence section of `report.md`.
+- The technical Handoff fields and Closure evidence section of `report.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
 - Git: Batch branch, authorized merge, tag, closing commit, and push. For a rejected Batch, keep code and tests on the archived branch. Stage only the approved Specifications, Batch records, and relevant Cards for the closing commit on `main`.
 
@@ -32,18 +30,18 @@ Owner of the "how": it builds, tests and delivers a batch, then closes it. It is
 
 - Editing `project/specs/` or Batch records outside the assigned fields and statuses.
 - Setting `ready`, `validated` or `rejected`.
-- Committing on `main` other than the merge of a validated batch and the closing commit.
+- Publishing Batch implementation on `main` before acceptance. For Batch work, only the accepted merge and closing records belong on main; standalone commits follow project permissions.
 - Committing batch files (`project/batches/`) on the batch branch.
-- Starting a batch that is not `ready`, or working on two batches at once.
+- Picking up a new Batch that is not `ready`, or working on two Batches at once. Authorized correction resumes the same Batch from `delivered` through `in-progress`; interrupted development resumes its existing state and branch.
 - Modifying or reopening a completed card.
 - Writing a secret in the repository, the journal, `tests.md` or a Telegram message.
 
-## Cards and the Batch Journal
+## Cards and the Batch report
 
 Cards remain independent of Batches and may link to a Specification. Record standalone work on its own Card. Queue new standalone requests until the active Batch is delivered.
 
 - A completed card is immutable. A rollback, a fix or a correction creates a new card that references the old one.
-- Provide card and test evidence for the Batch Journal.
+- Provide delivery and test evidence for the Batch report without including Card IDs or links. Card references point toward Batches, never the reverse.
 
 ## When to stop and ask
 

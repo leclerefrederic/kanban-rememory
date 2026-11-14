@@ -40,8 +40,28 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    Check that the displayed stages and capacity match the approved workflow. Record the project's agreed transition and delivery rules and the adoption result as described in the [adoption guide](agents/configure-a-project.md).
 
-For the optional Batch module, copy the three guides under `docs/batches/`, the four Specification and Batch templates under `docs/templates/`, and `tools/guard-batch-work.py`. Create the Specification state and resource directories shown in the project directory template.
+## Optional Batch module
+
+Copy all guides under `docs/batches/`, `docs/agents/run-scheduled-batch-job.md`, the four Specification and Batch templates under `docs/templates/`, and `tools/guard-batch-work.py`. Create the Specification state and resource directories shown in the project directory template.
+
+Configure the project instructions used by each agent to read the shared instructions and its role. For Specification Agent, use:
+
+```text
+Read docs/agents/work-in-a-project.md and docs/agents/roles/specification-agent.md
+before preparing Specifications, Batches, or acceptance tests.
+```
+
+For Development Agent, use:
+
+```text
+Read docs/agents/work-in-a-project.md and docs/agents/roles/development-agent.md
+before implementing work, handling corrections, or performing Git operations.
+```
+
+Give both agents access to the same project records and verify that a fresh session identifies its role, current Batch state, and next authorized action. The [worked example](batches/delivery-example.md) shows the records; the [state table](batches/batch-workflow.md#batch-states-and-transitions) defines the handoffs. Copying the [scheduled-job procedure](agents/run-scheduled-batch-job.md) does not install or enable a scheduler.
 
 See the [project directory template](templates/project-layout.md) for the installed layout.
 
-For optional delivery notifications, follow [Configure Telegram](agents/configure-telegram.md).
+For optional delivery notifications, copy `docs/agents/configure-telegram.md` and `tools/notify-telegram.py`, then follow [Configure Telegram](agents/configure-telegram.md).
+
+For the optional macOS app, follow [KRR getting started](runner/getting-started.md). Its current repository check also requires the Batch directory layout.

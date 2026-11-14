@@ -65,6 +65,7 @@ def validate_lot_mapping(card_paths):
 
     fiches = set()
     approved = {}
+    eligible = {}
     for state in ("ready", "approved", "frozen"):
         for path in (PROJECT / "specs" / state).glob("*.md"):
             content = path.read_bytes()
@@ -74,8 +75,9 @@ def validate_lot_mapping(card_paths):
             if not fiche_id:
                 continue
             fiches.add(fiche_id)
+            eligible[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
             if state != "ready":
-                approved[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
+                approved[path.relative_to(ROOT).as_posix()] = eligible[path.relative_to(ROOT).as_posix()]
 
     lots = {}
     for path in batch_descriptions():
@@ -88,7 +90,11 @@ def validate_lot_mapping(card_paths):
             report(path, f"Duplicate batch ID: {lot_id}")
         lots[lot_id] = selected
         source = path.read_text(encoding="utf-8")
+        status = header_value(source, "status")
+        draft = header_value(source, "type") == "batch" and status == "draft"
         if header_value(source, "type") in ("batch", "lot"):
+            if status not in ("draft", "ready", "in-progress", "delivered", "validated", "rejected", "closed"):
+                report(path, "Unknown Batch status.")
             if header_value(source, "id") != lot_id:
                 report(path, "Batch ID must match the directory name.")
             companion_ids = []
@@ -96,6 +102,8 @@ def validate_lot_mapping(card_paths):
                 record = path.with_name(name)
                 if not record.is_file():
                     record = path.with_name(name.capitalize())
+                if draft and not record.is_file():
+                    continue
                 record_source = record.read_text(encoding="utf-8") if record.is_file() else ""
                 record_id = header_value(record_source, "id")
                 expected_id = relationship(source, kind)
@@ -107,7 +115,7 @@ def validate_lot_mapping(card_paths):
                         or (sibling_id is not None and sibling_id != relationship(source, other))):
                     report(path, f"Inconsistent YAML references for {name}.")
                 companion_ids.append(record_id)
-            if companion_ids[0] and companion_ids[0] == companion_ids[1]:
+            if len(companion_ids) == 2 and companion_ids[0] and companion_ids[0] == companion_ids[1]:
                 report(path, "Tests and Report must have distinct IDs.")
         for parts in fiche_entries(source):
             if len(parts) == 3:
@@ -117,16 +125,17 @@ def validate_lot_mapping(card_paths):
                         (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
                 report(path, "Specification entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
-            pinned = approved.get(project_reference(parts[2]).relative_to(ROOT).as_posix())
+            pinned = (eligible if draft else approved).get(project_reference(parts[2]).relative_to(ROOT).as_posix())
             if not pinned or pinned[:2] != tuple(parts[:2]):
-                report(path, "Specification entry must pin a matching approved ID, revision, and path.")
+                state = "ready or approved" if draft else "approved"
+                report(path, f"Specification entry must pin a matching {state} ID, revision, and path.")
                 continue
             if parts[3] is not None and pinned[2] != parts[3]:
                 report(path, f"Approved specification content changed: {parts[2]}")
             if parts[0] in selected:
                 report(path, f"Duplicate specification in batch: {parts[0]}")
             selected.add(parts[0])
-        if not selected:
+        if not selected and not draft:
             report(path, "A batch requires at least one approved specification.")
 
     for path in card_paths:
@@ -174,8 +183,10 @@ def is_closed_lot_report(document):
 
 
 def verify_approval(lot_id, revision):
-    if not re.fullmatch(r"(?:Batch|Lot)-[0-9]+", lot_id):
+    if not re.fullmatch(r"(?:Batch|Lot)-[0-9]+", lot_id, re.IGNORECASE):
         raise ValueError("Expected a batch ID such as Batch-001.")
+    prefix, number = lot_id.split("-", 1)
+    lot_id = f"{prefix.title()}-{number}"
     if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", revision):
         raise ValueError("Supply the full trusted approval commit ID.")
     kind = subprocess.run(["git", "cat-file", "-t", revision], cwd=ROOT, capture_output=True)
@@ -207,8 +218,8 @@ def verify_approval(lot_id, revision):
     approved = approved_bytes(description).decode("utf-8")
     current = description.read_bytes().decode("utf-8")
     status = header_value(current, "status")
-    if header_value(approved, "status") != "ready" or status not in ("ready", "validated", "rejected"):
-        raise ValueError("Approval verification requires a ready approval and a ready or decided Lot.")
+    if header_value(approved, "status") != "ready" or status not in ("ready", "in-progress", "delivered", "validated", "rejected", "closed"):
+        raise ValueError("Approval verification requires a ready approval and a Batch past draft.")
     if status != "ready":
         header, end, body = current[4:].partition("\n---\n") if current.startswith("---\n") else ("", "", "")
         if end:

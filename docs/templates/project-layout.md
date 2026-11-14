@@ -33,7 +33,7 @@ The tree shows the Standard workflow. Run `init` after approval to create `proje
 
 ## With the Batch module
 
-Copy the guides under `docs/batches/` and the four Batch templates under `docs/templates/` as listed in the installation guide. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch.
+Copy all guides under `docs/batches/`, `docs/agents/run-scheduled-batch-job.md`, the Specification and three Batch templates under `docs/templates/`, and `tools/guard-batch-work.py` as listed in the installation guide. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch; keep local guard records in the shared Git directory as described in the Batch operations guide.
 
 ```text
 project/
@@ -52,7 +52,7 @@ project/
         └── evidence/
 ```
 
-The Specification directory determines its state. A Batch pins the approved Specifications in `project/specs/approved/`. Its Journal is `report.md`. Cards stay in `project/kanban/` and can reference a Batch or Specifications by ID.
+The Specification directory determines its state. A ready Batch pins approved Specifications in `project/specs/approved/`. Its report and handoff are in `report.md`. Cards stay in `project/kanban/` and can reference a Batch or Specifications by ID. A Batch's ID is `Batch-001`; its directory is `batch-001/`.
 
 Use lowercase names for workflow directories. The project template describes the layout. The installation guide lists the files to copy. Each project starts with its own workflow configuration, Cards, Specifications, Batches, and dated journals.
 
