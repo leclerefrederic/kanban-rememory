@@ -236,8 +236,8 @@ def verify_approval(lot_id, revision):
             if re.match(r"[a-z][a-z0-9+.-]*:", link, re.IGNORECASE):
                 continue
             target = (fiche.parent / link).resolve()
-            if not target.is_relative_to(ROOT):
-                continue
+            if not target.is_relative_to(PROJECT / "specs/resources"):
+                continue  # Other linked files are references to living documents, not frozen resources.
             recorded = approved_bytes(target)
             active = PROJECT / "specs/resources/active"
             candidates = [target]

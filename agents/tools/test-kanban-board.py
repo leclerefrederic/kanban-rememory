@@ -312,9 +312,13 @@ class KanbanBoardTests(unittest.TestCase):
         (specs / "resources/archived").mkdir(parents=True)
         mockup = specs / "resources/active/mockup.png"
         mockup.write_bytes(b"approved mockup")
+        (self.root / "agents/roles").mkdir(parents=True, exist_ok=True)
+        living = self.root / "agents/roles/living.md"
+        living.write_text("first version\n")
         (specs / "approved/spec-001-r1.md").write_text(
             "- Fiche ID: SPEC-001\n- Revision: 1\n\n## Resources\n\n"
-            "[Mockup](../resources/active/mockup.png) and [site](https://example.invalid/x.png) and [top](#top)\n"
+            "[Mockup](../resources/active/mockup.png) and [site](https://example.invalid/x.png) and [top](#top) "
+            "and [role](../../../agents/roles/living.md)\n"
             "\n## Notes\n\n[ignored](../resources/active/missing.png)\n")
         lot = self.root / "project/batches/batch-001"
         lot.mkdir(parents=True)
@@ -324,6 +328,8 @@ class KanbanBoardTests(unittest.TestCase):
                         "commit", "-qm", "Approve"], cwd=self.root, check=True)
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
         command = ("verify-approval", "Batch-001", revision)
+        self.run_board(*command)
+        living.write_text("a later version\n")  # A linked reference outside the resource folder may change.
         self.run_board(*command)
         mockup.write_bytes(b"another mockup")
         self.assertIn("Approval mismatch: project/specs/resources/active/mockup.png",
