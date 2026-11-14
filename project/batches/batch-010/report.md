@@ -17,10 +17,21 @@ batch: "Batch-010"
 
 ## Delivery summary and gaps
 
+- Candidate `0caf330fe04d265b7a95e907f1cd4341055d8518` defines the KR Orchestrator role, same-chat development handoff and guided acceptance. Technical tests and native read-only dispatch checks in both CLIs passed.
+- The Codex Desktop TEST-01 case passed after candidate integration on main by executive decision. Claude Code reviewed the proposal and identified fixture and scope concerns. Its full delegated acceptance case and TEST-02 through TEST-13 were waived. See [tests.md](tests.md) for the distinction between observed evidence and unexecuted cases.
+
 ## Open debt and outstanding tests
+
+- The User accepted the delivery without open debt and explicitly waived the remaining UAT work for this Batch. Waived scenarios are recorded as such rather than passed.
 
 ## Correction request
 
 ## User decision
 
+- On 2026-11-15 the User explicitly accepted `0caf330fe04d265b7a95e907f1cd4341055d8518` without debt, authorized closure, publication and archival, and instructed that the remaining acceptance scenarios be skipped.
+
 ## Closure evidence
+
+- Main already contains the delivered candidate following the User's earlier executive decision. Candidate ancestry, the delivered tracking ref, board validation and the approval snapshot were checked before closure.
+- Final archive: accepted tag `batch-010` at the exact delivered candidate `0caf330fe04d265b7a95e907f1cd4341055d8518`.
+- Closing files: Batch-010 description, tests and report, and the 2026-11-15 Rememory entry. Closing trailer: `Batch-Closure: Batch-010`.
