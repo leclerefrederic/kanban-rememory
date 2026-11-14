@@ -66,7 +66,7 @@ Give both agents access to the same project records and verify that a fresh sess
 
 See the [project directory template](templates/project-layout.md) for the installed layout.
 
-For optional Telegram alerts when the User is needed or a task is finished, copy `agents/configure-telegram.md` and `agents/tools/notify-telegram.py`, then follow [Configure Telegram](configure-telegram.md).
+For optional Telegram alerts when the User is needed or a task is finished, copy `agents/configure-telegram.md`, `agents/tools/configure-telegram.py` and `agents/tools/notify-telegram.py`, then follow [Configure Telegram](configure-telegram.md).
 
 For the optional Claude Code role check, follow [Configure the Claude Code role check](configure-claude-role-hook.md). It copies `agents/tools/role-limit-hook.py`, `agents/tools/install-claude-role-hook.py` and `agents/claude/agents/`. The optional push check also needs the `agents/tools/kanban/` package already installed.
 
