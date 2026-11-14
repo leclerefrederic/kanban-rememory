@@ -230,10 +230,28 @@ def verify_approval(lot_id, revision):
     findings = validate_lot_mapping(())
     if findings:
         raise ValueError("\n".join(findings))
+    def check_resources(fiche, source):
+        section = re.search(r"(?ms)^## Resources[ \t]*$(.*?)(?=^## |\Z)", source)
+        for link in re.findall(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", section.group(1) if section else ""):
+            if re.match(r"[a-z][a-z0-9+.-]*:", link, re.IGNORECASE):
+                continue
+            target = (fiche.parent / link).resolve()
+            if not target.is_relative_to(ROOT):
+                continue
+            recorded = approved_bytes(target)
+            active = PROJECT / "specs/resources/active"
+            candidates = [target]
+            if target.is_relative_to(active):
+                candidates.append(PROJECT / "specs/resources/archived" / target.relative_to(active))
+            if not any(path.is_file() and path.read_bytes() == recorded for path in candidates):
+                raise ValueError(f"Approval mismatch: {target.relative_to(ROOT)}")
+
     for entry in fiche_entries(approved):
         fiche = project_reference(entry[2])
         original = ROOT / entry[2]
-        if fiche.read_bytes() != approved_bytes(original):
+        recorded_fiche = approved_bytes(original)
+        if fiche.read_bytes() != recorded_fiche:
             raise ValueError(f"Approval mismatch: {fiche.relative_to(ROOT)}")
+        check_resources(fiche, recorded_fiche.decode("utf-8"))
     print(f"Approval verified for {lot_id}.")
     return 0

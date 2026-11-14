@@ -301,6 +301,38 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board("validate")
         self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
 
+    def test_verify_approval_compares_required_resources(self):
+        self.run_board("init", "--template", "short", "--apply")
+        specs = self.root / "project/specs"
+        (specs / "approved").mkdir(parents=True)
+        (specs / "resources/active").mkdir(parents=True)
+        (specs / "resources/archived").mkdir(parents=True)
+        mockup = specs / "resources/active/mockup.png"
+        mockup.write_bytes(b"approved mockup")
+        (specs / "approved/spec-001-r1.md").write_text(
+            "- Fiche ID: SPEC-001\n- Revision: 1\n\n## Resources\n\n"
+            "[Mockup](../resources/active/mockup.png) and [site](https://example.invalid/x.png) and [top](#top)\n"
+            "\n## Notes\n\n[ignored](../resources/active/missing.png)\n")
+        lot = self.root / "project/batches/batch-001"
+        lot.mkdir(parents=True)
+        self.populate_lot_templates(lot)
+        subprocess.run(["git", "add", "project"], cwd=self.root, check=True)
+        subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                        "commit", "-qm", "Approve"], cwd=self.root, check=True)
+        revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+        command = ("verify-approval", "Batch-001", revision)
+        self.run_board(*command)
+        mockup.write_bytes(b"another mockup")
+        self.assertIn("Approval mismatch: project/specs/resources/active/mockup.png",
+                      self.run_board(*command, expected=1))
+        mockup.write_bytes(b"approved mockup")
+        self.run_board(*command)
+        (specs / "resources/archived/mockup.png").write_bytes(b"approved mockup")
+        mockup.unlink()
+        self.run_board(*command)  # Moved to the archive with the same bytes.
+        (specs / "resources/archived/mockup.png").write_bytes(b"replaced")
+        self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
+
     def test_yaml_lot_cross_references(self):
         self.run_board("init", "--template", "short", "--apply")
         fiche = self.root / "project/specs/approved/spec-001-r1.md"
