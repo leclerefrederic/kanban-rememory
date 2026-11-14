@@ -18,7 +18,7 @@ Decisions already taken by the User (2026-11-14): protect the transitions (appro
 
 ## Acceptance criteria
 
-- [ ] The User gives the go-ahead to record the verified findings and decisions in Rememory for the Specification Agent.
+- [x] The User gave the go-ahead; the findings and decisions are recorded in Rememory for the Specification Agent.
 - [ ] A Specification covering role limits is written by the Specification Agent, approved by the User and verified in Git.
 - [ ] The Specification separates the shared check from each LLM's wiring, allows only allow or deny from Codex hooks, keeps the Coworker mode advisory and protects `.claude/` and `.codex/`.
 - [ ] Points still unverified (hooks in the desktop apps, the Codex hook environment, Codex hooks for sub-agents) are tested or listed as open in the Specification.
