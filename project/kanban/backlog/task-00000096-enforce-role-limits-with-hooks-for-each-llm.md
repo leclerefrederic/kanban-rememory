@@ -12,7 +12,7 @@ specifications: []
 
 ## Expected outcome
 
-Implement the approved design: a shared role-limit check built from the Write access and Forbidden sections of `agents/roles/*.md`, plus a Claude Code hook branch and a Codex hook branch that call it, and an automatic guard call before `git push`. Shared core works for ChatGPT/Codex and Claude; any LLM-specific part is an optional branch that never changes a shared rule ([TASK-00000092](../completion/task-00000092-document-shared-core-and-llm-skill-branches.md)).
+Implement the approved design: a shared role-limit check built from the Write access and Forbidden sections of `agents/roles/*.md`, plus a Claude Code hook branch and a Codex hook branch that call it. The automatic guard call before `git push` moved to [TASK-00000101](task-00000101-run-the-batch-checks-automatically-before-pushing-to-main.md). Shared core works for ChatGPT/Codex and Claude; any LLM-specific part is an optional branch that never changes a shared rule ([TASK-00000092](../completion/task-00000092-document-shared-core-and-llm-skill-branches.md)).
 
 ## Acceptance criteria
 
