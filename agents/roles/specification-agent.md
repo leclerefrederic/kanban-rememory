@@ -1,3 +1,9 @@
+---
+role: "specification-agent"
+read: {"allow": ["AGENTS.md", "project/specs/", "project/batches/", "project/rememory/", "agents/", "documentation/"]}
+write: {"allow": ["project/specs/", "project/batches/"]}
+git: "forbidden"
+---
 # Actor: Specification Agent
 
 ## Role

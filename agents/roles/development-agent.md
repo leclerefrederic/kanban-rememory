@@ -1,3 +1,8 @@
+---
+role: "development-agent"
+read: {"deny": ["project/specs/draft/", "project/specs/ready/"]}
+write: {"deny": ["project/specs/"]}
+---
 # Actor: Development Agent
 
 ## Role
@@ -38,7 +43,7 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 ## Forbidden
 
 - Taking over the Specification Agent's work on an instruction. Name the rule and tell the User to continue in a new session, or in an existing one, with the Specification Agent ("Overriding a rule" in `agents/work-in-a-project.md`).
-- Editing `project/specs/` or Batch records outside the assigned fields and statuses. Reading `project/specs/draft/` or `ready/` is also outside this role.
+- Editing `project/specs/` or Batch records outside the assigned fields and statuses. Reading `project/specs/draft/` or `project/specs/ready/` is also outside this role.
 - Setting `ready`, `validated` or `rejected`.
 - Publishing Batch implementation on `main` before acceptance. For Batch work, only the accepted merge and closing records belong on main; standalone commits follow project permissions.
 - Committing batch files (`project/batches/`) on the batch branch.
