@@ -251,10 +251,11 @@ class SetupTests(unittest.TestCase):
             m.run_sender(self.path, sender, ['test', '--send-to=99'])
 
     def test_here_document_or_pipe_fails_with_instructions_not_eof(self):
-        result = subprocess.run([sys.executable, str(SCRIPT)], input='', capture_output=True, text=True)
+        # Inspect ASCII markers as bytes: Windows child output uses its own code page.
+        result = subprocess.run([sys.executable, str(SCRIPT)], input=b'', capture_output=True)
         self.assertEqual(result.returncode, 1)
-        self.assertIn('Terminal interactif', result.stderr)
-        self.assertNotIn('Traceback', result.stderr)
+        self.assertIn(b'Terminal interactif', result.stderr)
+        self.assertNotIn(b'Traceback', result.stderr)
 
     @unittest.skipIf(sys.platform == 'win32', 'Real POSIX terminal; Windows needs live acceptance')
     def test_real_terminal_accepts_all_answers_without_echoing_token(self):
