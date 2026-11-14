@@ -516,6 +516,32 @@ class KanbanBoardTests(unittest.TestCase):
                     if path != "project/kanban/workflow.json":
                         self.assertTrue((KIT / path).exists(), path)
 
+    def test_sync_skills_copies_checks_and_keeps_other_skills(self):
+        shutil.copytree(KIT / "agents/skills", self.root / "agents/skills")
+        shutil.copy(KIT / "agents/VERSION", self.root / "agents")
+        shutil.copy(KIT / "agents/tools/sync-skills.py", self.root / "agents/tools")
+        own = self.root / ".claude/skills/own-skill"
+        own.mkdir(parents=True)
+        (own / "SKILL.md").write_text("mine\n")
+
+        def sync(*args, expected=0):
+            result = subprocess.run([sys.executable, "agents/tools/sync-skills.py", *args], cwd=self.root,
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+            return result.stdout + result.stderr
+
+        self.assertIn("Out of date", sync("--check", expected=1))
+        self.assertIn("updated 6 skill folder(s)", sync())
+        for target in (".claude/skills", ".agents/skills"):
+            for skill in (self.root / "agents/skills").iterdir():
+                self.assertEqual((self.root / target / skill.name / "SKILL.md").read_text(),
+                                 (skill / "SKILL.md").read_text())
+        self.assertIn("match kit", sync("--check"))
+        (self.root / ".agents/skills/kanban-rememory-standalone/SKILL.md").write_text("edited\n")
+        self.assertIn(".agents/skills/kanban-rememory-standalone", sync("--check", expected=1))
+        self.assertIn("updated 1 skill folder(s)", sync("--target", "codex"))
+        self.assertEqual((own / "SKILL.md").read_text(), "mine\n")
+
     def test_notification_batch_id_preview(self):
         environment = {**os.environ, "TELEGRAM_CHAT_ID": "42", "TELEGRAM_EVENTS": "delivered"}
         environment.pop("TELEGRAM_BOT_TOKEN", None)

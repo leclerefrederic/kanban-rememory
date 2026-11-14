@@ -9,7 +9,7 @@ Start with [shared working instructions](work-in-a-project.md) and the applicabl
 | Operation | Reference |
 | --- | --- |
 | Apply the shared lean principles | [Agent rules](lean-specifications.md) |
-| Start a session in the right work mode | [Skills](skills/): standalone, Specification Agent or Development Agent |
+| Start a session in the right work mode | [Skills](skills/): standalone, Specification Agent or Development Agent; copy them for Claude Code and Codex with `agents/tools/sync-skills.py` |
 | Install in another repository | [Installation procedure](install-in-a-project.md) |
 | Agree on workflow configuration | [Adoption interview](configure-a-project.md) |
 | Apply role responsibilities | [Specification Agent](roles/specification-agent.md), [Development Agent](roles/development-agent.md), [User responsibilities](roles/user.md) |

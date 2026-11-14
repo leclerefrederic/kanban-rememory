@@ -9,10 +9,10 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | Directory | Files |
    | --- | --- |
    | `documentation/` | All reader guides and `examples/`, including the shared `lean-specifications.md` manifesto |
-   | `agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md` |
+   | `agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md`, `VERSION` (the kit version your copy comes from) |
    | `agents/roles/` | All three role files |
    | `agents/kanban/` | All three operating references |
-   | `agents/skills/` | Optional: the three `SKILL.md` entry points, one per work mode (standalone, Specification Agent, Development Agent) |
+   | `agents/skills/` | Optional: the three `SKILL.md` entry points, one per work mode (standalone, Specification Agent, Development Agent), with `agents/tools/sync-skills.py` |
    | `agents/templates/` | `kanban-card.md`, `project-layout.md`, `daily-template.md` |
    | `agents/tools/` | `manage-kanban-board.py` and the `kanban/` package |
 
@@ -21,6 +21,8 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    ```markdown
    Read the [shared working instructions](agents/work-in-a-project.md) before adopting the kit or working on cards.
    ```
+
+   To let Claude Code and Codex discover the skills, run `python3 agents/tools/sync-skills.py`. It copies each skill into `.claude/skills/` and `.agents/skills/` and leaves other skills there untouched. After updating the kit, run it again; `--check` reports a copy that differs from `agents/skills/`, and `--target claude` or `--target codex` limits the copy to one tool.
 
    Define the target project's ownership, journal conventions, and Git permissions in its own `AGENTS.md`. The kit repository's root instructions, board configuration, cards, and dated journal belong to this repository.
 

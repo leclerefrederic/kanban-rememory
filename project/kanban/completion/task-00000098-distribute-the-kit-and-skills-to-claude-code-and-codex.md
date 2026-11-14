@@ -16,16 +16,20 @@ Version the kit and synchronize skills into `.claude/skills/` (Claude Code) and 
 
 ## Acceptance criteria
 
-- [ ] A kit version file and a sync script (or documented symlinks with the Windows caveat) are delivered and tested.
-- [ ] Discovery paths are confirmed in the official documentation.
-- [ ] The plugin study states feasibility and cost for each LLM; shipping a plugin needs a separate approved Card.
-- [ ] Adoption tests and board validation pass.
+- [x] A kit version file and a sync script (or documented symlinks with the Windows caveat) are delivered and tested.
+- [x] Discovery paths are confirmed in the official documentation.
+- [x] The plugin study states feasibility and cost for each LLM; shipping a plugin needs a separate approved Card.
+- [x] Adoption tests and board validation pass.
 
 ## Execution and evidence
 
-- State:
-- Actual start:
-- Actual finish:
+- State: completed
+- Actual start: 2026-11-14
+- Actual finish: 2026-11-14
 - Blocker:
 
 ## History
+
+- 2026-11-14T11:46:01+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-14T11:46:59+01:00 — Stage moved from `development` to `completion`.

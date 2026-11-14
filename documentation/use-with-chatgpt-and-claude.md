@@ -21,9 +21,9 @@ A branch adds help for one assistant. It can make a rule easier to follow or enf
 | --- | --- | --- | --- |
 | Skills | Same `SKILL.md` content (`name`, `description`, instructions) | Discovered in `.claude/skills/` | Discovered in `.agents/skills/` |
 | Role limits | Written in the role instructions. A script to check them mechanically is planned, not delivered | Planned: a `PreToolUse` hook calls that script and blocks a forbidden action | Planned: a `PreToolUse` hook calls that script and denies a forbidden action; sandbox and approval settings add a second limit |
-| Distribution | Files of the kit | A skill or plugin for Claude Code | A skill or plugin for Codex |
+| Distribution | Files of the kit, copied into each discovery folder by a script | Same copy; a plugin is possible but not built | Same copy; a plugin is possible but not built |
 
-Both assistants find the same skill file format in their own folder, so one skill text can serve both. The kit's three skills live in `agents/skills/`; they only point to the existing instructions. Copying them into the two discovery folders is not automated yet. Hooks differ. Claude Code can attach a hook to a skill. Codex loads project hooks only after you trust the project and review the hook. Codex does not support an "ask" answer from a hook, so branch hooks must only allow or deny.
+Both assistants find the same skill file format in their own folder, so one skill text can serve both. The kit's three skills live in `agents/skills/`; they only point to the existing instructions. A script in the kit copies them into the two discovery folders, and can report a copy that has drifted from the kit. Hooks differ. Claude Code can attach a hook to a skill. Codex loads project hooks only after you trust the project and review the hook. Codex does not support an "ask" answer from a hook, so branch hooks must only allow or deny.
 
 A hook is a safety net, not the only protection. The role instructions and the Batch checks remain the rule; a hook only makes an assistant stop earlier. Today only the Batch checks exist: the optional push check described below is the one delivered hook.
 

@@ -12,6 +12,7 @@ repository/
 ├── agents/
 │   ├── lean-specifications.md
 │   ├── maintain-rememory.md
+│   ├── VERSION
 │   ├── kanban/
 │   ├── roles/
 │   ├── skills/
@@ -21,6 +22,7 @@ repository/
 │   │   └── project-layout.md
 │   └── tools/
 │       ├── manage-kanban-board.py
+│       ├── sync-skills.py
 │       └── kanban/
 └── project/
     ├── kanban/

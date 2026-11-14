@@ -12,7 +12,7 @@ specifications: []
 
 ## Expected outcome
 
-Reduce initial reading load with three `SKILL.md` entry points (standalone work, Specification Agent, Development Agent) that route to the existing instructions. The User chose this routing approach over moving rules into the skills: no rule is moved or duplicated, so its meaning cannot change. One skill text serves ChatGPT/Codex and Claude; copying it into `.claude/skills/` and `.agents/skills/` belongs to [TASK-00000098](../backlog/task-00000098-distribute-the-kit-and-skills-to-claude-code-and-codex.md).
+Reduce initial reading load with three `SKILL.md` entry points (standalone work, Specification Agent, Development Agent) that route to the existing instructions. The User chose this routing approach over moving rules into the skills: no rule is moved or duplicated, so its meaning cannot change. One skill text serves ChatGPT/Codex and Claude; copying it into `.claude/skills/` and `.agents/skills/` belongs to TASK-00000098.
 
 ## Acceptance criteria
 
