@@ -1,0 +1,52 @@
+---
+type: tests
+id: "Batch-010-Tests"
+batch: "Batch-010"
+---
+
+# Acceptance tests
+
+- Tested commit: `0caf330fe04d265b7a95e907f1cd4341055d8518` on `origin/codex/batch-010` (remote ref verified after publication).
+- Environment or prerequisites: Codex and Claude Code sessions allowed to invoke native subagents, Git, Python 3.9+, and disposable repositories without production access. Use a separate scratch repository for each host. Checkout or export the candidate and adopt the kit using `agents/install-in-a-project.md`, then run `python3 agents/tools/sync-skills.py`. Start the project chat with “Use the kanban-rememory-orchestrator skill.” In Claude Code, install the named Development Agent as described in `agents/configure-claude-role-hook.md` if the fixture requires its role check. Locally prepared fixtures for the initial cases: `/tmp/kr-batch010.7QedaF/uat-codex` and `/tmp/kr-batch010.7QedaF/uat-claude`, both on `uat/spec-016` with no remote. TEST-12 requires a confirmed Telegram test recipient and a separate attempt with failed delivery. Use only a scratch target and test authority for TEST-07.
+- Technical evidence:
+  - `python3 agents/tools/test-kanban-board.py` (32 tests), `python3 agents/tools/test-telegram-setup.py` (22 tests), `sync-skills.py --check`, `manage-kanban-board.py validate`, approval verification at `c02e6d4` and Git whitespace checks passed.
+  - Codex CLI 0.169.0 with native subagents enabled and Claude Code 2.1.323 with the named Development Agent each loaded the project skill and invoked one native child in read-only smoke fixtures. Codex's private run trace recorded `collaboration.spawn_agent` and Claude's captured tool transcript recorded `Agent` with `subagent_type=development-agent`. Both children returned the marker `KR-016 native smoke`, branch `spec016/smoke` and exact fixture revision `c8cb8be96a31bce19d3cb5c1a681c6c6472ee3ce`. Both checks were repeated successfully with the exact role, procedure and skill files exported from the candidate commit. No tracked fixture file changed. This checks actual dispatch and Git context, not user acceptance or full mutation paths.
+
+| ID | Specifications | Action | Expected result | Verdict | Tested revision | Observation or evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| TEST-01 | SPEC-016 | Run criterion 1 in a scratch project. | Ask for a draft and then a review. No implementation starts. Approve the displayed scope and request development in one message. A Development Agent receives the handoff without separate instructions to create a Card, start work or run checks. | | | |
+| TEST-02 | SPEC-016 | Run criterion 2 in a scratch project. | For a standalone Card, the developer creates or reuses the Card, works on the authorized Git target, verifies the change and reports the outcome in the same chat. Repeat with a project that requires a separate branch. | | | |
+| TEST-03 | SPEC-016 | Run criterion 3 in a scratch project. | For a Batch, the developer uses the designated branch and delivers a tested candidate. The chat presents the exact revision for acceptance. Final integration requires the user's verdict and the applicable publication authorization. | | | |
+| TEST-04 | SPEC-016 | Run criterion 4 in a scratch project. | Trigger a missing decision. The user answers in the same chat and work resumes with the approved context. Repeat the start request while work is active and verify that only one execution owns the work. | | | |
+| TEST-05 | SPEC-016 | Run criterion 5 in a scratch project. | Exercise an unavailable subagent or a blocked pickup. The chat explains why work did not start and provides the handoff. Role boundaries and the project's work in progress limit are preserved. | | | |
+| TEST-06 | SPEC-016 | Run criterion 6 in a scratch project. | Approve a Specification without asking for the next step. The session offers another Specification or Batch preparation. Choose Batch preparation. The session prepares the proposal and asks whether to approve it or add a Specification. Choose to add one and verify that no development starts. Then approve and authorize development in one message. The session delegates, guides acceptance after delivery and presents the delivery decision when checks are complete. | | | |
+| TEST-07 | SPEC-016 | Run criterion 7 in a scratch project. | In a project that requires production approval, accept a tested candidate and verify that deployment waits for the designated authority. Record approval for that revision and environment, and verify that the authorized role can proceed. Repeat using the project's hotfix approval route. | | | |
+| TEST-08 | SPEC-016 | Run criterion 8 in a scratch project. | Compare a bounded request with a request that leaves material behavior undecided. Route the first to a Card and the second to a Specification. On delivery, present evidence for a different revision and verify that the Orchestrator requests correction before presenting the candidate for acceptance. | | | |
+| TEST-09 | SPEC-016 | Run criterion 9 in a scratch project. | During a Specification discussion, say “Continue with the next step.” Verify that the Orchestrator asks which path is intended and that no Batch is prepared or development started before the answer. Say “Start dev on 16” without prior agreement on the Batch scope. Verify that the Orchestrator asks for confirmation of the full proposed path and waits. Confirm it and verify that the recorded approval leads to delegation without another routine confirmation. Repeat as a simulation and verify that only the question is produced. | | | |
+| TEST-10 | SPEC-016 | Run criterion 10 in a scratch project. | After approval, add a Specification to the proposed Batch. Verify that development of the changed scope waits for a new approval. Report a discrepancy within the original scope and verify that the correction follows the existing authorized route. | | | |
+| TEST-11 | SPEC-016 | Run criterion 11 in a scratch project. | Interrupt the chat with development in progress, then resume in a new session. Verify that the session retrieves the recorded scope, revision and next action without creating a duplicate execution or asking for approval again. | | | |
+| TEST-12 | SPEC-016 | Run criterion 12 in a scratch project. | With Remy configured, trigger an intervention twice for the same event. Verify that only one alert is sent and that the answer is given in the original chat. Simulate a Telegram failure and verify that the request remains actionable there. | | | |
+| TEST-13 | SPEC-016 | Run criterion 13 in a scratch project. | Verify the closure route for a conforming standalone Card and the user acceptance route for a conforming Batch. After closure, verify that the next eligible work is proposed and awaits approval. | | | |
+
+## Startup and actions by case
+
+Use the matching criterion in SPEC-016. Development Agent supplies candidate and environment instructions, and Specification Agent guides each case before recording the User verdict.
+
+### TEST-01 — Draft, review and authorize
+
+Candidate: `0caf330fe04d265b7a95e907f1cd4341055d8518`. Open a new Codex chat in `/tmp/kr-batch010.7QedaF/uat-codex` on branch `uat/spec-016`, with native subagents enabled. For Claude Code use a new session in `/tmp/kr-batch010.7QedaF/uat-claude` on the same branch with the fixture's named Development Agent. Use the existing fixtures for this run and record host results independently.
+
+1. Ask the chat to use the `kanban-rememory-orchestrator` skill and draft a proposal to create `status.txt` containing `ready`. Specify that this is a draft.
+2. Ask it to review the proposal. Verify that neither a Card nor the file was created and that no Development Agent has started.
+3. Check that the proposal names the local branch and a content check. Reply “I approve this scope and authorize development.”
+4. Stop when the host shows a native Development Agent invocation and returns the Card and evidence that `status.txt` contains `ready`. The user should not need to give separate directions to create the Card or run checks.
+
+Codex Desktop attempt (2026-11-15, User observation): the session displayed only the earlier skills. The candidate Orchestrator skill file exists in the scratch fixture. The User confirmed that the session's working directory was the main repository, not the scratch fixture. This attempt did not exercise candidate skill discovery or delegation. Retry in a new Codex Desktop chat attached to the scratch fixture.
+
+### TEST-12 — Intervention relayed by the Orchestrator
+
+In each host, use the scratch project and configured test destination described above. Activate the Orchestrator skill, approve a small scratch change, and have the Development Agent report a missing decision to the parent chat before it can proceed. The parent presents the actionable question and coordinates one Telegram alert before waiting. Do not manually invoke the sender as part of this test.
+
+Check that a repeated report of the same intervention does not send a second alert. Reply in the original chat and verify that the answer reaches the existing assignment. Repeat with a simulated send failure and verify that the same chat still contains the actionable request. Stop after these observations and record the outcome against the tested revision.
+
+Origin of this case: during preparation of Batch-010 delivery, the publication question was posted in the chat without its intervention alert. The user reported the omission and later confirmed receipt of the manually sent alert. This observation does not establish a candidate test verdict.
