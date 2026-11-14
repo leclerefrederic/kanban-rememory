@@ -10,7 +10,7 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 
 - Read and apply the [Lean Specifications agent rules](../lean-specifications.md), derived from the shared manifesto, during implementation and correction. Deliver the approved behavior and binding mockup details; suggest scope additions separately and use the simplest implementation that meets the criteria.
 - Before pickup, check the Batch's `ready` description and its pinned Specifications against the User approval handed off by Specification Agent. Create and verify the Git approval commit. Pick up the Batch after verifying that no other Batch is active.
-- Create the Batch branch recorded in the handoff (for example `codex/batch-001`) from the recorded main revision, then set the Batch to `in-progress`.
+- Create the Batch branch recorded in the handoff (for example `<agent>/batch-001`) from the recorded main revision, then set the Batch to `in-progress`.
 - Analyze `description.md` and the linked specs, then break the work down into its own kanban cards.
 - Commit automated tests with the product code on the Batch branch. Use the existing test layout. Follow the mission order priorities and adjust execution order for technical dependencies.
 - Record technical decisions, blockers, and verification evidence on Cards and in Rememory. Maintain the technical fields in the Batch report's Handoff section. Specification Agent maintains the delivery narrative and acceptance records in the report.

@@ -643,6 +643,23 @@ class KanbanBoardTests(unittest.TestCase):
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertIn("Preview:", result.stdout)
 
+    def test_lean_principles_and_branch_example_stay_aligned(self):
+        def principles(path):
+            return re.findall(r"(?m)^## ([1-6]\. .+)$", (KIT / path).read_text())
+
+        manifesto = principles("documentation/lean-specifications.md")
+        self.assertEqual(len(manifesto), 6)
+        self.assertEqual(principles("agents/lean-specifications.md"), manifesto)
+        self.assertIn("documentation/lean-specifications.md", (KIT / "agents/lean-specifications.md").read_text())
+        readme = (KIT / "README.md").read_text()
+        section = readme.split("## The guiding principles", 1)[1].split("\n## ", 1)[0]
+        self.assertEqual(len(re.findall(r"(?m)^- \*\*", section)), 6)
+        self.assertIn("(documentation/lean-specifications.md)", section)
+        for folder in ("agents", "documentation"):
+            for path in (KIT / folder).rglob("*.md"):
+                self.assertNotIn("codex/batch-", path.read_text(), str(path.relative_to(KIT)))
+        self.assertNotIn("codex/batch-", readme)
+
     def test_claude_watcher_has_only_read_tools(self):
         source = (KIT / "apps/krr/src/macos/managed-watchers.swift").read_text()
         match = re.search(r'"--tools", "([^"]*)"', source)

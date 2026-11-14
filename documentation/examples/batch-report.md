@@ -14,7 +14,7 @@ batch: "Batch-101"
 - Execution authorization: User authorized development of [Batch-101](batch-description.md) in the same instruction.
 - Approval commit and ref: `approval`, `refs/heads/batch-approval/batch-101`.
 - Base main commit: `base`.
-- Working branch: `codex/batch-101`.
+- Working branch: `<agent>/batch-101`.
 - Designated worktree: `/tmp/booking-demo/worktree`.
 - Guard record: `/tmp/booking-demo/repository/.git/kanban-rememory/batch-101/guard.json`.
 

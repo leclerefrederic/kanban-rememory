@@ -104,7 +104,7 @@ batch: "Batch-001"
 - Execution authorization: [User instruction authorizing development].
 - Approval commit and ref: [full commit], refs/heads/batch-approval/batch-001.
 - Base main commit: [full base commit].
-- Working branch: codex/batch-001.
+- Working branch: `<agent>/batch-001`.
 - Designated worktree: [absolute path].
 - Guard record: [absolute shared Git directory]/kanban-rememory/batch-001/guard.json.
 

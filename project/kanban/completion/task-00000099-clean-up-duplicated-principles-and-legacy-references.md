@@ -16,19 +16,23 @@ Cleanup in two parts, with no change to the meaning of a rule. (1) One source of
 
 ## Acceptance criteria
 
-- [ ] A single principles source exists and a check fails when the other copies diverge.
-- [ ] No `codex/batch-` example remains in `agents`, `documentation` and the README.
-- [ ] The installed skill copies still match `agents/skills/` (`python3 agents/tools/sync-skills.py --check`).
-- [ ] Adoption tests and board validation pass.
+- [x] The manifesto is the single authority for the six principles. The agent rules repeat its six headings, the README summarises them and links to it, and a test fails when the headings or the README structure diverge. The wording of each principle is still compared by a human.
+- [x] No `codex/batch-` example remains in `agents`, `documentation` and the README.
+- [x] The installed skill copies still match `agents/skills/` (`python3 agents/tools/sync-skills.py --check`).
+- [x] Adoption tests and board validation pass.
 
 ## Execution and evidence
 
-- State:
-- Actual start:
-- Actual finish:
+- State: completed
+- Actual start: 2026-11-14
+- Actual finish: 2026-11-14
 - Blocker:
 
 ## History
 
 - 2026-11-14 — Refreshed under TASK-00000104 after TASK-00000092 to 103; see the Rememory entry of that day for what changed.
 - 2026-11-14 — The legacy-reference part was removed at the User's request: the tool support for the old format stays and no abandonment date is needed. See the Rememory entry of that day.
+
+- 2026-11-14T20:56:36+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-14T20:57:40+01:00 — Stage moved from `development` to `completion`.
