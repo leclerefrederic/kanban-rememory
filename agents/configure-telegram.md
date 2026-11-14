@@ -29,11 +29,11 @@ py -3 agents/tools/configure-telegram.py
 
 1. Paste the API token when asked. Nothing appears while typing: that is expected.
 2. The tool verifies the token with Telegram and displays the bot's name and exact conversation link. Confirm visually that this is your bot.
-3. Open that link. Press **Start / Démarrer** if necessary, then send the unique `/setup_...` message printed by the tool. Return to the Terminal and press Enter. **The bot does not automatically reply**; the next result appears in the Terminal. This fresh code identifies your conversation without relying on old `/start` messages.
-4. The tool shows the detected person's name and numeric chat ID. Answer `o` only if this is the intended recipient. This authorizes the test and future alerts through this configuration.
-5. The tool sends a test. Check that it arrived in that Telegram conversation, then answer `o` to confirm receipt. Only then is configuration saved. If replacing existing settings, cancellation or a failed test leaves the previous settings intact.
+3. Open that link. Press **Start** if necessary, then send the unique `/setup_...` message printed by the tool. Return to the Terminal and press Enter. **The bot does not automatically reply**; the next result appears in the Terminal. This fresh code identifies your conversation without relying on old `/start` messages.
+4. The tool shows the detected person's name and numeric chat ID. Answer `y` only if this is the intended recipient. This authorizes the test and future alerts through this configuration.
+5. The tool sends a test. Check that it arrived in that Telegram conversation, then answer `y` to confirm receipt. Only then is configuration saved. If replacing existing settings, cancellation or a failed test leaves the previous settings intact.
 
-Success means both that the test arrived and that the Terminal printed **Configuration enregistrée**. This proves configuration and test delivery, not completion of the Batch acceptance scenarios.
+Success means both that the test arrived and that the Terminal printed **Configuration saved**. This proves configuration and test delivery, not completion of the Batch acceptance scenarios.
 
 ## Storage and later tests
 

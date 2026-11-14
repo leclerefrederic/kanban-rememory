@@ -42,20 +42,20 @@ def api(token, method, **parameters):
             result = json.load(response)
     except HTTPError as error:
         messages = {
-            401: 'Clé refusée. Recopie la clé API donnée par BotFather.',
-            403: 'Accès refusé. Débloque le bot dans Telegram et envoie-lui /start.',
-            409: 'Un webhook ou un autre lecteur utilise ce bot. Aucun réglage distant modifié.',
-            429: 'Telegram limite les requêtes. Attends avant de réessayer.',
+            401: 'Token rejected. Copy the API token from BotFather.',
+            403: 'Access denied. Unblock the bot in Telegram and send it /start.',
+            409: 'A webhook or another reader is using this bot. Remote settings were preserved.',
+            429: 'Telegram is rate limiting requests. Wait before trying again.',
         }
         if method == 'sendMessage' and error.code >= 500:
-            raise SetupError('Envoi incertain : vérifie Telegram avant de relancer un test.') from None
-        raise SetupError(messages.get(error.code, f'Telegram a refusé la requête (HTTP {error.code}).')) from None
+            raise SetupError('Delivery uncertain. Check Telegram before sending another test.') from None
+        raise SetupError(messages.get(error.code, f'Telegram rejected the request (HTTP {error.code}).')) from None
     except (OSError, URLError, ValueError):
-        message = ('Envoi incertain : vérifie Telegram avant de relancer un test.'
-                   if method == 'sendMessage' else 'Connexion impossible : vérifie le réseau puis relance.')
+        message = ('Delivery uncertain. Check Telegram before sending another test.'
+                   if method == 'sendMessage' else 'Connection failed. Check your network and try again.')
         raise SetupError(message) from None
     if not isinstance(result, dict) or result.get('ok') is not True or 'result' not in result:
-        raise SetupError('Réponse Telegram non confirmée. Si un test était en cours, vérifie sa réception.')
+        raise SetupError('Telegram response could not be confirmed. If you sent a test, check whether it arrived.')
     return result['result']
 
 
@@ -67,21 +67,21 @@ def validate(config):
             or not re.fullmatch(r'[0-9]+', config['chat_id'])
             or not isinstance(config.get('events'), str)
             or not set(config['events'].split(',')).issubset(set(EVENTS.split(',')) | {''})):
-        raise SetupError('Configuration invalide. Relance configure-telegram.py pour la remplacer.')
+        raise SetupError('Invalid configuration. Run configure-telegram.py again to replace it.')
     return config
 
 
 def load_config(path):
     try:
         if path.is_symlink():
-            raise SetupError('La configuration ne doit pas être un lien symbolique.')
+            raise SetupError('The configuration file must not be a symbolic link.')
         if sys.platform != 'win32' and path.stat().st_mode & 0o077:
-            raise SetupError('Configuration trop accessible. Rétablis les permissions privées (chmod 600).')
+            raise SetupError('Configuration file permissions are too broad. Restore private permissions (chmod 600).')
         return validate(json.loads(path.read_text(encoding='utf-8')))
     except FileNotFoundError:
-        raise SetupError('Telegram non configuré. Lance configure-telegram.py sans argument.') from None
+        raise SetupError('Telegram is not configured. Run configure-telegram.py without arguments.') from None
     except (OSError, ValueError):
-        raise SetupError('Impossible de lire la configuration. Relance configure-telegram.py.') from None
+        raise SetupError('Could not read the configuration. Run configure-telegram.py again.') from None
 
 
 def protect_file(path, platform=None):
@@ -98,13 +98,13 @@ def protect_file(path, platform=None):
         subprocess.run(['icacls', str(path), '/inheritance:r', '/grant:r', f'*{sid}:F'],
                        check=True, capture_output=True, text=True)
     except (OSError, ValueError, IndexError, StopIteration, subprocess.CalledProcessError):
-        raise SetupError('Impossible de protéger le fichier Windows. Aucune clé enregistrée.') from None
+        raise SetupError('Could not secure the Windows file. No token was saved.') from None
 
 
 def save_config(path, config):
     validate(config)
     if path.is_symlink():
-        raise SetupError('Refus de remplacer un lien symbolique de configuration.')
+        raise SetupError('Cannot replace a configuration file that is a symbolic link.')
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix='.telegram-', dir=path.parent)
     os.close(descriptor)
@@ -122,12 +122,12 @@ def save_config(path, config):
 
 
 def yes(prompt, ask):
-    return ask(prompt + ' [o/N] ').strip().lower() in ('o', 'oui', 'y', 'yes')
+    return ask(prompt + ' [y/N] ').strip().lower() in ('o', 'oui', 'y', 'yes')
 
 
 def private_matches(updates, challenge):
     if not isinstance(updates, list):
-        raise SetupError('Liste de messages Telegram invalide. Aucun réglage enregistré.')
+        raise SetupError('Invalid Telegram update list. No settings were saved.')
     chats = {}
     for update in updates:
         message = update.get('message', {})
@@ -139,58 +139,58 @@ def private_matches(updates, challenge):
 
 
 def setup(path, ask=input, secret=getpass.getpass, call=api):
-    print('Configuration Telegram — macOS / Windows. Ctrl+C annule sans remplacer la configuration.')
-    if path.exists() and not yes('Une configuration existe. La remplacer après un nouveau test ?', ask):
-        print('Annulé. Configuration conservée.')
+    print('Telegram setup for macOS and Windows. Press Ctrl+C to cancel and keep your existing configuration.')
+    if path.exists() and not yes('Replace the existing configuration after a successful test?', ask):
+        print('Canceled. Existing configuration kept.')
         return 0
     # Do not fall back to echoed password input in redirected terminals.
     with warnings.catch_warnings():
         warnings.simplefilter('error', getpass.GetPassWarning)
-        token = secret('Clé API du bot (saisie masquée) : ').strip()
+        token = secret('Bot API token (hidden input): ').strip()
     if not re.fullmatch(r'[0-9]+:[A-Za-z0-9_-]+', token):
-        raise SetupError('Format de clé invalide. Utilise la clé API de BotFather, pas le nom du bot.')
+        raise SetupError('Invalid token format. Enter the API token from BotFather.')
     bot = call(token, 'getMe')
     if not isinstance(bot, dict) or not bot.get('is_bot') or not re.fullmatch(r'[A-Za-z0-9_]+', bot.get('username', '')):
-        raise SetupError('Le bot ne peut pas être identifié. Rien enregistré.')
-    print(f"Bot vérifié : {bot.get('first_name', '')} — @{bot['username']}")
+        raise SetupError('Could not identify the bot. No settings were saved.')
+    print(f"Verified bot: {bot.get('first_name', '')} — @{bot['username']}")
     webhook = call(token, 'getWebhookInfo')
     if not isinstance(webhook, dict):
-        raise SetupError('Réponse Telegram invalide. Aucun réglage enregistré.')
+        raise SetupError('Invalid Telegram response. No settings were saved.')
     if webhook.get('url'):
-        raise SetupError('Ce bot utilise un webhook. Utilise un bot dédié aux notifications ; aucun webhook supprimé.')
+        raise SetupError('This bot uses a webhook. Use a dedicated notification bot. The webhook was preserved.')
     challenge = '/setup_' + secrets.token_hex(4)
-    print(f"1. Ouvre https://t.me/{bot['username']} et appuie sur Démarrer si nécessaire.")
-    print(f'2. Envoie exactement ce message au bot : {challenge}')
-    print('Le bot ne répond pas automatiquement. Reviens ensuite dans ce Terminal.')
+    print(f"1. Open https://t.me/{bot['username']} and press Start if needed.")
+    print(f'2. Send this exact message to the bot: {challenge}')
+    print('The bot does not reply automatically. Return to this terminal after sending the code.')
     while True:
-        ask('3. Message envoyé ? Appuie sur Entrée pour rechercher ta conversation : ')
+        ask('3. Press Enter after sending the code to find your chat: ')
         updates = call(token, 'getUpdates', timeout=5, limit=100)
         chats = private_matches(updates, challenge)
         if len(chats) > 1:
-            raise SetupError('Plusieurs conversations ont envoyé ce code. Relance pour obtenir un nouveau code.')
+            raise SetupError('Multiple chats sent this code. Run setup again to get a new code.')
         if chats:
             chat_id, chat = next(iter(chats.items()))
             break
-        print('Code non trouvé. Vérifie le lien du bot et le texte envoyé. Aucun identifiant à chercher.')
+        print('Code not found. Check the bot link and the text you sent. No chat ID lookup is needed.')
         if len(updates) >= 100:
-            raise SetupError('Trop de messages en attente sur ce bot. Utilise un bot dédié ; aucun message supprimé.')
-        if not yes('Réessayer après avoir envoyé le code dans cette conversation ?', ask):
-            print('Annulé. Configuration précédente conservée.')
+            raise SetupError('This bot has too many pending messages. Use a dedicated bot. No messages were deleted.')
+        if not yes('Try again after sending the code in this chat?', ask):
+            print('Canceled. Previous configuration kept.')
             return 0
     name = ' '.join(str(chat.get(key, '')) for key in ('first_name', 'last_name')).strip()
-    print(f'Destinataire détecté : {name} (identifiant {chat_id}).')
-    if not yes('Autoriser les notifications vers ce destinataire et envoyer un test ?', ask):
-        print('Annulé. Aucun message envoyé, configuration précédente conservée.')
+    print(f'Recipient found: {name} (chat ID {chat_id}).')
+    if not yes('Allow notifications to this recipient and send a test?', ask):
+        print('Canceled. No message was sent. Previous configuration kept.')
         return 0
-    call(token, 'sendMessage', chat_id=chat_id, text='Remy : test de configuration Kanban Rememory.')
-    print('Telegram a confirmé l’envoi du test.')
-    if not yes('As-tu reçu le message dans cette conversation Telegram ?', ask):
-        print('Réception non confirmée. Configuration précédente conservée ; ne recommence pas sans vérifier Telegram.')
+    call(token, 'sendMessage', chat_id=chat_id, text='Remy: Kanban Rememory setup test.')
+    print('Telegram confirmed that the test was sent.')
+    if not yes('Did you receive the message in this Telegram chat?', ask):
+        print('Receipt was not confirmed. Previous configuration kept. Check Telegram before trying again.')
         return 0
     save_config(path, {'version': 1, 'token': token, 'chat_id': chat_id,
                        'bot_username': bot['username'], 'events': EVENTS})
-    print(f'Configuration enregistrée : {path}')
-    print('Prêt. Les agents peuvent utiliser la commande run sans export ni clé dans leurs arguments.')
+    print(f'Configuration saved: {path}')
+    print('Ready. Agents can use the run command with the saved configuration.')
     return 0
 
 
@@ -199,12 +199,12 @@ def run_sender(path, script, arguments, send=False):
     if arguments[:1] == ['--']:
         arguments = arguments[1:]
     if not arguments:
-        raise SetupError('Précise un événement après --, par exemple -- test.')
+        raise SetupError('Specify an event after --, for example -- test.')
     if any(arg == '--send-to' or arg.startswith('--send-to=') for arg in arguments):
-        raise SetupError('Utilise --send avant -- : le destinataire vient de la configuration confirmée.')
+        raise SetupError('Use --send before --. The recipient comes from the confirmed configuration.')
     script = script.resolve()
     if not script.is_file():
-        raise SetupError('Script de notification introuvable. Vérifie --script.')
+        raise SetupError('Notification script not found. Check --script.')
     environment = {**os.environ, 'TELEGRAM_BOT_TOKEN': config['token'],
                    'TELEGRAM_CHAT_ID': config['chat_id'], 'TELEGRAM_EVENTS': config['events']}
     if send:
@@ -216,43 +216,43 @@ def run_sender(path, script, arguments, send=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='command')
-    commands.add_parser('setup', help='configuration interactive (par défaut)')
-    commands.add_parser('status', help='afficher la destination sans la clé')
-    test = commands.add_parser('test', help='tester la configuration enregistrée')
-    test.add_argument('--send', action='store_true', help='envoyer réellement le message de test')
-    run = commands.add_parser('run', help='lancer le script existant avec la configuration enregistrée')
+    commands.add_parser('setup', help='interactive setup (default)')
+    commands.add_parser('status', help='show the recipient without revealing the token')
+    test = commands.add_parser('test', help='test the saved configuration')
+    test.add_argument('--send', action='store_true', help='send the test message')
+    run = commands.add_parser('run', help='run the existing sender with the saved configuration')
     run.add_argument('--script', type=Path, default=Path(__file__).with_name('notify-telegram.py'))
-    run.add_argument('--send', action='store_true', help='envoyer au destinataire enregistré')
+    run.add_argument('--send', action='store_true', help='send to the saved recipient')
     run.add_argument('arguments', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     path = config_path()
     try:
         if args.command in (None, 'setup'):
             if not sys.stdin.isatty():
-                raise SetupError('Lance ce fichier depuis un Terminal interactif : python3 configure-telegram.py (macOS) ou py -3 configure-telegram.py (Windows). Pas de script collé via python - ou de pipe.')
+                raise SetupError('Run this file in an interactive terminal using python3 configure-telegram.py on macOS or py -3 configure-telegram.py on Windows. Piped input and python - are unsupported.')
             return setup(path)
         if args.command == 'run':
             return run_sender(path, args.script, args.arguments, args.send)
         config = load_config(path)
-        print(f"Configuration : @{config.get('bot_username', '?')} ; destinataire {config['chat_id']} ; fichier {path}")
+        print(f"Configuration: @{config.get('bot_username', '?')}, recipient {config['chat_id']}, file {path}")
         if args.command == 'test':
             if not args.send:
-                print('Aucun envoi. Ajoute --send pour envoyer le test.')
+                print('Preview only. Add --send to send the test.')
                 return 0
-            api(config['token'], 'sendMessage', chat_id=config['chat_id'], text='Remy : test de configuration Kanban Rememory.')
-            print('Telegram : envoi confirmé. Vérifie la réception dans Telegram.')
+            api(config['token'], 'sendMessage', chat_id=config['chat_id'], text='Remy: Kanban Rememory setup test.')
+            print('Telegram confirmed the send. Check your Telegram chat for the test.')
         return 0
     except (KeyboardInterrupt, EOFError):
-        print('\nSaisie interrompue. Configuration précédente conservée.', file=sys.stderr)
+        print('\nInput interrupted. Previous configuration kept.', file=sys.stderr)
         return 1
     except getpass.GetPassWarning:
-        print('Saisie masquée indisponible. Ouvre un Terminal normal et relance.', file=sys.stderr)
+        print('Hidden input unavailable. Open a regular terminal and try again.', file=sys.stderr)
         return 1
     except SetupError as error:
         print(str(error), file=sys.stderr)
         return 1
     except OSError:
-        print('Opération locale impossible (fichier ou permissions). Configuration non confirmée ; vérifie avec status.', file=sys.stderr)
+        print('Local file or permission error. Use status to check the saved configuration.', file=sys.stderr)
         return 1
 
 

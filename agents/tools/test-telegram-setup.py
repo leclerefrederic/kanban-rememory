@@ -49,11 +49,11 @@ class SetupTests(unittest.TestCase):
         return code, output.getvalue()
 
     def test_success_confirms_bot_recipient_delivery_and_saves(self):
-        code, output = self.wizard(['', 'o', 'o'])
+        code, output = self.wizard(['', 'y', 'y'])
         self.assertEqual(code, 0)
         self.assertEqual(m.load_config(self.path), CONFIG)
         self.assertEqual([call[0] for call in self.calls], ['getMe', 'getWebhookInfo', 'getUpdates', 'sendMessage'])
-        self.assertIn('ne répond pas automatiquement', output)
+        self.assertIn('does not reply automatically', output)
         if sys.platform != 'win32':
             self.assertEqual(self.path.stat().st_mode & 0o777, 0o600)
 
@@ -65,18 +65,18 @@ class SetupTests(unittest.TestCase):
                 attempts += 1
                 return [] if attempts == 1 else [message()]
             return self.api(token, method, **values)
-        _, output = self.wizard(['', 'o', '', 'o', 'o'], api)
-        self.assertIn('Aucun identifiant à chercher', output)
+        _, output = self.wizard(['', 'y', '', 'y', 'y'], api)
+        self.assertIn('No chat ID lookup is needed', output)
         self.assertTrue(self.path.exists())
 
     def test_ignores_old_start_wrong_code_and_groups(self):
         self.updates = [message(text='/start'), message(text='old'), message(kind='group'), message()]
-        self.wizard(['', 'o', 'o'])
+        self.wizard(['', 'y', 'y'])
         self.assertEqual(m.load_config(self.path)['chat_id'], '42')
 
     def test_multiple_matches_refused_without_send(self):
         self.updates = [message(), message(43)]
-        with self.assertRaisesRegex(m.SetupError, 'Plusieurs'):
+        with self.assertRaisesRegex(m.SetupError, 'Multiple'):
             self.wizard([''])
         self.assertFalse(self.path.exists())
         self.assertNotIn('sendMessage', [c[0] for c in self.calls])
@@ -96,14 +96,14 @@ class SetupTests(unittest.TestCase):
         original = self.path.read_bytes()
         self.wizard(['n'])
         self.assertEqual(self.calls, [])
-        self.wizard(['o', '', 'n'])
+        self.wizard(['y', '', 'n'])
         self.assertEqual(self.path.read_bytes(), original)
         self.assertNotIn('sendMessage', [c[0] for c in self.calls])
 
     def test_receive_not_confirmed_preserves_old_config(self):
         m.save_config(self.path, {**CONFIG, 'chat_id': '99'})
         original = self.path.read_bytes()
-        self.wizard(['o', '', 'o', 'n'])
+        self.wizard(['y', '', 'y', 'n'])
         self.assertEqual(self.path.read_bytes(), original)
 
     def test_failed_test_does_not_replace_config_or_retry(self):
@@ -112,10 +112,10 @@ class SetupTests(unittest.TestCase):
         def api(token, method, **values):
             if method == 'sendMessage':
                 self.calls.append((method, values))
-                raise m.SetupError('Envoi incertain')
+                raise m.SetupError('Envoi uncertain')
             return self.api(token, method, **values)
-        with self.assertRaisesRegex(m.SetupError, 'incertain'):
-            self.wizard(['o', '', 'o'], api)
+        with self.assertRaisesRegex(m.SetupError, 'uncertain'):
+            self.wizard(['y', '', 'y'], api)
         self.assertEqual(self.path.read_bytes(), original)
         self.assertEqual(sum(c[0] == 'sendMessage' for c in self.calls), 1)
 
@@ -168,12 +168,12 @@ class SetupTests(unittest.TestCase):
         empty = Path(self.directory.name) / 'empty'
         empty.touch()
         with patch.object(m.subprocess, 'run', side_effect=subprocess.CalledProcessError(1, 'whoami')):
-            with self.assertRaisesRegex(m.SetupError, 'Aucune clé'):
+            with self.assertRaisesRegex(m.SetupError, 'No token'):
                 m.protect_file(empty, 'win32')
         self.assertEqual(empty.read_bytes(), b'')
 
     def test_api_errors_are_actionable_and_redact_token(self):
-        for code, expected in [(401, 'Clé refusée'), (403, 'Débloque'), (409, 'autre lecteur'), (429, 'limite'), (500, 'incertain')]:
+        for code, expected in [(401, 'Token rejected'), (403, 'Unblock'), (409, 'another reader'), (429, 'rate limiting'), (500, 'uncertain')]:
             with self.subTest(code=code), patch.object(m, 'urlopen', side_effect=HTTPError(
                     f'https://api.telegram.org/bot{TOKEN}/sendMessage', code, TOKEN, {}, None)):
                 with self.assertRaises(m.SetupError) as error:
@@ -181,7 +181,7 @@ class SetupTests(unittest.TestCase):
                 self.assertIn(expected, str(error.exception))
                 self.assertNotIn(TOKEN, str(error.exception))
         with patch.object(m, 'urlopen', side_effect=URLError(TOKEN)):
-            with self.assertRaisesRegex(m.SetupError, 'incertain'):
+            with self.assertRaisesRegex(m.SetupError, 'uncertain'):
                 m.api(TOKEN, 'sendMessage')
 
     def test_api_posts_parameters_and_checks_response_without_exposing_key(self):
@@ -221,11 +221,11 @@ class SetupTests(unittest.TestCase):
     def test_public_config_and_symlink_refused(self):
         m.save_config(self.path, CONFIG)
         self.path.chmod(0o644)
-        with self.assertRaisesRegex(m.SetupError, 'accessible'):
+        with self.assertRaisesRegex(m.SetupError, 'too broad'):
             m.load_config(self.path)
         link = self.path.with_name('link.json')
         link.symlink_to(self.path)
-        with self.assertRaisesRegex(m.SetupError, 'symbolique'):
+        with self.assertRaisesRegex(m.SetupError, 'symbolic'):
             m.save_config(link, CONFIG)
 
     def test_new_process_inherits_saved_config_without_exports(self):
@@ -247,14 +247,14 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(sender.read_bytes(), original)
         m.run_sender(self.path, sender, ['test'])
         self.assertEqual(json.loads(result_file.read_text())['args'], ['test'])
-        with self.assertRaisesRegex(m.SetupError, 'destinataire'):
+        with self.assertRaisesRegex(m.SetupError, 'recipient'):
             m.run_sender(self.path, sender, ['test', '--send-to=99'])
 
     def test_here_document_or_pipe_fails_with_instructions_not_eof(self):
         # Inspect ASCII markers as bytes: Windows child output uses its own code page.
         result = subprocess.run([sys.executable, str(SCRIPT)], input=b'', capture_output=True)
         self.assertEqual(result.returncode, 1)
-        self.assertIn(b'Terminal interactif', result.stderr)
+        self.assertIn(b'interactive terminal', result.stderr)
         self.assertNotIn(b'Traceback', result.stderr)
 
     @unittest.skipIf(sys.platform == 'win32', 'Real POSIX terminal; Windows needs live acceptance')
@@ -284,15 +284,15 @@ class SetupTests(unittest.TestCase):
                 if select.select([fd], [], [], 0.2)[0]:
                     data += os.read(fd, 4096)
         try:
-            until('saisie masquée')
+            until('hidden input')
             os.write(fd, (TOKEN + '\n').encode())
-            until('Message envoyé ?')
+            until('Press Enter after sending the code')
             os.write(fd, b'\n')
-            until('Autoriser les notifications')
-            os.write(fd, b'o\n')
-            until('As-tu reçu')
-            os.write(fd, b'o\n')
-            until('Configuration enregistrée')
+            until('Allow notifications')
+            os.write(fd, b'y\n')
+            until('Did you receive')
+            os.write(fd, b'y\n')
+            until('Configuration saved')
             _, status = os.waitpid(pid, 0)
             self.assertEqual(os.waitstatus_to_exitcode(status), 0)
             self.assertNotIn(TOKEN.encode(), data)
