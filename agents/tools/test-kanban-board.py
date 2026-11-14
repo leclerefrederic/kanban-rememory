@@ -1,3 +1,5 @@
+import argparse
+import importlib.util
 from hashlib import sha256
 import json
 import os
@@ -633,13 +635,35 @@ class KanbanBoardTests(unittest.TestCase):
         for identifier in ("Batch-001", "batch-001", "BATCH-001", "bad-id"):
             with self.subTest(identifier=identifier):
                 result = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"),
-                                         "delivered", "--batch", identifier], env=environment,
+                                         "delivered", "--batch", identifier, "--revision", "a" * 40], env=environment,
                                         capture_output=True, text=True)
                 if identifier == "bad-id":
                     self.assertNotEqual(result.returncode, 0)
                 else:
                     self.assertEqual(result.returncode, 0, result.stderr)
                     self.assertIn("Preview:", result.stdout)
+
+    def test_each_delivery_of_a_batch_is_notified_once(self):
+        spec = importlib.util.spec_from_file_location("notify_telegram", KIT / "agents/tools/notify-telegram.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        ledger = self.root / "ledger.sqlite3"
+        sent = []
+
+        def deliver(revision):
+            args = argparse.Namespace(event="delivered", batch="Batch-001", blocker_id=None, revision=revision)
+            return module.notify(args, "token", "42", ledger, sender=lambda token, chat, text: sent.append(text))
+
+        self.assertTrue(deliver("a" * 40))
+        self.assertFalse(deliver("a" * 40))  # Retry of the same delivery.
+        self.assertTrue(deliver("b" * 40))  # Delivery of the corrected candidate.
+        self.assertEqual(len(sent), 2)
+        self.assertIn("revision bbbbbbb", sent[1])
+        refused = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"), "delivered",
+                                  "--batch", "Batch-001"], env={**os.environ, "TELEGRAM_CHAT_ID": "42",
+                                  "TELEGRAM_EVENTS": "delivered"}, capture_output=True, text=True)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("--revision", refused.stderr)
 
 
 if __name__ == "__main__":

@@ -28,11 +28,12 @@ def notify(args, token, chat, ledger, sender=send_message):
         return True
 
     messages = {
-        "delivered": "Ready for acceptance. Review tests.md.",
+        "delivered": f"Ready for acceptance, revision {(args.revision or '')[:7]}. Review tests.md.",
         "blocked": f"Action needed. Review report.md for blocker {args.blocker_id}.",
         "closed": "Closure verified. See the outcome in report.md.",
     }
-    key = (chat, args.batch, args.event, args.blocker_id or "")
+    # The blocker column holds the blocker ID, or the tested revision for a delivery.
+    key = (chat, args.batch, args.event, args.blocker_id or args.revision or "")
     with sqlite3.connect(ledger, timeout=20) as connection:
         connection.execute(
             "CREATE TABLE IF NOT EXISTS sent (chat TEXT, batch TEXT, event TEXT, blocker TEXT,"
@@ -51,6 +52,7 @@ def main():
     parser.add_argument("event", choices=("test", "delivered", "blocked", "closed"))
     parser.add_argument("--batch")
     parser.add_argument("--blocker-id")
+    parser.add_argument("--revision", help="full tested commit, required for delivered")
     parser.add_argument("--send-to", help="Explicitly confirm the configured numeric chat ID")
     args = parser.parse_args()
     if args.event != "test" and not re.fullmatch(r"Batch-[0-9]+", args.batch or "", re.IGNORECASE):
@@ -59,6 +61,10 @@ def main():
         args.batch = "Batch-" + args.batch.split("-", 1)[1]
     if args.event == "blocked" and not re.fullmatch(r"[A-Za-z0-9-]{1,40}", args.blocker_id or ""):
         parser.error("Provide a stable blocker ID.")
+    if args.event == "delivered" and not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", args.revision or ""):
+        parser.error("Provide the full tested commit with --revision.")
+    if args.event != "delivered" and args.revision is not None:
+        parser.error("--revision is only for delivered events.")
     if args.event != "blocked" and args.blocker_id is not None:
         parser.error("--blocker-id is only for blocked events.")
 

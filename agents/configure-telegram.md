@@ -10,9 +10,9 @@ Copy `agents/tools/notify-telegram.py` to the project if you want Telegram notif
 From the project root, call the tool with the event, Batch ID, and confirmed chat ID. For example:
 
 ```sh
-python3 agents/tools/notify-telegram.py delivered --batch Batch-001 --send-to "$TELEGRAM_CHAT_ID"
+python3 agents/tools/notify-telegram.py delivered --batch Batch-001 --revision FULL_TESTED_COMMIT --send-to "$TELEGRAM_CHAT_ID"
 ```
 
-Use `blocked` with a stable `--blocker-id` and record the actionable details in the Batch report. Use `closed` after verifying publication and recording the outcome in the report. The command stores successful sends in the shared local Git directory. Retries in that clone skip recorded sends. After an ambiguous failure, check the destination before retrying. Telegram may have received the message before the local receipt was recorded.
+Use the full tested commit from `tests.md` as `--revision`: each delivery of a Batch, including a corrected one, sends once, and a retry of the same revision is skipped. Use `blocked` with a stable `--blocker-id` and record the actionable details in the Batch report. Use `closed` after verifying publication and recording the outcome in the report. The command stores successful sends in the shared local Git directory. Retries in that clone skip recorded sends. After an ambiguous failure, check the destination before retrying. Telegram may have received the message before the local receipt was recorded.
 
 See the [Telegram Bot API](https://core.telegram.org/bots/api).
