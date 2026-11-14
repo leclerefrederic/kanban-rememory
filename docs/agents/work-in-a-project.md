@@ -14,6 +14,8 @@ Check for `project/kanban/workflow.json` before resuming or creating cards. If i
 
 ## Execute work
 
+Only the AI Development Agent creates, writes, moves, and closes Cards, including for standalone work. The User supplies requests, priorities, approvals, and verdicts through conversation; the agent records them. Never ask the User to write or maintain a Card.
+
 - Search every column for a matching card before proposing one. Define the expected outcome, scope, owner, dependencies, and verifiable criteria.
 - Add the card to the backlog after approval. Once execution is authorized, move it to the first active stage before changing deliverables. Approval of a card or specification does not by itself authorize implementation or publication.
 - Update the [owner's journal](../../project/rememory/README.md) at each significant milestone. At closure, verify the criteria and record the evidence, revision, and next step. Distinguish testing, merging, publication, deployment, and user validation.

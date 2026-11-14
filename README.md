@@ -1,111 +1,115 @@
 # 🧠 Kanban Rememory
 
-**Build what we agreed. Prove it works. Remember why.**
+**You bring the intent. The agents do the work. The repository remembers.**
 
-Kanban Rememory is a Git and Markdown framework for building software with AI agents. It keeps tasks, decisions, approved scope, and test results in your repository, ready for the next session or the next agent.
+Kanban Rememory is a Git and Markdown framework for running software projects with AI agents. It gives them a shared way to understand requests, organize work, implement changes, verify results, and preserve enough context to continue across sessions.
 
-Your project has a memory now. Please use it.
+Think of it as an agent-operated workshop inside your repository. A request goes in. The agents turn it into agreed work, then bring back a delivery you can test, the evidence behind it, and any decisions they need from you.
+
+You explain what you want, approve the scope, and judge the result. **The agents write the records and maintain the board.** Every Card is created and maintained by the Development Agent.
 
 [Get started](docs/getting-started.md) · [Read the manifesto](docs/lean-specifications.md) · [See a complete example](docs/batches/delivery-example.md)
 
-## We built this because “done” got expensive
+## Why this box exists
 
-You ask for a form. You get two extra buttons, a settings screen, and a cheerful explanation of why you needed them.
+You ask for a form. You get two extra buttons, a settings screen, and a cheerful explanation of why you needed them. You ask to test it. The agent forgets to tell you which build to open. A new session starts. Time to explain the whole bloody project again.
 
-You ask to test it. The agent forgets to tell you which build to open.
+Kanban Rememory grew out of that frustration. The project needs an answer to a few persistent questions: what did we agree to build, who is doing what, what actually passed, and what happens next?
 
-Something breaks. The next session starts. Time to explain the whole bloody project again.
-
-Sound familiar?
-
-Kanban Rememory grew out of exactly that frustration. Writing code gets easier. Keeping the work coherent still takes care: what was agreed, what was actually built, what passed, what failed, and what happens next.
-
-So we put that information where the work lives: **in the repository**. The next agent can read the decisions, find the current task, inspect the evidence, and resume from a known point. You get something concrete to review when it says “done.”
+The answers live alongside the code. An agent can read them, resume authorized work, and leave a useful handoff. You can inspect them whenever you want.
 
 Less chat archaeology. More software you can actually use.
 
-## Give every piece of work a home
+## The guiding principles
 
-| Piece | Its job | Its home |
+- **Build what earns its place.** Every requirement needs a clear benefit: experience, usability, performance, or a necessary protection. Every feature pays rent.
+- **Agree before expanding.** Agents can suggest improvements. Adding behavior requires your agreement. An active Batch keeps its approved scope.
+- **Let agents handle the work.** They break it down, manage Cards, check dependencies, write code, and maintain the evidence within their authorization. They ask when a decision belongs to you or the expected behavior is unclear.
+- **Make “done” verifiable.** Acceptance criteria describe observable results. Tests identify the revision they checked. An unexecuted test stays unexecuted.
+- **Keep failures in view.** Every observed defect becomes debt. Blocking defects require correction before acceptance; deferred debt and outstanding tests remain traceable.
+- **Stay lean.** Reuse what works, preserve required protections, and stop when the agreed outcome is achieved and verified.
+
+**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.** The [Lean Specifications manifesto](docs/lean-specifications.md) is the full reference.
+
+## The pieces of the puzzle
+
+| Piece | What it does | How it connects |
 | --- | --- | --- |
-| **Cards** | Track executable tasks, dependencies, blockers, and proof of completion. | `project/kanban/` |
-| **Rememory** | Keep the decisions, verified milestones, and next actions needed to resume work. | `project/rememory/` |
-| **Specifications** | Define the outcome, scope, and observable acceptance criteria. | `project/specs/` |
-| **Batches** | Group one or more approved Specifications into a delivery with tests, a report, and your decision. | `project/batches/` |
+| **Specifications** | Describe the intended outcome, scope, acceptance criteria, and any binding mockups or resources. | A Batch selects exact approved revisions. |
+| **Batches** | Define a delivery: one or more approved Specifications, priorities, tests, a report, and your final decision. | Keep the scope fixed while implementation and acceptance progress. |
+| **Cards** | Track the Development Agent's executable tasks, dependencies, blockers, and completion evidence. | Can reference a Batch and Specifications; standalone Cards need neither. |
+| **Tests and reports** | Preserve tested revisions, results, screenshots, defects, decisions, and closure evidence. | Belong to their Batch and make its delivery reviewable. |
+| **Rememory** | Keep a concise journal of decisions, verified milestones, and next actions. | Give the next agent the context needed to resume the work. |
+| **Instructions and tools** | Define agent responsibilities and provide commands to create, move, display, and validate Cards, plus Batch checks. | Help agents maintain consistent records and follow the agreed workflow. |
 
-**Start with Cards and Rememory.** A task gets a Card. Its folder tells you the stage; the Card tells you whether work is moving, waiting, or blocked. Rememory keeps the useful context between sessions.
+The records live under `project/specs/`, `project/batches/`, `project/kanban/`, and `project/rememory/`. Guides and templates live in `docs/`; executable tools live in `tools/`.
 
-Add Specifications and Batches when you need to agree on a delivery before building it. A Batch groups Specifications. Cards track the implementation independently and can reference the relevant Batch or Specifications. Standalone tasks can stay standalone.
+**A Batch groups Specifications. Cards track execution independently.** A Card can point to a Batch; the Batch does not contain Cards. Its report describes the delivery and its evidence.
 
-Everything is readable in an ordinary editor. Stable IDs connect the records. Git keeps their history. You choose the agent and keep the project context with your code.
+Stable IDs connect related records. Approved Specification revisions pin the expected behavior. Test results identify the candidate that was checked. Shared resources stay associated with their Specifications through the approval snapshot and resource archives. Git preserves the history; Rememory explains the decisions and next steps.
 
-Tiny files. Long memory. 🧠
+Start with Cards and Rememory. Add the optional Specification and Batch module when you need a formal agreement about a delivery and its acceptance. A small standalone task can remain a small standalone task.
 
-## From “I want this” to “yes, this works”
+## How the work runs
 
-Say you need a CSV export that preserves names with accents and commas.
+The framework divides responsibilities between two AI roles. The **Specification Agent** works with you on intent, scope, and acceptance. The **Development Agent** implements, tests, maintains Cards, and handles authorized Git operations. The same AI can perform both roles at different stages.
 
-1. **Agree on the result.** Write a Specification with the expected behavior and concrete examples. Keep suggestions separate until you approve them.
-2. **Set the delivery scope.** Select the approved Specification revisions in a Batch and record priorities. That baseline stays fixed while the Batch is active.
-3. **Do the work.** The Development Agent creates its Cards, implements the change, reviews the diff, and runs the applicable technical checks.
-4. **Test the actual thing.** Each acceptance case starts with the exact revision, build, setup, actions, and expected result. Record your verdict, then move to the next case.
-5. **Decide with evidence.** You accept or reject the delivery. Its report keeps the decision, results, and remaining debt available for the next session.
+With the Batch module, the delivery loop looks like this:
 
-The Specification Agent handles the intended behavior and guides acceptance. The Development Agent implements, verifies, and handles Git. One agent can wear both hats at different stages. You approve the scope and decide whether the delivery is accepted.
+```mermaid
+flowchart TD
+    request[Your request] --> scope[Agent prepares scope and acceptance criteria]
+    scope --> approval[You approve scope and authorize execution]
+    approval --> work[Agent organizes and develops the work]
+    work --> checks[Agent runs technical checks]
+    checks --> acceptance[Agent guides you through acceptance]
+    acceptance --> decision[You accept or reject the delivery]
+    acceptance --> correction[Blocking defect: record and authorize correction]
+    correction --> work
+    decision --> closure[Agent closes the Batch and preserves the evidence]
+```
 
-The [worked example](docs/batches/delivery-example.md) shows what those files actually contain.
+**1. You describe the outcome.** The Specification Agent helps clarify what should change, writes the Specification, and proposes concrete acceptance criteria. Suggestions stay separate until agreed. You approve the scope; the agent records it in a Batch.
 
-## When it breaks, keep the plot
+**2. The Development Agent takes it from there.** Once execution is authorized, it creates its own Cards, checks dependencies and capacity, and implements the work. Cards move through the configured stages. Their folders show the stage; their contents show progress, waiting, or blockers. The agent records technical choices and verification evidence as it works.
 
-Software has defects. Our process needs to handle them without losing the work or pretending an untested scenario passed.
+**3. You get a candidate you can actually test.** The agent identifies the revision and build, prepares the environment instructions, and presents acceptance cases one at a time. Each case includes startup instructions, actions, expected results, and an OK / KO choice. The agent records your verdict and proceeds to the next case. For a KO, it asks what happened and collects a screenshot when available.
 
-Every observed defect becomes open debt, even when the test otherwise passes. A blocking defect keeps the Batch from being accepted: correct it within the agreed scope, deliver a new candidate, and resume the failing, affected, and previously blocked tests. Preserve the earlier results.
+**4. The loop handles failures.** A blocking defect returns the open Batch to correction within its approved scope. Earlier results stay attached to their tested revisions. A new candidate brings another check of the failing, affected, and previously blocked scenarios. Nonblocking debt can be deferred explicitly; required tests still need to pass before acceptance.
 
-Nonblocking debt can be deferred explicitly. Rejected code stays on an archive branch; the closing records preserve the findings and tests still owed. A successor Batch carries forward the relevant debt and outstanding checks.
+**5. You decide; the agent closes.** After acceptance, the Development Agent merges the tested work and records closure under the project's Git permissions. After rejection, it archives the code and preserves the report, debt, and outstanding tests in the closing records. A later delivery can pick up those obligations without starting from amnesia.
 
-“We'll remember to fix it” gets a reference and a place in the record. Future you has suffered enough.
+For standalone work, the approved outcome and checks live directly on the Card. The Development Agent follows the same discipline of authorization, implementation, verification, and recorded evidence under the project's delivery rules.
 
-## Every feature pays rent
+## How it supports you along the way
 
-> Build what earns its place. Write only the code needed to deliver it.
+You can ask for a feature, describe a bug, clarify a priority, or ask where the project stands. The agents translate that conversation into the appropriate records and bring back the information needed for your next decision.
 
-That is our [Lean Development Through Lean Specifications manifesto](docs/lean-specifications.md). Every requirement has to answer:
+You get scope you can review before development, visible progress and blockers during it, guided tests when a delivery is ready, and a record of what remains afterward. Ambiguous behavior becomes a question; the agent pauses the affected work rather than inventing an answer.
 
-- What value or protection does it provide?
-- Who explicitly agreed to it?
-- How will we verify it?
+When a session ends or another agent takes over, the work remains in the repository. The next agent reads the current state, checks the evidence and permissions, and resumes the next authorized action. New requests arriving during an active delivery are recorded and queued according to the workflow.
 
-An agent can suggest an improvement. Implementing it requires agreement. That extra button, configuration option, or “helpful” message needs to earn its place, too.
+The aim is autonomy within agreed boundaries. You keep product decisions. Agents keep the paperwork and execution moving. Future you has suffered enough.
 
-Aim for the smallest complete experience. Reuse what works. Protect correctness, security, accessibility, and data where required. Stop when the agreed outcome is achieved and verified.
+## Running it in your project
 
-**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.**
+Give an agent access to your Git repository and the [getting started guide](docs/getting-started.md). It installs the reusable files, guides you through a short, standard, long, or custom workflow, and applies the configuration you approve. The tools require Git and Python 3.9 or later.
 
-## Bring your repo. Keep your habits that work.
+Today, agents execute the workflow through project instructions and tools in their sessions. The repository supplies the memory, rules, and checks; a separate scheduler must invoke an agent for unattended runs. Automated Batch dispatch still needs implementation.
 
-You need Git, Python 3.9 or later, and an agent that can work with repository files.
+**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [KRR startup guide](docs/runner/getting-started.md) explains how to build and run it. The framework works independently of the app.
 
-The [getting started guide](docs/getting-started.md) walks through installing the reusable kit and choosing a short, standard, long, or custom workflow. Agree on the stages and work-in-progress limit. Add the optional Batch module when you need it.
-
-The kit includes document templates, agent instructions, and commands to create, move, display, and validate Cards. Validation catches structural problems such as duplicate IDs, broken local links, and incomplete completion checklists. Product tests and acceptance provide the evidence that the delivered software works.
-
-We use the framework to build the framework. Very meta. Also a good way to find its rough edges. This repository's Cards and delivery records are its own history; the installation guide shows which reusable files belong in your project.
-
-## A small companion for your Mac
-
-**Kanban Rememory Runner (KRR)** is the native Swift macOS app for managing repository watchers using Codex or Claude Code.
-
-Today, those watchers request a read-only board summary. Autonomous Batch dispatch still needs implementation. The [KRR startup guide](docs/runner/getting-started.md) explains how to build and run the current app. The Markdown framework works independently of it.
+We use Kanban Rememory to build Kanban Rememory. Very meta. Also a reliable source of lessons. This repository's Cards and delivery records are its own history; the installation guide identifies the reusable pieces for yours.
 
 ## Pick your next move
 
 | You want to… | Start here |
 | --- | --- |
-| Use this in your project | [Getting started](docs/getting-started.md) |
+| Adopt the framework with your agent | [Getting started](docs/getting-started.md) |
 | Understand the board | [Kanban guide](docs/kanban/board-guide.md) |
-| Write a useful task Card | [Card guide](docs/kanban/write-task-cards.md) |
+| Understand what the agent records on a Card | [Card guide](docs/kanban/write-task-cards.md) |
 | Keep scope lean | [The manifesto](docs/lean-specifications.md) |
-| Organize a delivery and its acceptance | [Specification and Batch workflow](docs/batches/batch-workflow.md) |
-| See filled-in records | [Worked delivery example](docs/batches/delivery-example.md) |
+| Understand deliveries and acceptance | [Specification and Batch workflow](docs/batches/batch-workflow.md) |
+| See connected records with examples | [Worked delivery example](docs/batches/delivery-example.md) |
 | Run the macOS companion | [KRR getting started](docs/runner/getting-started.md) |
 | Find where things belong | [Directory template](docs/templates/project-layout.md) |

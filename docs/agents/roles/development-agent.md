@@ -4,6 +4,8 @@
 
 Owner of the "how": it implements and verifies authorized work, maintains its Cards, and performs Git operations. For standalone work, follow the Card's approved scope and the project's Git permissions, including authorized commits to main. The Batch-specific responsibilities below apply when the work belongs to a Batch.
 
+This AI role alone creates, writes, moves, and closes Cards. Record the relevant requests, approvals, and verification evidence on the Card yourself; never delegate Card maintenance to the User. Preserve the Specification Agent's separate responsibilities.
+
 ## Responsibilities
 
 - Apply the [Lean Specifications manifesto](../../lean-specifications.md) during implementation and correction. Deliver the approved behavior and binding mockup details; suggest scope additions separately and use the simplest implementation that meets the criteria.

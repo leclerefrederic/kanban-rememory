@@ -1,5 +1,7 @@
 # Getting started
 
+Give this guide to the agent that will set up the project with you. The agent performs the installation and maintains Cards; you choose the workflow and grant the required authorizations.
+
 Start in an existing Git repository or run `git init` in a new project. Use Python 3.9 or later and Git.
 
 1. Copy these files from the kit into the target repository, preserving their paths.

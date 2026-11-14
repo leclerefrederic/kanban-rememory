@@ -1,5 +1,7 @@
 # Markdown Kanban
 
+The AI Development Agent creates, writes, moves, and closes every Card. The procedures and commands below are for that agent. The User provides requests, priorities, authorizations, and verdicts through conversation; the agent records them on the board.
+
 | Column | Entry condition |
 | --- | --- |
 | `backlog` | Defined and accepted work awaiting execution |

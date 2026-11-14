@@ -20,7 +20,8 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 
 ## Work delegated to agents
 
-- Agents implement the code, maintain project records, and perform authorized Git operations. Manual edits remain possible and must be checked against the approved baseline before work resumes.
+- The User communicates requests and decisions; only the AI Development Agent creates, writes, moves, and closes Cards. The User can inspect the board and request changes through conversation.
+- Agents implement the code, maintain project records according to their roles, and perform authorized Git operations. If external edits occur, check them against the approved baseline before work resumes.
 
 ## Interfaces
 
