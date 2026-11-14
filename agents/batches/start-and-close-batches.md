@@ -35,11 +35,27 @@ Record the closed status and decision in a closing commit intended for main. Inc
 
 If the original worktree is unavailable, fetch the recovery ref and inspect its commit, decision, tested revision, and staged-path evidence. Verify or recreate the archive branch or tag at the tested revision. For acceptance, verify that the closing commit contains the tested revision in its ancestry. For rejection, verify that the closing commit excludes the tested revision. Publish the recovered commit to main using a fast-forward push. If main has diverged, stop for reconciliation and retain the recovery ref. If the closing commit is already present on main, verify the final refs and finish without another commit.
 
-Keep the recovery ref until the remote main and archive branch or tag have been verified. Remove it only after verification. If a Batch was archived before a recovery ref existed, recover the closing records from a trusted copy before continuing.
+If a Batch was archived before a recovery ref existed, recover the closing records from a trusted copy before continuing. After publication, finish by [retiring the temporary branches](#retire-temporary-branches).
 
 This procedure can be followed manually by Development Agent. The [scheduled-job procedure](../run-scheduled-batch-job.md) documents closure and recovery priority; it is not an installed scheduler. Automated dispatch of corrections, interrupted development, and pickup still requires implementation and end-to-end verification. Installing the kit does not enable autonomous Batch execution.
 
 For a fresh session handling a delivered or closed Batch, see [the handoff guide](resume-a-batch.md).
+
+## Retire temporary branches
+
+As part of closing a Batch, retire its working branch and recovery branch once the final publication is verified. Record the fully qualified working, recovery and durable archive refs in Closure evidence. Their expected tips are the tested revision for the working branch and the closing commit for the recovery branch. Keep the approval ref.
+
+1. On the authorized remote, verify that main contains the exact closing commit and that the durable archive points to the exact tested revision. For acceptance the archive is the Batch tag and the candidate must be an ancestor of remote main. For rejection the archive is the designated archive branch and the candidate must remain outside remote main's ancestry. Compare published refs, not stale remote-tracking refs. Fetch the published objects if needed for ancestry checks. Resolve an annotated tag to its commit.
+2. For each temporary ref, verify that it belongs to the Batch, differs from main and from every retained archive or approval ref, and still points to its expected tip. Use a fully qualified ref and an exact lease for deletion. For example, after verifying the remote recovery ref and setting `temporary_ref` and `expected_tip` to that ref and the full closing commit:
+
+   ```sh
+   git push --force-with-lease="$temporary_ref:$expected_tip" origin ":$temporary_ref"
+   ```
+
+   Use the tested commit as the expected tip when deleting the working ref. Treat a confirmed absent ref as already retired. If a ref moved or verification fails, preserve the affected ref and report the discrepancy. If final publication or the archive cannot be verified, preserve both temporary refs.
+3. Check the remote again to confirm removal and preservation of main and the archive. Check local refs separately. Delete a local temporary branch with `git branch -d` only if it is at the expected commit, has no checked-out worktree and its tip is reachable from a verified retained ref. Use the retained ref as the branch's upstream if needed to make that ancestry check explicit. Preserve branches with unexpected commits and leave occupied worktrees alone. If Git refuses a safe deletion, report what remains. Do not force local deletion as part of routine closure.
+
+A retry uses the same closing commit and archive. It verifies them again and finishes only the remaining cleanup, without another closing commit or archive.
 
 ## Protect acceptance builds
 

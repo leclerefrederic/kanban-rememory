@@ -18,7 +18,7 @@ Confirm that `description.md` says `closed` and `report.md` records acceptance o
 git log main --format='%H %(trailers:key=Batch-Closure,valueonly)' -- project/batches/batch-001
 ```
 
-Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Batch tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, report that closure is complete.
+Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Batch tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, finish or verify the [temporary branch cleanup](start-and-close-batches.md#retire-temporary-branches). Use the tag or durable archive to retrieve the candidate after cleanup. Report any temporary refs or occupied worktrees that remain and why.
 
 If the optional publication check refused a closing push, report the refusal message and keep the Batch at its current state until the failing check is resolved; never bypass the hook.
 
