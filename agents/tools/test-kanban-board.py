@@ -666,28 +666,102 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertTrue(match, "The Claude invocation must name its tools.")
         self.assertEqual(set(match.group(1).split(",")), {"Read", "Glob", "Grep"})
 
-    def test_each_delivery_of_a_batch_is_notified_once(self):
+    def load_notifier(self):
         spec = importlib.util.spec_from_file_location("notify_telegram", KIT / "agents/tools/notify-telegram.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        return module
+
+    def alert(self, module, ledger, sender, event="attention", confirm_retry=False, project="demo", **fields):
+        values = dict(event=event, task=None, id=None, text=None, label=None, chat_name=None, link=None,
+                      batch=None, blocker_id=None, revision=None, confirm_retry=confirm_retry)
+        values.update(fields)
+        return module.notify(argparse.Namespace(**values), "token", "42", ledger, sender=sender, project=project)
+
+    def test_each_delivery_of_a_batch_is_notified_once(self):
+        module = self.load_notifier()
         ledger = self.root / "ledger.sqlite3"
         sent = []
+        sender = lambda token, chat, text: sent.append(text)
 
-        def deliver(revision):
-            args = argparse.Namespace(event="delivered", batch="Batch-001", blocker_id=None, revision=revision)
-            return module.notify(args, "token", "42", ledger, sender=lambda token, chat, text: sent.append(text))
+        def deliver(revision, **extra):
+            return self.alert(module, ledger, sender, "delivered", batch="Batch-001", revision=revision, **extra)
 
-        self.assertTrue(deliver("a" * 40))
-        self.assertFalse(deliver("a" * 40))  # Retry of the same delivery.
-        self.assertTrue(deliver("b" * 40))  # Delivery of the corrected candidate.
+        self.assertEqual(deliver("a" * 40), "sent")
+        self.assertEqual(deliver("a" * 40), "duplicate")  # Retry of the same delivery.
+        self.assertEqual(deliver("b" * 40), "sent")  # Delivery of the corrected candidate.
         self.assertEqual(len(sent), 2)
         self.assertIn("revision bbbbbbb", sent[1])
+        self.assertTrue(sent[1].startswith("🔔 Intervention needed"))
         refused = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"), "delivered",
                                   "--batch", "Batch-001"], env={**os.environ, "TELEGRAM_CHAT_ID": "42",
                                   "TELEGRAM_EVENTS": "delivered"}, capture_output=True, text=True)
         self.assertNotEqual(refused.returncode, 0)
         self.assertIn("--revision", refused.stderr)
 
+    def test_attention_and_completion_alerts_identify_project_task_and_chat(self):
+        module = self.load_notifier()
+        ledger = self.root / "ledger.sqlite3"
+        sent = []
+        sender = lambda token, chat, text: sent.append(text)
+        fields = dict(task="Export report", text="Choose the file format.", chat_name="Claude Code · Export",
+                      link="https://example.invalid/chat/1")
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **fields), "sent")
+        self.assertEqual(sent[0], "🔔 Intervention needed\ndemo — Export report\nChoose the file format.\n"
+                                  "💬 Claude Code · Export\nhttps://example.invalid/chat/1")
+        done = dict(fields, text="Report exported and checked.", label="Tâche terminée")
+        self.assertEqual(self.alert(module, ledger, sender, "completed", id="export", **done), "sent")
+        self.assertTrue(sent[1].startswith("✅ Tâche terminée\ndemo — Export report"))
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **fields), "duplicate")
+        self.assertEqual(self.alert(module, ledger, sender, "completed", id="export", **done), "duplicate")
+        # A different request, another project and a new request on the same task stay notifiable.
+        self.assertEqual(self.alert(module, ledger, sender, id="request-2", **fields), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", project="other", **fields), "sent")
+        # A Batch closure and a completion of the same Batch are one outcome.
+        self.assertEqual(self.alert(module, ledger, sender, "closed", batch="Batch-001"), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, "completed", id="Batch-001", **done), "duplicate")
+        self.assertEqual(len(sent), 5)
+
+    def test_unknown_delivery_is_not_resent_blindly(self):
+        module = self.load_notifier()
+        ledger = self.root / "ledger.sqlite3"
+        sent = []
+
+        def failing(definite):
+            def sender(token, chat, text):
+                raise module.SendFailed(definite)
+            return sender
+
+        fields = dict(task="Task", text="Need a decision.", chat_name="Chat", id="request-1")
+        good = lambda token, chat, text: sent.append(text)
+        self.assertEqual(self.alert(module, ledger, failing(True), **fields), "failed")
+        self.assertEqual(self.alert(module, ledger, good, **fields), "sent")  # A definite failure is retryable.
+        fields["id"] = "request-2"
+        self.assertEqual(self.alert(module, ledger, failing(False), **fields), "unconfirmed")
+        self.assertEqual(self.alert(module, ledger, good, **fields), "unconfirmed")  # Blocked until checked.
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(self.alert(module, ledger, good, confirm_retry=True, **fields), "sent")
+        self.assertEqual(self.alert(module, ledger, good, **fields), "duplicate")
+
+    def test_alert_command_reports_state_and_validates_input(self):
+        def run(*args, **environment):
+            return subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"), *args],
+                                  env={**{k: v for k, v in os.environ.items() if not k.startswith("TELEGRAM_")},
+                                       **environment}, capture_output=True, text=True)
+
+        full = ("attention", "--task", "Task", "--id", "r1", "--text", "Need you.", "--chat-name", "Chat")
+        disabled = run(*full, TELEGRAM_CHAT_ID="42", TELEGRAM_EVENTS="completed")
+        self.assertEqual(disabled.returncode, 0)
+        self.assertIn("disabled; nothing was sent", disabled.stdout)
+        missing = run(*full, TELEGRAM_EVENTS="attention")
+        self.assertNotEqual(missing.returncode, 0)
+        self.assertIn("Nothing was sent", missing.stderr)
+        preview = run(*full, TELEGRAM_CHAT_ID="42", TELEGRAM_EVENTS="attention")
+        self.assertIn("Preview:", preview.stdout)
+        for bad in (("attention", "--task", "Task", "--id", "r1", "--text", "x"),  # No chat name.
+                    ("attention", *full[1:], "--link", "not a link"),
+                    ("attention", *full[1:], "--revision", "a" * 40)):
+            self.assertNotEqual(run(*bad, TELEGRAM_CHAT_ID="42", TELEGRAM_EVENTS="attention").returncode, 0)
 
 if __name__ == "__main__":
     unittest.main()
