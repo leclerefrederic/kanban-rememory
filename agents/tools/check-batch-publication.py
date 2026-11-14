@@ -41,7 +41,7 @@ def main():
             record = common / "kanban-rememory" / batch / "guard.json"
             if status != "closed" or before.get(batch) == "closed" or not record.exists():
                 continue
-            result = subprocess.run([sys.executable, str(guard), "publish", str(record)],
+            result = subprocess.run([sys.executable, str(guard), "publish", "--revision", local_sha, str(record)],
                                     cwd=root, capture_output=True, text=True)
             if result.returncode:
                 sys.exit(f"Push refused: {batch} cannot be closed. {result.stderr.strip()}")

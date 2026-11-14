@@ -470,6 +470,15 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("require a successful full build", guard(strict, "publish", expected=1))
         strict["verification"]["full_build"] = "passed"
         self.assertIn("passed", guard(strict, "publish"))
+        # Publication is judged against the commit being pushed, not HEAD.
+        self.assertIn("passed", guard(record, "publish", "--revision", head))
+        guard(record, "publish", "--revision", base, expected=1)
+        # A rejected delivery must stay out of the published history.
+        rejected = {**record, "decision": {"revision": head, "result": "rejected"}}
+        self.assertIn("stay out", guard(rejected, "publish", expected=1))
+        self.assertIn("passed", guard(rejected, "publish", "--revision", base))
+        other = {**record, "decision": {"revision": base, "result": "rejected"}}
+        self.assertIn("exact revision", guard(other, "publish", "--revision", base, expected=1))
 
     def test_push_check_guards_only_batch_closure(self):
         shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
@@ -501,6 +510,33 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertEqual(push(closed, delivered, "refs/heads/other").returncode, 0)  # Not main.
         self.assertEqual(push(closed, closed).returncode, 0)  # Already closed on the remote.
         self.assertEqual(push(closed, "1" * 40).returncode, 0)  # Unknown remote commit.
+
+    def test_push_check_passes_the_pushed_commit_to_the_guard(self):
+        shutil.copy(KIT / "agents/tools/check-batch-publication.py", self.root / "agents/tools")
+        (self.root / "agents/tools/guard-batch-work.py").write_text(
+            "import sys\nopen('guard-args.txt', 'w').write(' '.join(sys.argv[2:]))\n")
+        description = self.root / "project/batches/batch-001/description.md"
+        description.parent.mkdir(parents=True)
+
+        def git(*args):
+            return subprocess.check_output(["git", "-c", "user.name=Test", "-c", "user.email=t@example.invalid",
+                                            *args], cwd=self.root, text=True).strip()
+
+        def commit(status):
+            description.write_text(f"---\nstatus: {status}\n---\n")
+            git("add", "."); git("commit", "-qm", status)
+            return git("rev-parse", "HEAD")
+
+        delivered, closed = commit("delivered"), commit("closed")
+        git("checkout", "-q", "-b", "elsewhere", delivered)  # HEAD is not the pushed commit.
+        record = self.root / ".git/kanban-rememory/batch-001/guard.json"
+        record.parent.mkdir(parents=True)
+        record.write_text("{}")
+        result = subprocess.run([sys.executable, "agents/tools/check-batch-publication.py"], cwd=self.root,
+                                input=f"refs/heads/main {closed} refs/heads/main {delivered}\n",
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.root / "guard-args.txt").read_text(), f"--revision {closed} {record.resolve()}")
 
     def test_skills_are_valid_and_reference_existing_files(self):
         skills = sorted((KIT / "agents/skills").glob("*/SKILL.md"))

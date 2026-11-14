@@ -53,6 +53,7 @@ def main():
     parser.add_argument("--artifact", type=Path)
     parser.add_argument("--blocking-test")
     parser.add_argument("--restart", action="store_true")
+    parser.add_argument("--revision", help="commit being published; defaults to HEAD")
     args = parser.parse_args()
     try:
         record = json.loads(args.record.read_text())
@@ -100,21 +101,30 @@ def main():
         else:
             verify_artifact(frozen)
             if args.operation == "publish":
-                if record.get("correction"):
-                    raise ValueError("Complete correction and restart acceptance before publication.")
-                checks = record.get("verification", {})
-                if checks.get("revision") != frozen["revision"] or checks.get("technical_checks") != "passed":
-                    raise ValueError("Record passing technical checks for the acceptance revision.")
-                changed = subprocess.check_output(
-                    ["git", "diff", "--name-only", revision(record["base_revision"]), frozen["revision"]],
-                    text=True,
-                ).splitlines()
-                strict = set(record.get("full_build_files", []))
-                if any(Path(path).name in strict for path in changed) and checks.get("full_build") != "passed":
-                    raise ValueError("Changes to " + ", ".join(sorted(strict)) + " require a successful full build.")
-                if record.get("decision") != {"revision": frozen["revision"], "result": "accepted"}:
-                    raise ValueError("Record the User's acceptance of the exact revision.")
-                subprocess.run(["git", "merge-base", "--is-ancestor", frozen["revision"], current], check=True)
+                published = revision(args.revision) if args.revision else current
+                decision = record.get("decision") or {}
+                if decision.get("result") == "rejected":
+                    if decision.get("revision") != frozen["revision"]:
+                        raise ValueError("Record the User's rejection of the exact revision.")
+                    if subprocess.run(["git", "merge-base", "--is-ancestor", frozen["revision"], published]
+                                      ).returncode != 1:
+                        raise ValueError("A rejected revision must stay out of the published history.")
+                else:
+                    if record.get("correction"):
+                        raise ValueError("Complete correction and restart acceptance before publication.")
+                    checks = record.get("verification", {})
+                    if checks.get("revision") != frozen["revision"] or checks.get("technical_checks") != "passed":
+                        raise ValueError("Record passing technical checks for the acceptance revision.")
+                    changed = subprocess.check_output(
+                        ["git", "diff", "--name-only", revision(record["base_revision"]), frozen["revision"]],
+                        text=True,
+                    ).splitlines()
+                    strict = set(record.get("full_build_files", []))
+                    if any(Path(path).name in strict for path in changed) and checks.get("full_build") != "passed":
+                        raise ValueError("Changes to " + ", ".join(sorted(strict)) + " require a successful full build.")
+                    if decision != {"revision": frozen["revision"], "result": "accepted"}:
+                        raise ValueError("Record the User's acceptance of the exact revision.")
+                    subprocess.run(["git", "merge-base", "--is-ancestor", frozen["revision"], published], check=True)
         if args.operation in {"correct", "freeze"}:
             args.record.write_text(json.dumps(record, indent=2) + "\n")
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:
