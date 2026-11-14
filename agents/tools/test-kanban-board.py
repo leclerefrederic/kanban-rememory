@@ -534,6 +534,8 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("updated 6 skill folder(s)", sync())
         for target in (".claude/skills", ".agents/skills"):
             for skill in (self.root / "agents/skills").iterdir():
+                if not (skill / "SKILL.md").is_file():
+                    continue
                 self.assertEqual((self.root / target / skill.name / "SKILL.md").read_text(),
                                  (skill / "SKILL.md").read_text())
         self.assertIn("match kit", sync("--check"))
