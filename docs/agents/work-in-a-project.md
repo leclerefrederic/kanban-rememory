@@ -18,7 +18,7 @@ Only the AI Development Agent creates, writes, moves, and closes Cards, includin
 
 - Search every column for a matching card before proposing one. Define the expected outcome, scope, owner, dependencies, and verifiable criteria.
 - Add the card to the backlog after approval. Once execution is authorized, move it to the first active stage before changing deliverables. Approval of a card or specification does not by itself authorize implementation or publication.
-- Update the [owner's journal](../../project/rememory/README.md) at each significant milestone. At closure, verify the criteria and record the evidence, revision, and next step. Distinguish testing, merging, publication, deployment, and user validation.
+- Update the owner's journal at each significant milestone following the [Rememory instructions](maintain-rememory.md). At closure, verify the criteria and record the evidence, revision, and next step. Distinguish testing, merging, publication, deployment, and user validation.
 - Follow the repository's Git permissions. Keep changes local until publication is authorized. Report any required records that could not be written.
 
 ## Default conventions

@@ -20,4 +20,4 @@ Deactivate a KRR-managed watcher before editing or deleting it. If a run is acti
 
 The menu-bar icon opens the application window. Project scope, acceptance decisions and delivery evidence remain in the framework's records.
 
-Return to [the guide index](README.md).
+Return to [the guide index](index.md).

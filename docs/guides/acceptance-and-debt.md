@@ -41,4 +41,4 @@ If you reject the delivery, its report preserves both defects and tests still ow
 
 A defect keeps its original reference across deliveries. A later report records the verified correction and the accepted delivery that includes it. The closed original report remains unchanged. A rejected successor does not resolve debt in the published baseline.
 
-Return to [the delivery process](deliver-a-change.md) or the [guide index](README.md).
+Return to [the delivery process](deliver-a-change.md) or the [guide index](index.md).

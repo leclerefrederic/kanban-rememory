@@ -10,7 +10,7 @@ You explain what you want, approve the scope, and judge the result. **The agents
 
 You get to build your project. The AI gets the paperwork. A small victory for humanity.
 
-[Read the guides](docs/guides/README.md) · [Start a project](docs/guides/start-a-project.md) · [Read the manifesto](docs/guides/lean-specifications.md)
+[Read the guides](docs/guides/index.md) · [Start a project](docs/guides/start-a-project.md) · [Read the manifesto](docs/guides/lean-specifications.md)
 
 ## Why this box exists: enthusiasm needed adult supervision
 
@@ -111,7 +111,7 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 
 | You want to… | Start here |
 | --- | --- |
-| Find the human-readable documentation | [Guide index](docs/guides/README.md) |
+| Find the human-readable documentation | [Guide index](docs/guides/index.md) |
 | Adopt the framework with your agent | [Start a project](docs/guides/start-a-project.md) |
 | Understand the roles, board and connected records | [Understand the framework](docs/guides/understand-the-framework.md) |
 | Keep scope lean | [The manifesto](docs/guides/lean-specifications.md) |
@@ -119,4 +119,4 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 | Understand verdicts, corrections and debt | [Acceptance and debt](docs/guides/acceptance-and-debt.md) |
 | Use the macOS companion | [Runner guide](docs/guides/runner.md) |
 
-Human guides live in `docs/guides/`. Agent operating instructions live in `docs/agents/`; record templates live in `docs/templates/`. The [documentation index](docs/README.md) keeps the two reading paths separate.
+Human guides live in `docs/guides/`. Agent operating instructions have their own [index](docs/agents/index.md) under `docs/agents/`; record templates live in `docs/templates/`.

@@ -7,11 +7,12 @@ repository/
 ├── AGENTS.md
 ├── docs/
 │   ├── guides/
-│   │   ├── README.md
+│   │   ├── index.md
 │   │   ├── lean-specifications.md
 │   │   └── ...
 │   ├── agents/
 │   │   ├── lean-specifications.md
+│   │   ├── maintain-rememory.md
 │   │   ├── kanban/
 │   │   └── roles/
 │   └── templates/
@@ -29,7 +30,6 @@ repository/
     │   ├── completion/
     │   └── cancellation/
     └── rememory/
-        ├── README.md
         └── daily-template.md
 ```
 

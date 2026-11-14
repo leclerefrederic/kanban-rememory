@@ -12,7 +12,7 @@ import unittest
 
 KIT = Path(__file__).resolve().parents[1]
 INSTALL_FILES = (
-    "docs/guides/README.md", "docs/guides/understand-the-framework.md",
+    "docs/guides/index.md", "docs/guides/understand-the-framework.md",
     "docs/guides/start-a-project.md", "docs/guides/deliver-a-change.md",
     "docs/guides/acceptance-and-debt.md", "docs/guides/runner.md",
     "docs/guides/lean-specifications.md",
@@ -20,7 +20,7 @@ INSTALL_FILES = (
     "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
     "docs/agents/kanban/board-guide.md", "docs/agents/kanban/software-development-workflow.md",
     "docs/agents/kanban/write-task-cards.md", "docs/templates/kanban-card.md", "docs/templates/project-layout.md",
-    "tools/manage-kanban-board.py", "project/rememory/README.md", "project/rememory/daily-template.md",
+    "tools/manage-kanban-board.py", "docs/agents/maintain-rememory.md", "project/rememory/daily-template.md",
 )
 
 

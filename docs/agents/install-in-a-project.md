@@ -9,12 +9,12 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | Directory | Files |
    | --- | --- |
    | `docs/guides/` | All reader guides, including the shared `lean-specifications.md` manifesto |
-   | `docs/agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md` |
+   | `docs/agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md` |
    | `docs/agents/roles/` | All three role files |
    | `docs/agents/kanban/` | All three operating references |
    | `docs/templates/` | `kanban-card.md`, `project-layout.md` |
    | `tools/` | `manage-kanban-board.py` and the `kanban/` package |
-   | `project/rememory/` | `README.md`, `daily-template.md` |
+   | `project/rememory/` | `daily-template.md` |
 
    In the target repository's root `AGENTS.md`, create or merge this entry:
 
