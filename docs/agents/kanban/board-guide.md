@@ -16,7 +16,7 @@ The folder determines the stage. The optional card state describes whether work 
 ## Define and execute work
 
 1. Search all columns for duplicates. Reuse the relevant card or define the new task with the requester. Clarify questions that affect scope or decisions.
-2. Once the backlog entry is approved, copy the [template](../templates/kanban-card.md) to `project/kanban/backlog/task-00000001-topic.md`, using the next number after the highest numeric suffix across all stages for the configured prefix. Use exactly eight digits with leading zeros, from `TASK-00000001` to `TASK-99999999`. After `TASK-00009999`, use `TASK-00010000`. Stop and agree on a numbering migration before exceeding the range. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
+2. Once the backlog entry is approved, copy the [template](../../templates/kanban-card.md) to `project/kanban/backlog/task-00000001-topic.md`, using the next number after the highest numeric suffix across all stages for the configured prefix. Use exactly eight digits with leading zeros, from `TASK-00000001` to `TASK-99999999`. After `TASK-00009999`, use `TASK-00010000`. Stop and agree on a numbering migration before exceeding the range. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
 3. Check prerequisites before starting. Unmet dependencies block affected cards, including through intermediate dependencies. Keep work that has yet to start in the backlog and document the dependency chain.
 4. When execution is authorized and capacity is available, move the card to the first active stage. Keep interrupted work in its current stage and record the blocker and next action.
 5. Verify every criterion before moving a card to Completion. Link the journal and evidence. If user validation is required for closure, keep the card in its current active stage until that validation is recorded. If the work is abandoned, record the reason and move the card to Cancellation.
@@ -58,7 +58,7 @@ Link checks cover inline relative Markdown links and ATX heading anchors (headin
 
 ## Show the board
 
-Run `python3 tools/manage-kanban-board.py show` from the repository root with Python 3.9 or later. The limit of one applies to this repository. Set the project limit in `project/kanban/workflow.json` after [guided adoption](../agents/configure-a-project.md). Pass `--wip-limit` to override it for a single run. The board lists each stage, counts all active stages toward WIP, and reads age and blockers from the `Actual start` and `Blocker` fields. Write start dates as `YYYY-MM-DD`. Age uses calendar days in the configured time zone. Pass `--timezone` with the project's IANA time zone when needed.
+Run `python3 tools/manage-kanban-board.py show` from the repository root with Python 3.9 or later. The limit of one applies to this repository. Set the project limit in `project/kanban/workflow.json` after [guided adoption](../configure-a-project.md). Pass `--wip-limit` to override it for a single run. The board lists each stage, counts all active stages toward WIP, and reads age and blockers from the `Actual start` and `Blocker` fields. Write start dates as `YYYY-MM-DD`. Age uses calendar days in the configured time zone. Pass `--timezone` with the project's IANA time zone when needed.
 
 ## Legacy task references
 

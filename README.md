@@ -10,7 +10,7 @@ You explain what you want, approve the scope, and judge the result. **The agents
 
 You get to build your project. The AI gets the paperwork. A small victory for humanity.
 
-[Get started](docs/getting-started.md) · [Read the manifesto](docs/lean-specifications.md) · [See a complete example](docs/batches/delivery-example.md)
+[Read the guides](docs/guides/README.md) · [Start a project](docs/guides/start-a-project.md) · [Read the manifesto](docs/guides/lean-specifications.md)
 
 ## Why this box exists: enthusiasm needed adult supervision
 
@@ -33,7 +33,7 @@ Less chat archaeology. More software you can actually use.
 - **Bugs get names and follow-ups.** Every observed defect becomes debt. Blocking defects require correction before acceptance; deferred debt and outstanding tests remain traceable. Sweeping them under the next Batch gets expensive.
 - **Know when to stop.** Reuse what works, preserve required protections, and stop when the agreed outcome is achieved and verified. Resist the encore.
 
-**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.** The [Lean Specifications manifesto](docs/lean-specifications.md) is the full reference.
+**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.** The [Lean Specifications manifesto](docs/guides/lean-specifications.md) is the full reference.
 
 ## The pieces of the puzzle
 
@@ -99,23 +99,24 @@ The aim is autonomy within agreed boundaries. You keep product decisions. Agents
 
 ## Bring your repo. We'll bring the notebook.
 
-Give an agent access to your Git repository and the [getting started guide](docs/getting-started.md). It installs the reusable files, guides you through a short, standard, long, or custom workflow, and applies the configuration you approve. The tools require Git and Python 3.9 or later.
+Start with the [project setup guide](docs/guides/start-a-project.md). Your agent handles installation, helps you choose a short, standard, long, or custom workflow, and applies the configuration you approve. You bring the repository and the decisions; it brings the file management. The tools require Git and Python 3.9 or later.
 
 Today, agents execute the workflow through project instructions and tools in their sessions. The repository supplies the memory, rules, and checks; a separate scheduler must invoke an agent for unattended runs. Automated Batch dispatch still needs implementation.
 
-**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [KRR startup guide](docs/runner/getting-started.md) explains how to build and run it. The framework works independently of the app.
+**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [Runner guide](docs/guides/runner.md) explains what you can do with it today. The framework works independently of the app.
 
-We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the box. We also live with its rough edges, which is an excellent cure for optimistic documentation. This repository's Cards and delivery records are its own history; the installation guide identifies the reusable pieces for yours.
+We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the box. We also live with its rough edges, which is an excellent cure for optimistic documentation. This repository's Cards and delivery records are its own history; your agent installs the reusable pieces in yours.
 
 ## Pick your next move
 
 | You want to… | Start here |
 | --- | --- |
-| Adopt the framework with your agent | [Getting started](docs/getting-started.md) |
-| Understand the board | [Kanban guide](docs/kanban/board-guide.md) |
-| Understand what the agent records on a Card | [Card guide](docs/kanban/write-task-cards.md) |
-| Keep scope lean | [The manifesto](docs/lean-specifications.md) |
-| Understand deliveries and acceptance | [Specification and Batch workflow](docs/batches/batch-workflow.md) |
-| See connected records with examples | [Worked delivery example](docs/batches/delivery-example.md) |
-| Run the macOS companion | [KRR getting started](docs/runner/getting-started.md) |
-| Find where things belong | [Directory template](docs/templates/project-layout.md) |
+| Find the human-readable documentation | [Guide index](docs/guides/README.md) |
+| Adopt the framework with your agent | [Start a project](docs/guides/start-a-project.md) |
+| Understand the roles, board and connected records | [Understand the framework](docs/guides/understand-the-framework.md) |
+| Keep scope lean | [The manifesto](docs/guides/lean-specifications.md) |
+| Follow a delivery from request to closure | [Deliver a change](docs/guides/deliver-a-change.md) |
+| Understand verdicts, corrections and debt | [Acceptance and debt](docs/guides/acceptance-and-debt.md) |
+| Use the macOS companion | [Runner guide](docs/guides/runner.md) |
+
+Human guides live in `docs/guides/`. Agent operating instructions live in `docs/agents/`; record templates live in `docs/templates/`. The [documentation index](docs/README.md) keeps the two reading paths separate.

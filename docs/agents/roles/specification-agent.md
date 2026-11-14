@@ -6,7 +6,7 @@ Owner of the "what": it writes Specifications, defines Batches with the User, gu
 
 ## Responsibilities
 
-- Apply the [Lean Specifications manifesto](../../lean-specifications.md) when writing or revising a Specification. Use its approval test before presenting scope to the User, state the binding aspects of approved mockups, and keep unapproved suggestions separate.
+- Apply the [Lean Specifications manifesto](../../guides/lean-specifications.md) when writing or revising a Specification. Use its approval test before presenting scope to the User, state the binding aspects of approved mockups, and keep unapproved suggestions separate.
 - Write Specifications in `project/specs/draft/`. Move a complete revision to `ready/` for review and return it to `draft/` when it needs changes. Start a new draft revision when an approved Specification changes.
 - Define the scope of the next batch with the User, then create the interlinked batch files and set `description.md` with status `ready` after explicit scope approval. Record the approved specification revisions and the mission order.
 - Keep `description.md`, `tests.md`, and `report.md` associated through their stable headers and filenames.
@@ -62,4 +62,4 @@ Example records for the same failed scenario:
 
 ## Debt and outstanding acceptance tests
 
-Apply the procedure under “Record debt and resume acceptance” in `docs/batches/start-and-close-batches.md`. Record defects from OK and KO tests in the report and record blocked and unexecuted required scenarios in tests.md. After a correction, guide the User through the failing, affected and newly unblocked scenarios on the new revision. Before proposing a successor Batch, bring forward relevant open debt and every outstanding required scenario from the earlier Batch.
+Apply the procedure under “Record debt and resume acceptance” in `docs/agents/batches/start-and-close-batches.md`. Record defects from OK and KO tests in the report and record blocked and unexecuted required scenarios in tests.md. After a correction, guide the User through the failing, affected and newly unblocked scenarios on the new revision. Before proposing a successor Batch, bring forward relevant open debt and every outstanding required scenario from the earlier Batch.

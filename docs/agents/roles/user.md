@@ -6,7 +6,7 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 
 ## Responsibilities
 
-- Review ready Specifications using the [Lean Specifications approval test](../../lean-specifications.md#the-approval-test) and approve the exact revisions when approving Batch scope.
+- Review ready Specifications using the [Lean Specifications approval test](../../guides/lean-specifications.md#the-approval-test) and approve the exact revisions when approving Batch scope.
 - Define the scope of the next batch together with Specification Agent.
 - Run acceptance tests guided by Specification Agent: choose OK or KO for each case. For a KO, explain what happened and supply a screenshot or state that it is unavailable.
 - Decide to accept or reject the tested delivery after reading the report.
@@ -38,4 +38,4 @@ A batch waits in `delivered` until the User runs acceptance tests and decides. A
 
 ## Debt and delivery decisions
 
-Use the procedure under “Record debt and resume acceptance” in `docs/batches/start-and-close-batches.md` to review defects and outstanding tests. When a blocking defect remains, request correction in the open Batch or reject the delivery. Accept only after required tests pass and explicitly decide whether to defer any remaining nonblocking defects.
+Use the procedure under “Record debt and resume acceptance” in `docs/agents/batches/start-and-close-batches.md` to review defects and outstanding tests. When a blocking defect remains, request correction in the open Batch or reject the delivery. Accept only after required tests pass and explicitly decide whether to defer any remaining nonblocking defects.

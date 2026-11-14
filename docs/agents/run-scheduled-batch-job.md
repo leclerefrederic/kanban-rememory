@@ -2,7 +2,7 @@
 
 This is an agent procedure, not an executable scheduler or an installed recurring job. Closure and recovery have been exercised in isolated Git repositories. End-to-end scheduled dispatch, including correction and interrupted development, still needs implementation and verification. KRR currently invokes a read-only board summary and does not execute this procedure.
 
-Use the configured repository and its designated Batch worktree. Follow the shared working instructions and Development Agent role. Apply the coordination and publication rules in the [Batch operations guide](../batches/start-and-close-batches.md).
+Use the configured repository and its designated Batch worktree. Follow the shared working instructions and Development Agent role. Apply the coordination and publication rules in the [Batch operations guide](batches/start-and-close-batches.md).
 
 1. Acquire the exclusive repository lock. If it is held, end this run without changing the repository. Keep the lock through selection and closure, and release an acquired lock on every exit, including errors and no-work results. A separate clone requires shared coordination.
 2. Check for a published recovery ref or an interrupted local closure before selecting work. Verify the candidate closing commit, the tested revision, the User decision, and expected refs. Resume that closure using the recovery procedure. If the evidence conflicts, report the blocker and end the run.

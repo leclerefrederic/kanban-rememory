@@ -15,7 +15,7 @@ The folder identifies the stage. The state describes the task within that stage 
 
 Keep the card short enough to act on. Link detailed requirements, design records, test output, PR discussions and Rememory entries. Keep credentials, personal data and copied logs out of the card.
 
-Use the [task template](../templates/kanban-card.md) and see the [software example](software-development-workflow.md#example).
+Use the [task template](../../templates/kanban-card.md) and see the [software example](software-development-workflow.md#example).
 
 ## Worked example
 

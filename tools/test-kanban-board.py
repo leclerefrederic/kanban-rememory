@@ -12,11 +12,14 @@ import unittest
 
 KIT = Path(__file__).resolve().parents[1]
 INSTALL_FILES = (
-    "docs/lean-specifications.md",
+    "docs/guides/README.md", "docs/guides/understand-the-framework.md",
+    "docs/guides/start-a-project.md", "docs/guides/deliver-a-change.md",
+    "docs/guides/acceptance-and-debt.md", "docs/guides/runner.md",
+    "docs/guides/lean-specifications.md",
     "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md",
     "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
-    "docs/kanban/board-guide.md", "docs/kanban/software-development-workflow.md",
-    "docs/kanban/write-task-cards.md", "docs/templates/kanban-card.md", "docs/templates/project-layout.md",
+    "docs/agents/kanban/board-guide.md", "docs/agents/kanban/software-development-workflow.md",
+    "docs/agents/kanban/write-task-cards.md", "docs/templates/kanban-card.md", "docs/templates/project-layout.md",
     "tools/manage-kanban-board.py", "project/rememory/README.md", "project/rememory/daily-template.md",
 )
 
@@ -398,14 +401,14 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertIn("Approval mismatch", self.run_board("verify-approval", "batch-001", revision, expected=1))
 
     def test_batch_module_installation_and_worked_example(self):
-        shutil.copytree(KIT / "docs/batches", self.root / "docs/batches")
+        shutil.copytree(KIT / "docs/agents/batches", self.root / "docs/agents/batches")
         for name in ("project-specification.md", "batch-description.md", "batch-tests.md", "batch-report.md"):
             shutil.copy(KIT / "docs/templates" / name, self.root / "docs/templates" / name)
         shutil.copy(KIT / "docs/agents/run-scheduled-batch-job.md", self.root / "docs/agents")
         shutil.copy(KIT / "tools/guard-batch-work.py", self.root / "tools")
         self.run_board("init", "--template", "short", "--apply")
         self.run_board("validate")
-        example = (self.root / "docs/batches/delivery-example.md").read_text()
+        example = (self.root / "docs/agents/batches/delivery-example.md").read_text()
         records = re.findall(r"```markdown\n(.*?)\n```", example, re.DOTALL)
         self.assertEqual(len(records), 4)
         destinations = ("project/specs/approved/spec-001-r1.md", "project/batches/batch-001/description.md",

@@ -1,0 +1,9 @@
+# Documentation
+
+- **[Guides for project owners](guides/README.md)** explain the framework, principles, roles, processes and decisions in plain language.
+- **[Agent operating instructions](agents/README.md)** define the procedures and commands used by AI agents to run the framework.
+- **Templates** under `docs/templates/` define the records agents fill in. They are technical assets, not user guides.
+
+Keep these audiences separate when adding documentation. Human guides explain what happens and why. Agent instructions specify how to execute it. The [Lean Specifications manifesto](guides/lean-specifications.md) remains the shared principles reference; explanatory guides and operating procedures must agree with it and with approved project rules.
+
+A few old paths contain short redirects because closed project records still cite them. Their content is maintained only at the linked destination. New documentation and instructions use the current paths.
