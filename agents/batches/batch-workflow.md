@@ -1,6 +1,6 @@
 # Specifications, Delivery Batches, and Cards
 
-Write and review Specifications using the [Lean Specifications manifesto](../../guides/lean-specifications.md). Apply its approval test before proposing a ready Specification for Batch approval. Record value in Expected outcome, agreed behavior and binding mockup details in Scope, and setup, action, and expected result in Acceptance criteria. Use the existing template sections; link test results and debt records from the Batch records during delivery.
+Write and review Specifications using the [Lean Specifications manifesto](../../documentation/lean-specifications.md). Apply its approval test before proposing a ready Specification for Batch approval. Record value in Expected outcome, agreed behavior and binding mockup details in Scope, and setup, action, and expected result in Acceptance criteria. Use the existing template sections; link test results and debt records from the Batch records during delivery.
 
 | Directory | Specification state |
 | --- | --- |
@@ -11,9 +11,9 @@ Write and review Specifications using the [Lean Specifications manifesto](../../
 Start a new revision in draft when an approved Specification changes. Reuse an approved revision as-is in another Batch when it still fits, including after rejection of a delivery. The Batch records the delivery decision.
 
 
-See the [project directory template](../../templates/project-layout.md). Projects using Batches create `project/specs/draft/`, `project/specs/ready/`, `project/specs/approved/`, and `project/batches/` in the product repository. The folder determines a Specification's state. Start from the [Specification template](../../templates/project-specification.md). Keep the Specification ID across revisions and assign each revision its own filename.
+See the [project directory template](../templates/project-layout.md). Projects using Batches create `project/specs/draft/`, `project/specs/ready/`, `project/specs/approved/`, and `project/batches/` in the product repository. The folder determines a Specification's state. Start from the [Specification template](../templates/project-specification.md). Keep the Specification ID across revisions and assign each revision its own filename.
 
-A ready Batch groups one or more approved Specifications. Prepare it as `draft` using the [description](../../templates/batch-description.md), [tests](../../templates/batch-tests.md), and [report](../../templates/batch-report.md) templates in a folder such as `project/batches/batch-001/`. Assign the Batch ID on creation. A draft may have an empty selection and may omit the tests or report while being prepared; any records already present need their IDs and matching Batch reference. A selected Specification must be ready or approved. This permits preparation without making the Batch executable.
+A ready Batch groups one or more approved Specifications. Prepare it as `draft` using the [description](../templates/batch-description.md), [tests](../templates/batch-tests.md), and [report](../templates/batch-report.md) templates in a folder such as `project/batches/batch-001/`. Assign the Batch ID on creation. A draft may have an empty selection and may omit the tests or report while being prepared; any records already present need their IDs and matching Batch reference. A selected Specification must be ready or approved. This permits preparation without making the Batch executable.
 
 On explicit scope approval, move the selected revisions to `project/specs/approved/`, complete all three records, and set the Batch to `ready`. In `description.md`, record each selection in the `specifications` list with `id`, `revision`, and repository-relative `path`. The list order sets priority; add execution constraints only when the list cannot express them. The pinned file must carry the same ID and revision. Keep approved revisions and their paths stable. The approval commit records the exact contents. Run `validate` for reference consistency and `verify-approval` against the trusted commit before pickup and closure. Historical Batches with a digest retain their original validation.
 
@@ -21,7 +21,7 @@ Batch records reference Specifications and delivery evidence. Keep Card IDs and 
 
 Cards track Development Agent's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. Cards may reference Specifications in `ready` or `approved`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
 
-Run `python3 tools/manage-kanban-board.py validate` to check the mapping. See the [agent roles](../work-in-a-project.md#batch-workflow-roles).
+Run `python3 agents/tools/manage-kanban-board.py validate` to check the mapping. See the [agent roles](../work-in-a-project.md#batch-workflow-roles).
 
 For Git approval evidence, pickup coordination, and closure recovery, follow the [Batch operations guide](start-and-close-batches.md).
 

@@ -1,6 +1,6 @@
 # Working instructions
 
-Read the shared [Lean Development Through Lean Specifications manifesto](../guides/lean-specifications.md) and apply its [agent rules](lean-specifications.md) when defining, reviewing, implementing or resuming work. Both agent roles must follow the same principles as the User. Use the approval test before proposing scope and keep suggestions separate from approved requirements.
+Read the shared [Lean Development Through Lean Specifications manifesto](../documentation/lean-specifications.md) and apply its [agent rules](lean-specifications.md) when defining, reviewing, implementing or resuming work. Both agent roles must follow the same principles as the User. Use the approval test before proposing scope and keep suggestions separate from approved requirements.
 
 ## First access
 
@@ -35,4 +35,4 @@ For a project using Batches, read the role that applies before editing project f
 - [Specification Agent](roles/specification-agent.md)
 - [Development Agent](roles/development-agent.md)
 
-When adopting the Batch module, read the shared procedure under “Record debt and resume acceptance” in `docs/agents/batches/start-and-close-batches.md` before preparing or executing a Batch. Both agents use the same test and debt records when handing work back for correction.
+When adopting the Batch module, read the shared procedure under “Record debt and resume acceptance” in `agents/batches/start-and-close-batches.md` before preparing or executing a Batch. Both agents use the same test and debt records when handing work back for correction.

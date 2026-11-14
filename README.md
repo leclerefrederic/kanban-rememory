@@ -10,7 +10,7 @@ You explain what you want, approve the scope, and judge the result. **The agents
 
 You get to build your project. The AI gets the paperwork. A small victory for humanity.
 
-[Read the guides](docs/guides/index.md) · [Start a project](docs/guides/start-a-project.md) · [Read the manifesto](docs/guides/lean-specifications.md)
+[Read the guides](documentation/index.md) · [Start a project](documentation/start-a-project.md) · [Read the manifesto](documentation/lean-specifications.md)
 
 ## Why this box exists: enthusiasm needed adult supervision
 
@@ -33,7 +33,7 @@ Less chat archaeology. More software you can actually use.
 - **Bugs get names and follow-ups.** Every observed defect becomes debt. Blocking defects require correction before acceptance; deferred debt and outstanding tests remain traceable. Sweeping them under the next Batch gets expensive.
 - **Know when to stop.** Reuse what works, preserve required protections, and stop when the agreed outcome is achieved and verified. Resist the encore.
 
-**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.** The [Lean Specifications manifesto](docs/guides/lean-specifications.md) is the full reference.
+**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.** The [Lean Specifications manifesto](documentation/lean-specifications.md) is the full reference.
 
 ## The pieces of the puzzle
 
@@ -48,7 +48,7 @@ Open the box. Here is what keeps the work together. The agents maintain these pi
 | **Rememory** | Keep a concise journal of decisions, verified milestones, and next actions. | Give the next agent the context needed to resume the work. |
 | **Instructions and tools** | Define agent responsibilities and provide commands to create, move, display, and validate Cards, plus Batch checks. | Help agents maintain consistent records and follow the agreed workflow. |
 
-The records live under `project/specs/`, `project/batches/`, `project/kanban/`, and `project/rememory/`. Guides and templates live in `docs/`; executable tools live in `tools/`.
+The records live under `project/specs/`, `project/batches/`, `project/kanban/`, and `project/rememory/`. Human-readable guides live in `documentation/`. Agent instructions, templates, and executable tools live together under `agents/`.
 
 **A Batch groups Specifications. Cards track execution independently.** A Card can point to a Batch; the Batch does not contain Cards. Its report describes the delivery and its evidence.
 
@@ -99,11 +99,11 @@ The aim is autonomy within agreed boundaries. You keep product decisions. Agents
 
 ## Bring your repo. We'll bring the notebook.
 
-Start with the [project setup guide](docs/guides/start-a-project.md). Your agent handles installation, helps you choose a short, standard, long, or custom workflow, and applies the configuration you approve. You bring the repository and the decisions; it brings the file management. The tools require Git and Python 3.9 or later.
+Start with the [project setup guide](documentation/start-a-project.md). Your agent handles installation, helps you choose a short, standard, long, or custom workflow, and applies the configuration you approve. You bring the repository and the decisions; it brings the file management. The tools require Git and Python 3.9 or later.
 
 Today, agents execute the workflow through project instructions and tools in their sessions. The repository supplies the memory, rules, and checks; a separate scheduler must invoke an agent for unattended runs. Automated Batch dispatch still needs implementation.
 
-**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [Runner guide](docs/guides/runner.md) explains what you can do with it today. The framework works independently of the app.
+**Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [Runner guide](documentation/runner.md) explains what you can do with it today. The framework works independently of the app.
 
 Companion applications live under `apps/`. KRR keeps its sources and local builds together in [apps/krr/](apps/krr/).
 
@@ -113,12 +113,12 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 
 | You want to… | Start here |
 | --- | --- |
-| Find the human-readable documentation | [Guide index](docs/guides/index.md) |
-| Adopt the framework with your agent | [Start a project](docs/guides/start-a-project.md) |
-| Understand the roles, board and connected records | [Understand the framework](docs/guides/understand-the-framework.md) |
-| Keep scope lean | [The manifesto](docs/guides/lean-specifications.md) |
-| Follow a delivery from request to closure | [Deliver a change](docs/guides/deliver-a-change.md) |
-| Understand verdicts, corrections and debt | [Acceptance and debt](docs/guides/acceptance-and-debt.md) |
-| Use the macOS companion | [Runner guide](docs/guides/runner.md) |
+| Find the human-readable documentation | [Guide index](documentation/index.md) |
+| Adopt the framework with your agent | [Start a project](documentation/start-a-project.md) |
+| Understand the roles, board and connected records | [Understand the framework](documentation/understand-the-framework.md) |
+| Keep scope lean | [The manifesto](documentation/lean-specifications.md) |
+| Follow a delivery from request to closure | [Deliver a change](documentation/deliver-a-change.md) |
+| Understand verdicts, corrections and debt | [Acceptance and debt](documentation/acceptance-and-debt.md) |
+| Use the macOS companion | [Runner guide](documentation/runner.md) |
 
-Human guides live in `docs/guides/`. Agent operating instructions have their own [index](docs/agents/index.md) under `docs/agents/`; record templates live in `docs/templates/`.
+Human guides live in `documentation/`. Agent operating instructions have their own [index](agents/index.md) under `agents/`; record templates live in `agents/templates/`.

@@ -7,7 +7,7 @@ import re
 import subprocess
 
 
-ROOT = Path(os.environ["KRR_VALIDATION_ROOT"]).resolve() if "KRR_VALIDATION_ROOT" in os.environ else Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ["KRR_VALIDATION_ROOT"]).resolve() if "KRR_VALIDATION_ROOT" in os.environ else Path(__file__).resolve().parents[3]
 
 
 PROJECT = ROOT / "project"

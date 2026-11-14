@@ -1,6 +1,6 @@
 # Lean Development Through Lean Specifications — Agent rules
 
-Apply these rules in both Specification Agent and Development Agent roles, including during resumed work and corrections. They operationalize the six principles in the [shared manifesto](../guides/lean-specifications.md), which applies to the User and agents alike. The shared manifesto remains the authority; this document adds no independent scope or permissions.
+Apply these rules in both Specification Agent and Development Agent roles, including during resumed work and corrections. They operationalize the six principles in the [shared manifesto](../documentation/lean-specifications.md), which applies to the User and agents alike. The shared manifesto remains the authority; this document adds no independent scope or permissions.
 
 Read the approved scope, existing decisions and applicable project instructions before acting. Reuse recorded authorization where it already covers the work. Keep proposals, authorized implementation, technical verification and User acceptance distinct.
 

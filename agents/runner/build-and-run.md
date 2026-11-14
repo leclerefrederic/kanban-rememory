@@ -16,7 +16,7 @@ The app detects executables from its PATH and common locations: `~/.local/bin`, 
 
 The companion application lives under `apps/krr/`. Sources are in `src/macos/` and generated output is in `build/macos/`, relative to that application directory. The `src/windows/` and `build/windows/` directories reserve space for future Windows work. Generated files stay ignored; platform placeholders remain tracked.
 
-The framework's reusable commands remain in the repository-root `tools/` directory. The build script copies the board validator from there into the app bundle.
+The framework's reusable commands live under `agents/tools/`. The build script copies the board validator from there into the app bundle.
 
 ## Build and open
 

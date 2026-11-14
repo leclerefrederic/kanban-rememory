@@ -10,17 +10,17 @@ import tempfile
 import unittest
 
 
-KIT = Path(__file__).resolve().parents[1]
+KIT = Path(__file__).resolve().parents[2]
 INSTALL_FILES = (
-    "docs/guides/index.md", "docs/guides/understand-the-framework.md",
-    "docs/guides/start-a-project.md", "docs/guides/deliver-a-change.md",
-    "docs/guides/acceptance-and-debt.md", "docs/guides/runner.md",
-    "docs/guides/lean-specifications.md",
-    "docs/agents/configure-a-project.md", "docs/agents/work-in-a-project.md", "docs/agents/lean-specifications.md",
-    "docs/agents/roles/user.md", "docs/agents/roles/specification-agent.md", "docs/agents/roles/development-agent.md",
-    "docs/agents/kanban/board-guide.md", "docs/agents/kanban/software-development-workflow.md",
-    "docs/agents/kanban/write-task-cards.md", "docs/templates/kanban-card.md", "docs/templates/project-layout.md",
-    "tools/manage-kanban-board.py", "docs/agents/maintain-rememory.md", "project/rememory/daily-template.md",
+    "documentation/index.md", "documentation/understand-the-framework.md",
+    "documentation/start-a-project.md", "documentation/deliver-a-change.md",
+    "documentation/acceptance-and-debt.md", "documentation/runner.md",
+    "documentation/lean-specifications.md",
+    "agents/configure-a-project.md", "agents/work-in-a-project.md", "agents/lean-specifications.md",
+    "agents/roles/user.md", "agents/roles/specification-agent.md", "agents/roles/development-agent.md",
+    "agents/kanban/board-guide.md", "agents/kanban/software-development-workflow.md",
+    "agents/kanban/write-task-cards.md", "agents/templates/kanban-card.md", "agents/templates/project-layout.md",
+    "agents/tools/manage-kanban-board.py", "agents/maintain-rememory.md", "project/rememory/daily-template.md",
 )
 
 
@@ -34,17 +34,17 @@ class KanbanBoardTests(unittest.TestCase):
             destination = self.root / name
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(KIT / name, destination)
-        shutil.copytree(KIT / "tools/kanban", self.root / "tools/kanban",
+        shutil.copytree(KIT / "agents/tools/kanban", self.root / "agents/tools/kanban",
                         ignore=shutil.ignore_patterns("__pycache__"))
         (self.root / "AGENTS.md").write_text(
-            "Read the [shared working instructions](docs/agents/work-in-a-project.md) "
+            "Read the [shared working instructions](agents/work-in-a-project.md) "
             "before adopting the kit or working on cards.\n", encoding="utf-8",
         )
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)
 
     def run_board(self, *args, expected=0):
         result = subprocess.run(
-            [sys.executable, "tools/manage-kanban-board.py", *args],
+            [sys.executable, "agents/tools/manage-kanban-board.py", *args],
             cwd=self.root, capture_output=True, text=True,
         )
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
@@ -264,7 +264,7 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board(*command)
 
     def populate_lot_templates(self, lot):
-        templates = KIT / "docs/templates"
+        templates = KIT / "agents/templates"
         for name in ("description.md", "tests.md", "report.md"):
             source = (templates / f"batch-{name}").read_text()
             document_id = "Batch-001" if name == "description.md" else f"Batch-001-{Path(name).stem.title()}"
@@ -337,7 +337,7 @@ class KanbanBoardTests(unittest.TestCase):
         batch = self.root / "project/batches/batch-001"
         batch.mkdir(parents=True)
         description = batch / "description.md"
-        draft = (KIT / "docs/templates/batch-description.md").read_text().replace(
+        draft = (KIT / "agents/templates/batch-description.md").read_text().replace(
             "id: null", 'id: "Batch-001"')
         description.write_text(draft)
         self.run_board("validate")
@@ -401,14 +401,14 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertIn("Approval mismatch", self.run_board("verify-approval", "batch-001", revision, expected=1))
 
     def test_batch_module_installation_and_worked_example(self):
-        shutil.copytree(KIT / "docs/agents/batches", self.root / "docs/agents/batches")
+        shutil.copytree(KIT / "agents/batches", self.root / "agents/batches")
         for name in ("project-specification.md", "batch-description.md", "batch-tests.md", "batch-report.md"):
-            shutil.copy(KIT / "docs/templates" / name, self.root / "docs/templates" / name)
-        shutil.copy(KIT / "docs/agents/run-scheduled-batch-job.md", self.root / "docs/agents")
-        shutil.copy(KIT / "tools/guard-batch-work.py", self.root / "tools")
+            shutil.copy(KIT / "agents/templates" / name, self.root / "agents/templates" / name)
+        shutil.copy(KIT / "agents/run-scheduled-batch-job.md", self.root / "agents")
+        shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
         self.run_board("init", "--template", "short", "--apply")
         self.run_board("validate")
-        example = (self.root / "docs/agents/batches/delivery-example.md").read_text()
+        example = (self.root / "agents/batches/delivery-example.md").read_text()
         records = re.findall(r"```markdown\n(.*?)\n```", example, re.DOTALL)
         self.assertEqual(len(records), 4)
         destinations = ("project/specs/approved/spec-001-r1.md", "project/batches/batch-001/description.md",
@@ -424,7 +424,7 @@ class KanbanBoardTests(unittest.TestCase):
         environment.pop("TELEGRAM_BOT_TOKEN", None)
         for identifier in ("Batch-001", "batch-001", "BATCH-001", "bad-id"):
             with self.subTest(identifier=identifier):
-                result = subprocess.run([sys.executable, str(KIT / "tools/notify-telegram.py"),
+                result = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"),
                                          "delivered", "--batch", identifier], env=environment,
                                         capture_output=True, text=True)
                 if identifier == "bad-id":

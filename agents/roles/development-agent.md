@@ -16,7 +16,7 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 - Record technical decisions, blockers, and verification evidence on Cards and in Rememory. Maintain the technical fields in the Batch report's Handoff section. Specification Agent maintains the delivery narrative and acceptance records in the report.
 - Record the delivered commit, environment, prerequisites, and links to technical evidence in `tests.md`, then set the batch to `delivered` and notify the User through the configured channel.
 - Report blockers to the User (see "When to stop and ask").
-- Verify that the User decision in `report.md` applies to the commit tested in `tests.md`, then follow the closure procedure in `docs/agents/batches/start-and-close-batches.md`, including recovery publication before final publication. Accepted work is merged and tagged; rejected code remains on the archive branch.
+- Verify that the User decision in `report.md` applies to the commit tested in `tests.md`, then follow the closure procedure in `agents/batches/start-and-close-batches.md`, including recovery publication before final publication. Accepted work is merged and tagged; rejected code remains on the archive branch.
 - Record closure evidence in the dedicated section of `report.md`. Set the status to `closed` in the closing commit, verify publication, then notify the User.
 
 ## Write access
@@ -53,8 +53,8 @@ Cards remain independent of Batches and may link to a Specification. Record stan
 
 ## Batch notifications
 
-When Telegram is enabled, use `docs/agents/configure-telegram.md` to send delivery, blocker, and verified closure notifications. Record the outcome or next action in the Batch records before sending. Use the same blocker ID on retries.
+When Telegram is enabled, use `agents/configure-telegram.md` to send delivery, blocker, and verified closure notifications. Record the outcome or next action in the Batch records before sending. Use the same blocker ID on retries.
 
 ## Debt and correction
 
-Follow the procedure under “Record debt and resume acceptance” in `docs/agents/batches/start-and-close-batches.md`. Fix blocking defects on the open Batch branch within the approved scope and deliver a new candidate revision for acceptance. Before publishing, verify that blocking defects are resolved and all required scenarios have passed. On rejection, archive the candidate and preserve the debt and outstanding test records in the partial closing commit.
+Follow the procedure under “Record debt and resume acceptance” in `agents/batches/start-and-close-batches.md`. Fix blocking defects on the open Batch branch within the approved scope and deliver a new candidate revision for acceptance. Before publishing, verify that blocking defects are resolved and all required scenarios have passed. On rejection, archive the candidate and preserve the debt and outstanding test records in the partial closing commit.

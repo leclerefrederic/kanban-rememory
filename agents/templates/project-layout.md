@@ -5,22 +5,21 @@ Copy the reusable files from the kit and create or merge the root AGENTS.md as d
 ```text
 repository/
 ├── AGENTS.md
-├── docs/
-│   ├── guides/
-│   │   ├── index.md
-│   │   ├── lean-specifications.md
-│   │   └── ...
-│   ├── agents/
-│   │   ├── lean-specifications.md
-│   │   ├── maintain-rememory.md
-│   │   ├── kanban/
-│   │   └── roles/
-│   └── templates/
-│       ├── kanban-card.md
-│       └── project-layout.md
-├── tools/
-│   ├── manage-kanban-board.py
-│   └── kanban/
+├── documentation/
+│   ├── index.md
+│   ├── lean-specifications.md
+│   └── ...
+├── agents/
+│   ├── lean-specifications.md
+│   ├── maintain-rememory.md
+│   ├── kanban/
+│   ├── roles/
+│   ├── templates/
+│   │   ├── kanban-card.md
+│   │   └── project-layout.md
+│   └── tools/
+│       ├── manage-kanban-board.py
+│       └── kanban/
 └── project/
     ├── kanban/
     │   ├── workflow.json
@@ -37,7 +36,7 @@ The tree shows the Standard workflow. Run `init` after approval to create `proje
 
 ## With the Batch module
 
-Copy all operating references under `docs/agents/batches/`, `docs/agents/run-scheduled-batch-job.md`, the Specification and three Batch templates under `docs/templates/`, and `tools/guard-batch-work.py` as listed in the installation procedure. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch; keep local guard records in the shared Git directory as described in the Batch operations guide.
+Copy all operating references under `agents/batches/`, `agents/run-scheduled-batch-job.md`, the Specification and three Batch templates under `agents/templates/`, and `agents/tools/guard-batch-work.py` as listed in the installation procedure. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch; keep local guard records in the shared Git directory as described in the Batch operations guide.
 
 ```text
 project/

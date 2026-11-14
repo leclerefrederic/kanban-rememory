@@ -31,7 +31,7 @@ Scope: agent manifesto, entry-point and role links, adoption package and related
 - Actual finish: 2026-11-14
 - Blocker: None.
 
-- Starting revision: `ff1370d`. Added the [agent manifesto](../../../docs/agents/lean-specifications.md), applying the six shared principles and approval test to existing Specification/Card, implementation, acceptance and debt records.
+- Starting revision: `ff1370d`. Added the [agent manifesto](../../../agents/lean-specifications.md), applying the six shared principles and approval test to existing Specification/Card, implementation, acceptance and debt records.
 - Linked the operational version from shared working instructions, both AI roles, the agent index, installation procedure and directory template. The shared reader manifesto remains unchanged and authoritative; the agent version adds no independent scope, permissions or record format.
 - Reviewed the document against all six common principles and existing role boundaries. Verified matching principle headings and byte-for-byte preservation of the shared manifesto. `python3 tools/test-kanban-board.py`: all 15 tests passed with the operational version in fresh installations. Board validation and whitespace checks passed.
 - Flow review: no active Batch or other Card, no blocker. Unrelated local files remain untouched. Next action: publish the closed Card and verified changes under standing authorization.

@@ -1,6 +1,6 @@
 # Working instructions
 
-Read the [shared working instructions](docs/agents/work-in-a-project.md) before adopting the kit or working on cards.
+Read the [shared working instructions](agents/work-in-a-project.md) before adopting the kit or working on cards.
 
 ## Rules for the Kanban Rememory repository
 

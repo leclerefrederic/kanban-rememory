@@ -31,7 +31,7 @@ Scope: approved document relocations/deletion, live and historical links, instal
 - Actual finish: 2026-11-14
 - Blocker: None.
 
-- Starting revision: `5e896d2`. The root README is the only remaining README document. The [reader index](../../../docs/guides/index.md) and [agent index](../../../docs/agents/index.md) retain separate audiences. Rememory instructions now live in [maintain-rememory.md](../../../docs/agents/maintain-rememory.md); the redundant documentation landing page is removed without a redirect.
+- Starting revision: `5e896d2`. The root README is the only remaining README document. The [reader index](../../../documentation/index.md) and [agent index](../../../agents/index.md) retain separate audiences. Rememory instructions now live in [maintain-rememory.md](../../../agents/maintain-rememory.md); the redundant documentation landing page is removed without a redirect.
 - Updated navigation, the installation package and directory template. Verified that the three changes to historical TASK-00000082 are link destinations only; its substantive record remains intact. Preserved the Rememory procedure with only its title and template link adjusted.
 - `python3 tools/test-kanban-board.py`: all 15 tests passed, including fresh core and Batch installation. Board validation and whitespace checks passed. Verified that no link targets a removed README and that all 32 documentation files remain reachable from the root README.
 - Reviewed the documentation and installation diff. No application behavior changed. Unrelated local files remain untouched. Flow review: no active Batch or competing Card, no blocker. Next action: publish under standing authorization.

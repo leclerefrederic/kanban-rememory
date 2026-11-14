@@ -1,6 +1,6 @@
 # Agent operating instructions
 
-This directory contains execution instructions for AI agents. Human-facing explanations live in `docs/guides/`; document templates live in `docs/templates/`.
+This directory contains execution instructions for AI agents. Human-facing explanations live in `documentation/`; document templates live in `agents/templates/`.
 
 Keep these audiences separate when maintaining documentation: reader guides explain what happens and why; agent procedures specify how to execute it. Both apply the shared lean principles and approved project rules.
 

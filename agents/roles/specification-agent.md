@@ -62,4 +62,4 @@ Example records for the same failed scenario:
 
 ## Debt and outstanding acceptance tests
 
-Apply the procedure under “Record debt and resume acceptance” in `docs/agents/batches/start-and-close-batches.md`. Record defects from OK and KO tests in the report and record blocked and unexecuted required scenarios in tests.md. After a correction, guide the User through the failing, affected and newly unblocked scenarios on the new revision. Before proposing a successor Batch, bring forward relevant open debt and every outstanding required scenario from the earlier Batch.
+Apply the procedure under “Record debt and resume acceptance” in `agents/batches/start-and-close-batches.md`. Record defects from OK and KO tests in the report and record blocked and unexecuted required scenarios in tests.md. After a correction, guide the User through the failing, affected and newly unblocked scenarios on the new revision. Before proposing a successor Batch, bring forward relevant open debt and every outstanding required scenario from the earlier Batch.

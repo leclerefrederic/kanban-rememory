@@ -78,7 +78,7 @@ def main():
     if not re.fullmatch(r"[0-9]+:[A-Za-z0-9_-]+", token):
         parser.error("Set TELEGRAM_BOT_TOKEN in the execution environment.")
     try:
-        root = Path(__file__).resolve().parents[1]
+        root = Path(__file__).resolve().parents[2]
         git_dir = subprocess.check_output(
             ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
             cwd=root, text=True,
