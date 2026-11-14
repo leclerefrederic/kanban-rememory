@@ -40,6 +40,8 @@ A failed case may leave other cases runnable. A blocking defect prevents accepta
 
 Acceptance applies to the revision you tested. Required scenarios must pass and blocking debt must be resolved. Any nonblocking debt being deferred needs an explicit decision. Development Agent then merges the tested work and completes closure under the project's Git permissions.
 
+If the project turned on the optional publication check, a push that would close a Batch without your recorded acceptance of the tested revision is refused automatically. The agent tells you why and does not bypass the check. It is a safety net that follows your decision; it never replaces it.
+
 On rejection, the candidate code and its automated tests are archived. A separate closing record preserves the Specifications, findings, debt and outstanding acceptance tests without adding rejected implementation to the accepted baseline. The previous main history is preserved.
 
 Unchanged approved Specifications can be selected again for another Batch. Their earlier defects and outstanding tests remain relevant: a successor carries those obligations forward. A rejected delivery is therefore still useful evidence for the next attempt.

@@ -20,6 +20,8 @@ git log main --format='%H %(trailers:key=Batch-Closure,valueonly)' -- project/ba
 
 Verify that the matching commit records the closed status and the same decision. On acceptance, check that the tested commit is an ancestor of main and that the Batch tag resolves to it. On rejection, check that the archive branch resolves to the tested commit and that the tested commit is outside main's ancestry. Use fully qualified refs for the tag and archive branch. When the closing commit and the required publication evidence agree, report that closure is complete.
 
+If the optional publication check refused a closing push, report the refusal message and keep the Batch at its current state until the failing check is resolved; never bypass the hook.
+
 Development Agent records the closing trailer and expected Git refs in the Closure evidence section of report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
 
 For historical records, use the original ID and `Lot-Closure` trailer. Include the historical `lots/` or `Lots/` path in the Git log query when the closure predates the directory migration.

@@ -34,7 +34,7 @@ bash apps/krr/src/macos/build-app.sh "apps/krr/build/macos/krr-correction.app"
 open "apps/krr/build/macos/krr-correction.app"
 ```
 
-Use the exact path and revision recorded in the Batch's tests when running acceptance. Follow the Batch artifact guard before replacing or cleaning any candidate.
+Use the exact path and revision recorded in the Batch's tests when running acceptance. Follow the Batch artifact guard before replacing or cleaning any candidate. In this repository, the Batch guard record lists `build-app.sh` in `full_build_files`: a change to it requires a recorded successful full build before publication.
 
 ## Create and manage a watcher
 
