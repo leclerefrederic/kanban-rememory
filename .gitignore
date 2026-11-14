@@ -5,7 +5,7 @@
 ._*
 
 # Platform build output
-/build/macos/*
-!/build/macos/.gitkeep
-/build/windows/*
-!/build/windows/.gitkeep
+/apps/krr/build/macos/*
+!/apps/krr/build/macos/.gitkeep
+/apps/krr/build/windows/*
+!/apps/krr/build/windows/.gitkeep

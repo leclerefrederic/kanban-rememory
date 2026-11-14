@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 source_dir="$(cd "$(dirname "$0")" && pwd)"
+repository_root="$(cd "$source_dir/../../../.." && pwd)"
 output="${1:-$source_dir/../../build/macos/Kanban Rememory Runner.app}"
 scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
@@ -19,7 +20,7 @@ done
 iconutil -c icns "$iconset" -o "$output/Contents/Resources/app-icon.icns"
 validator="$output/Contents/Resources/validator"
 mkdir -p "$validator/kanban"
-cp "$source_dir/../../tools/manage-kanban-board.py" "$validator/"
-cp "$source_dir/../../tools/kanban/"*.py "$validator/kanban/"
+cp "$repository_root/tools/manage-kanban-board.py" "$validator/"
+cp "$repository_root/tools/kanban/"*.py "$validator/kanban/"
 codesign --force --sign - "$output"
 codesign --verify --strict "$output"

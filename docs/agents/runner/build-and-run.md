@@ -12,20 +12,26 @@ KRR manages repository watchers for the Codex and Claude Code command-line engin
 
 The app detects executables from its PATH and common locations: `~/.local/bin`, `~/.npm-global/bin`, `/opt/homebrew/bin`, `/usr/local/bin`, and `/usr/bin`. Shell aliases alone are not executable files the app can discover.
 
+## Source and output layout
+
+The companion application lives under `apps/krr/`. Sources are in `src/macos/` and generated output is in `build/macos/`, relative to that application directory. The `src/windows/` and `build/windows/` directories reserve space for future Windows work. Generated files stay ignored; platform placeholders remain tracked.
+
+The framework's reusable commands remain in the repository-root `tools/` directory. The build script copies the board validator from there into the app bundle.
+
 ## Build and open
 
 From the Kanban Rememory source repository root:
 
 ```sh
-bash src/macos/build-app.sh
-open "build/macos/Kanban Rememory Runner.app"
+bash apps/krr/src/macos/build-app.sh
+open "apps/krr/build/macos/Kanban Rememory Runner.app"
 ```
 
 The script compiles the Swift sources, bundles the icon and validator, signs locally, and verifies that signature. Its output is a local development build. Building again replaces that output; if a Batch is under acceptance, preserve its candidate and pass a separate output path instead:
 
 ```sh
-bash src/macos/build-app.sh "build/macos/krr-correction.app"
-open "build/macos/krr-correction.app"
+bash apps/krr/src/macos/build-app.sh "apps/krr/build/macos/krr-correction.app"
+open "apps/krr/build/macos/krr-correction.app"
 ```
 
 Use the exact path and revision recorded in the Batch's tests when running acceptance. Follow the Batch artifact guard before replacing or cleaning any candidate.

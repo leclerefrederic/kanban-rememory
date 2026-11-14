@@ -105,6 +105,8 @@ Today, agents execute the workflow through project instructions and tools in the
 
 **Kanban Rememory Runner (KRR)** is the native Swift macOS companion for managing Codex and Claude Code watchers. Its current watchers request a read-only board summary. The [Runner guide](docs/guides/runner.md) explains what you can do with it today. The framework works independently of the app.
 
+Companion applications live under `apps/`. KRR keeps its sources and local builds together in [apps/krr/](apps/krr/).
+
 We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the box. We also live with its rough edges, which is an excellent cure for optimistic documentation. This repository's Cards and delivery records are its own history; your agent installs the reusable pieces in yours.
 
 ## Pick your next move
