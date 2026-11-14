@@ -1,6 +1,7 @@
 """Preview or send Telegram alerts: intervention needed, task completed."""
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -77,6 +78,11 @@ def notify(args, token, chat, ledger, sender=send_message, project="project"):
         return "sent"
 
     kind, task, ident, label, text = describe(args)
+    if args.event in ("attention", "completed") and not re.fullmatch(r"Batch-[0-9]+", ident, re.IGNORECASE):
+        # The agent chooses this ID and may reuse it: tie it to the request so a different one is notified.
+        # A Batch ID names one outcome, so a closure and a completion of that Batch stay one alert.
+        # shortcut: rewording the text counts as a new request, when that sends repeats, keep the same text.
+        ident += "#" + hashlib.sha256(f"{task}\n{text}".encode()).hexdigest()[:12]
     message = render(kind, project, task, label, text, args.chat_name, args.link)
     key = (chat, project, kind, ident)
     with sqlite3.connect(ledger, timeout=20) as connection:

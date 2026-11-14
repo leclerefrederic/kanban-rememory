@@ -20,6 +20,8 @@ python3 agents/tools/notify-telegram.py completed --task "Export report" --id ex
 
 Without `--send-to`, the command shows a preview and sends nothing. The project name defaults to the repository folder name; `--project` overrides it.
 
+An alert counts as sent once for the same project, kind, `--id`, `--task` and `--text`. Reusing an `--id` with a different task or text sends a new alert; resending the same alert, even from another chat, does not. Rewording the text of a resend counts as a new request.
+
 For a Batch, use the Batch events so the same event never produces two alerts:
 
 ```sh

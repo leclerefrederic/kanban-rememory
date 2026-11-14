@@ -874,10 +874,15 @@ class KanbanBoardTests(unittest.TestCase):
         # A different request, another project and a new request on the same task stay notifiable.
         self.assertEqual(self.alert(module, ledger, sender, id="request-2", **fields), "sent")
         self.assertEqual(self.alert(module, ledger, sender, id="request-1", project="other", **fields), "sent")
+        # A different request or task that reuses a confirmed ID is not mistaken for a repeat.
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, text="Choose the destination.")), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, task="Import report")), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, "completed", id="export", **dict(done, task="Other task")), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, chat_name="Resumed chat", link=None)), "duplicate")
         # A Batch closure and a completion of the same Batch are one outcome.
         self.assertEqual(self.alert(module, ledger, sender, "closed", batch="Batch-001"), "sent")
         self.assertEqual(self.alert(module, ledger, sender, "completed", id="Batch-001", **done), "duplicate")
-        self.assertEqual(len(sent), 5)
+        self.assertEqual(len(sent), 8)
 
     def test_unknown_delivery_is_not_resent_blindly(self):
         module = self.load_notifier()
