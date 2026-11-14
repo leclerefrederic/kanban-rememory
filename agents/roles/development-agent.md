@@ -29,6 +29,7 @@ This AI role alone creates, writes, moves, and closes Cards. Record the relevant
 
 - Code and tests.
 - `project/kanban/` (cards): its internal organization is its own.
+- `project/rememory/`: the journal entries, including the record of a rule exception ("Overriding a rule" in `agents/work-in-a-project.md`).
 - The tested commit, environment, prerequisites, and technical evidence in `tests.md`.
 - The technical Handoff fields and Closure evidence section of `report.md`.
 - Statuses `in-progress`, `delivered` and `closed`.
