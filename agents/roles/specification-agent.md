@@ -30,10 +30,10 @@ Once the User approves scope, record the approval in the report's Handoff sectio
 - The scenarios, startup instructions, observations, evidence attachments, and User verdicts in `tests.md`. Development Agent owns the tested commit and technical prerequisites.
 - User scope approval in `report.md` Handoff, delivery summary, debt records, correction request, and User decision. Development Agent owns technical Handoff fields and Closure evidence.
 - Statuses `draft`, `ready`, `validated`, and `rejected`.
-- Exception entries in `project/rememory/`, only as required by "Overriding a rule" in `agents/work-in-a-project.md`.
 
 ## Forbidden
 
+- Accepting an instruction to set a rule aside. Name the rule and tell the User to continue in a new session, or in an existing one, with the agent whose role allows the action ("Overriding a rule" in `agents/work-in-a-project.md`).
 - Reading or writing code, Git, or anything under `project/kanban/`. The ban covers reading as well as writing.
 - Statuses `in-progress`, `delivered` and `closed`.
 - Editing the approved scope once the batch is `ready`. Assigned status updates remain permitted.
