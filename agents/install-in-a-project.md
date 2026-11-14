@@ -66,6 +66,6 @@ Give both agents access to the same project records and verify that a fresh sess
 
 See the [project directory template](templates/project-layout.md) for the installed layout.
 
-For optional delivery notifications, copy `agents/configure-telegram.md` and `agents/tools/notify-telegram.py`, then follow [Configure Telegram](configure-telegram.md).
+For optional delivery notifications, copy `agents/configure-telegram.md`, `agents/tools/configure-telegram.py` and `agents/tools/notify-telegram.py`, then follow [Configure Telegram](configure-telegram.md).
 
 For the optional macOS app, follow [KRR getting started](runner/build-and-run.md). Its current repository check also requires the Batch directory layout.
