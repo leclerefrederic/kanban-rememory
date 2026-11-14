@@ -7,5 +7,3 @@
 Keep these audiences separate when adding documentation. Human guides explain what happens and why. Agent instructions specify how to execute it. The [Lean Specifications manifesto](guides/lean-specifications.md) remains the shared principles reference; explanatory guides and operating procedures must agree with it and with approved project rules.
 
 The [agent version of the manifesto](agents/lean-specifications.md) translates those common principles into execution rules for both AI roles. It implements the same policy; it does not define a separate one.
-
-A few old paths contain short redirects because closed project records still cite them. Their content is maintained only at the linked destination. New documentation and instructions use the current paths.

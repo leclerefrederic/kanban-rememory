@@ -18,4 +18,4 @@ Start with [shared working instructions](work-in-a-project.md) and the applicabl
 | Configure optional notifications | [Telegram](configure-telegram.md) |
 | Build and run the optional app | [Runner procedure](runner/build-and-run.md) |
 
-Copy only the required package into an adopting repository as described by the installation procedure. Historical-link redirects elsewhere in this kit are compatibility files, not part of the install package.
+Copy only the required package into an adopting repository as described by the installation procedure.

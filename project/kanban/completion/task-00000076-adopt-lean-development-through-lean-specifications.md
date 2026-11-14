@@ -31,7 +31,7 @@ Scope: one canonical English manifesto, links from the working instructions, rol
 - Actual finish: 2026-11-14
 - Blocker: None.
 
-- Canonical reference: [Lean Development Through Lean Specifications](../../../docs/lean-specifications.md).
+- Canonical reference: [Lean Development Through Lean Specifications](../../../docs/guides/lean-specifications.md).
 - Reviewed the manifesto against the approved text and clarifications. Shared instructions, all three role files, the Batch workflow, installation guide, layout, and README link to the same reference. No new template fields or product behavior were added.
 - `python3 tools/manage-kanban-board.py validate` — passed, including local Markdown links and anchors.
 - `python3 tools/test-kanban-board.py` — all 11 tests passed, including adoption in isolated repositories with the manifesto installed.
