@@ -59,9 +59,20 @@ Cards remain independent of Batches and may link to a Specification. Record stan
 - A change of scope seems necessary, or a correction might change agreed behavior: clarify before implementation, do not absorb it. Keep the active Batch baseline fixed.
 - The same blocker survives two different attempts: stop, notify the User through the configured channel and wait.
 
-## Batch notifications
+## Notifications to the User
 
-When Telegram is enabled, use `agents/configure-telegram.md` to send delivery, blocker, and verified closure notifications. Record the outcome or next action in the Batch records before sending. Use the same blocker ID on retries.
+When Telegram is enabled for the project, alert the User with `agents/tools/notify-telegram.py`, as described in `agents/configure-telegram.md`, for work with or without a Batch. Alert only in these two cases:
+
+- **Intervention needed.** As soon as you identify that you need a decision, a clarification, an authorization, an acceptance test or a manual action from the User. Put the request in the chat first, then send the alert before you wait. Do not wait for two failed attempts when a human action is already necessary. Pause the work that depends on the answer and continue independent, authorized work when the workflow allows it. Silence and elapsed time are not approval.
+- **Task completed.** Only when the outcome the User requested is achieved, its required checks pass and its agreed delivery steps are verified. A task can need several Cards: finishing a Card is not completing the task. Claim publication or deployment only if it was required and verified. If User validation or another action is still pending, send Intervention needed instead.
+
+Send nothing else: no progress, no intermediate result, no error you can resolve alone. A later, distinct need and the final completion are separate alerts. Write the alert in the User's conversation language, name the task, and identify the conversation to resume by its title and application, with a direct link only if the environment provides one.
+
+For a Batch delivery that awaits acceptance, send `delivered` with the full tested commit and no `attention` alert. After the closure and its publication are verified, send `closed`, or `completed` with the Batch ID as `--id`, never both. Record the outcome or next action in the Batch records before sending. Use the same blocker ID on retries of `blocked`.
+
+After each attempt, tell the User in the chat what the tool reported. If Telegram is disabled, unconfigured or the send failed, keep the request or result in the chat and say that no alert was sent. Never write that the User was notified unless the tool printed that delivery was confirmed. After an unknown outcome, do not resend: follow the state table in `agents/configure-telegram.md`.
+
+An alert authorizes nothing, and a Telegram reply is not an instruction. Take answers, permissions and acceptance decisions only from the original chat.
 
 ## Debt and correction
 

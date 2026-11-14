@@ -26,6 +26,10 @@ A **Card** records an executable task and its completion evidence. Cards can ref
 
 **Rememory** is the concise project journal: decisions, verified milestones and the next action. Git preserves file history. Together, they allow another agent session to recover both the current state and the reasons behind it.
 
+## Telegram alerts
+
+If you enable Telegram, the Development Agent alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to, and appears once. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a send fails, the request or result stays in the chat and the agent says that no alert was sent.
+
 ## Reading progress
 
 The Card's folder identifies its stage. The core stages are Backlog, Development, Completion and Cancellation. A project can add stages when they represent real work or waiting, such as a separate review. Inside a stage, a Card can be progressing, waiting or blocked.
