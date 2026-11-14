@@ -3,11 +3,34 @@ import SwiftUI
 
 final class RunnerDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private weak var watchersWindow: NSWindow?
+    private var requestedScreen: NSScreen?
+
+    func registerWindow(_ window: NSWindow) {
+        watchersWindow = window
+        placeWatchers()
+    }
+
+    private func placeWatchers() {
+        guard let window = watchersWindow, let screen = requestedScreen else { return }
+        requestedScreen = nil
+        let area = screen.visibleFrame
+        window.setFrameTopLeftPoint(NSPoint(x: area.maxX - window.frame.width, y: area.maxY))
+    }
+
     var openWatchers: (() -> Void)?
 
     @objc private func showWatchers() {
+        let click = NSEvent.mouseLocation
+        requestedScreen = NSScreen.screens.first { $0.frame.contains(click) }
+        if watchersWindow?.isMiniaturized == true { watchersWindow?.deminiaturize(nil) }
+        if watchersWindow?.isVisible == true { placeWatchers() }
         NSApp.activate(ignoringOtherApps: true)
         openWatchers?()
+        DispatchQueue.main.async { [weak self] in
+            guard self?.watchersWindow?.isVisible == true else { return }
+            self?.placeWatchers()
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -36,13 +59,39 @@ final class RunnerDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+private struct WatchersWindowReader: NSViewRepresentable {
+    let register: (NSWindow) -> Void
+
+    func makeNSView(context: Context) -> WindowProbe {
+        let view = WindowProbe()
+        view.register = register
+        return view
+    }
+
+    func updateNSView(_ view: WindowProbe, context: Context) {}
+
+    final class WindowProbe: NSView {
+        var register: ((NSWindow) -> Void)?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            guard let window else { return }
+            DispatchQueue.main.async { [weak self, weak window] in
+                guard let self, let window, self.window === window else { return }
+                self.register?(window)
+            }
+        }
+    }
+}
+
 @main
 struct Runner: App {
     @AppStorage("appearance") private var appearance = "System"
     @NSApplicationDelegateAdaptor(RunnerDelegate.self) private var delegate
     var body: some Scene {
-        WindowGroup("Kanban Rememory Runner", id: "watchers") {
+        Window("Kanban Rememory Runner", id: "watchers") {
             WatcherView(registerOpenAction: { delegate.openWatchers = $0 })
+                .background(WatchersWindowReader(register: delegate.registerWindow))
                 .preferredColorScheme(appearance == "System" ? nil : appearance == "Dark" ? .dark : .light)
         }.windowResizability(.contentSize)
     }
