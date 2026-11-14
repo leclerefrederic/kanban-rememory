@@ -53,6 +53,45 @@ python3 agents/tools/configure-telegram.py test --send
 
 On Windows, replace `python3` with `py -3`. `test` without `--send` displays the destination and sends nothing. To change the bot or recipient, run the initial setup again. The tool asks before replacing existing configuration. It does not read or execute the earlier experimental `telegram.env` file.
 
+## Send an alert
+
+Telegram only alerts the User. The chat stays the place for answers, permissions and acceptance decisions, a Telegram reply changes nothing, and the tool adds no reminder or scheduler.
+
+From the project root, send through the wrapper described in [Commands for Development Agents](#commands-for-development-agents). Give the task, a stable ID, what is waiting or the verified result, and the conversation to resume. Write `--text` and `--label` in the User's language; the icon keeps the two alerts distinguishable. Add `--link` only if the environment provides a direct link, and never invent one. For example:
+
+```sh
+python3 agents/tools/configure-telegram.py run --send -- attention --task "Export report" --id export-format --text "Choose the file format." --chat-name "Claude Code · Export report"
+python3 agents/tools/configure-telegram.py run --send -- completed --task "Export report" --id export-report --text "Report exported; checks passed." --chat-name "Claude Code · Export report"
+```
+
+Without `--send`, the command shows a preview and sends nothing; the wrapper supplies the saved recipient and the enabled events (`attention`, `completed`, and the Batch events `delivered`, `blocked`, `closed`). The project name defaults to the repository folder name; `--project` overrides it.
+
+An alert counts as sent once for the same project, kind, `--id`, `--task` and `--text`. Reusing an `--id` with a different task or text sends a new alert; resending the same alert, even from another chat, does not. Rewording the text of a resend counts as a new request.
+
+For a Batch, use the Batch events so the same event never produces two alerts:
+
+```sh
+python3 agents/tools/configure-telegram.py run --send -- delivered --batch Batch-001 --revision FULL_TESTED_COMMIT
+```
+
+Use the full tested commit from `tests.md` as `--revision`: each delivery of a Batch, including a corrected one, sends once. Use `blocked` with a stable `--blocker-id`. After a Batch closes and its publication is verified, use `closed`; if you also send `completed` for that Batch, give the Batch ID as `--id` so the two are one outcome.
+
+## Delivery states
+
+The tool prints one state line and records alerts in the shared local Git directory.
+
+| Output | Meaning | What to do |
+| --- | --- | --- |
+| `confirmed delivery` | Telegram confirmed the message. | Nothing. A retry of the same alert is skipped. |
+| `already confirmed` | This alert was sent earlier. | Nothing. |
+| `event is disabled` or `Nothing was sent` | The event is off or the configuration is missing. | Keep the request or result in the chat and say that no alert was sent. |
+| `not sent, the request was refused` | Telegram certainly did not deliver it. | Fix the cause and retry; a retry is safe. |
+| `delivery not confirmed and the outcome is unknown` | The message may have been delivered. | Tell the User in the chat. Check the destination, then rerun with `--confirm-retry` only if it did not arrive. A plain rerun is refused. |
+
+Never tell the User that they were notified unless the tool printed `confirmed delivery`.
+
+See the [Telegram Bot API](https://core.telegram.org/bots/api).
+
 ## Commands for Development Agents
 
 Use `configure-telegram.py run` for each send: it reads the saved file and passes settings to a child process. It overrides any stale `TELEGRAM_*` values for that child only. Neither the parent shell nor the application needs to be restarted. It never prints the token or puts it in command arguments.
