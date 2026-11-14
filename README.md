@@ -118,6 +118,7 @@ We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the bo
 | Understand the roles, board and connected records | [Understand the framework](documentation/understand-the-framework.md) |
 | Keep scope lean | [The manifesto](documentation/lean-specifications.md) |
 | Follow a delivery from request to closure | [Deliver a change](documentation/deliver-a-change.md) |
+| See what the five connected records look like | [A complete example](documentation/index.md#a-complete-example) |
 | Understand verdicts, corrections and debt | [Acceptance and debt](documentation/acceptance-and-debt.md) |
 | Use the macOS companion | [Runner guide](documentation/runner.md) |
 

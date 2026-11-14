@@ -8,7 +8,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    | Directory | Files |
    | --- | --- |
-   | `documentation/` | All reader guides, including the shared `lean-specifications.md` manifesto |
+   | `documentation/` | All reader guides and `examples/`, including the shared `lean-specifications.md` manifesto |
    | `agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md` |
    | `agents/roles/` | All three role files |
    | `agents/kanban/` | All three operating references |
