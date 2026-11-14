@@ -22,16 +22,20 @@ Decisions already taken by the User (2026-11-14): protect the transitions (appro
 - [x] A Specification covering role limits is written by the Specification Agent, approved by the User and verified in Git: SPEC-012 revision 1 (approval commit `c8430e0ee0e596df29f7996e99a52614848b4b54`, Batch-008).
 - [x] The Specification keeps Codex advisory, keeps the Coworker mode advisory and states that the check does not guard its own configuration. Protecting `.claude/` and `.codex/` from agent edits is not in SPEC-012; it needs a new Specification revision if the User wants it.
 - [x] Points still unverified (hooks in the desktop apps, the Codex hook environment, Codex hooks for sub-agents) are listed as unconfirmed in SPEC-012.
-- [ ] Board validation passes.
+- [x] Board validation passes.
 
 ## Execution and evidence
 
-- State:
-- Actual start:
-- Actual finish:
+- State: completed
+- Actual start: 2026-11-14
+- Actual finish: 2026-11-14
 - Blocker:
 
 ## History
 
 - 2026-11-14 — Refreshed under TASK-00000104 after TASK-00000092 to 103; see the Rememory entry of that day for what changed.
-- 2026-11-14 — Criteria aligned with SPEC-012 as approved: Codex advisory, `.claude/` and `.codex/` protection left out of scope. Close this Card after Batch-008 is accepted.
+- 2026-11-14 — Criteria aligned with SPEC-012 as approved: Codex advisory, `.claude/` and `.codex/` protection left out of scope. Batch-008 was accepted and closed on 2026-11-14, tag `batch-008`. The remaining gap is tracked on [TASK-00000128](../backlog/task-00000128-protect-the-agent-settings-from-edits-and-cover-codex-with-role-limits.md).
+
+- 2026-11-14T23:13:03+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-14T23:13:04+01:00 — Stage moved from `development` to `completion`.

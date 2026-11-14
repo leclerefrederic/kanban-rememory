@@ -12,7 +12,7 @@ specifications: []
 
 ## Expected outcome
 
-A Git `pre-push` hook shipped with the kit runs the existing Batch checks (`guard-batch-work.py publish`, and `verify-approval` when a Batch starts) so they no longer depend on the agent remembering to call them. It is LLM-independent: it protects the transitions (approval, acceptance, publication) for ChatGPT, Codex and Claude alike, including in the desktop apps. It does not cover work that bypasses Git. Follows the User's decision to protect transitions rather than sessions, in place of the push-guard item of [TASK-00000096](../backlog/task-00000096-enforce-role-limits-with-hooks-for-each-llm.md).
+A Git `pre-push` hook shipped with the kit runs the existing Batch checks (`guard-batch-work.py publish`, and `verify-approval` when a Batch starts) so they no longer depend on the agent remembering to call them. It is LLM-independent: it protects the transitions (approval, acceptance, publication) for ChatGPT, Codex and Claude alike, including in the desktop apps. It does not cover work that bypasses Git. Follows the User's decision to protect transitions rather than sessions, in place of the push-guard item of [TASK-00000096](../completion/task-00000096-enforce-role-limits-with-hooks-for-each-llm.md).
 
 ## Acceptance criteria
 
