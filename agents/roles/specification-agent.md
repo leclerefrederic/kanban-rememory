@@ -30,6 +30,7 @@ Once the User approves scope, record the approval in the report's Handoff sectio
 - The scenarios, startup instructions, observations, evidence attachments, and User verdicts in `tests.md`. Development Agent owns the tested commit and technical prerequisites.
 - User scope approval in `report.md` Handoff, delivery summary, debt records, correction request, and User decision. Development Agent owns technical Handoff fields and Closure evidence.
 - Statuses `draft`, `ready`, `validated`, and `rejected`.
+- Exception entries in `project/rememory/`, only as required by "Overriding a rule" in `agents/work-in-a-project.md`.
 
 ## Forbidden
 
