@@ -13,7 +13,17 @@ final class RunnerDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         if ProcessInfo.processInfo.environment["KRR_FIXTURE_DIRECTORY"] == nil {
             let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-            item.button?.title = "KRR"
+            let mark = NSImage(size: NSSize(width: 17, height: 14), flipped: false) { _ in
+                NSColor.black.setFill()
+                for x in [CGFloat(0), 6, 12] {
+                    NSBezierPath(roundedRect: NSRect(x: x, y: 1, width: 5, height: 12),
+                                 xRadius: 1.2, yRadius: 1.2).fill()
+                }
+                return true
+            }
+            mark.isTemplate = true
+            mark.accessibilityDescription = "Open Kanban Rememory Runner"
+            item.button?.image = mark
             item.button?.toolTip = "Open Kanban Rememory Runner"
             item.button?.target = self
             item.button?.action = #selector(showWatchers)
