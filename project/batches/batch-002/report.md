@@ -20,7 +20,7 @@ The User accepted the locally tested prototype. Commit `455afcb98a4df24c0f8b6658
 ## Closure evidence
 
 - Delivery revision and tag target: `455afcb98a4df24c0f8b6658ed65bb61869d7aed`
-- Closing paths: `project/batches/batch-002/{description,tests,report}.md`, TASK-00000058 card transition, and `project/rememory/2026-11-13.md`.
+- Closing paths: `project/batches/batch-002/{description,tests,report}.md`, CARD-00000058 card transition, and `project/rememory/2026-11-13.md`.
 - Tag: `refs/tags/batch-002`
 - Closing trailer: `Batch-Closure: Batch-002`
 

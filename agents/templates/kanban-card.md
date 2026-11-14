@@ -1,11 +1,11 @@
 ---
 type: card
-id: "TASK-NNNNNNNN"
+id: "CARD-NNNNNNNN"
 batch: null
 specifications: []
 ---
 
-# TASK-NNNNNNNN
+# CARD-NNNNNNNN
 
 - Owner:
 - Dependencies:

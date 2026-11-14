@@ -1,13 +1,13 @@
 ---
 type: card
-id: "TASK-00000101"
+id: "CARD-00000101"
 batch: "Batch-101"
 specifications: ["SPEC-101"]
 ---
 
-# TASK-00000101 — Preserve complete names in the CSV writer
+# CARD-00000101 — Preserve complete names in the CSV writer
 
-> Fictional example, written and maintained by Development Agent. Its final location in the example project is `project/kanban/completion/task-00000101-preserve-csv-names.md`. This Card tracks execution independently and points to its Batch; the Batch never contains the Card.
+> Fictional example, written and maintained by Development Agent. Its final location in the example project is `project/kanban/completion/card-00000101-preserve-csv-names.md`. This Card tracks execution independently and points to its Batch; the Batch never contains the Card.
 
 - Owner: Development Agent
 - Dependencies: None.

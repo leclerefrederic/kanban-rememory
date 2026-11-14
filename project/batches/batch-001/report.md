@@ -8,7 +8,7 @@ The User approved FICHE-001 revision 1 and authorized creation of Lot-001.
 
 ## Delivered scope and evidence
 
-Delivered the handoff guide at `2a56a7b3f70a4965a897bb129fb34f07acd13e1c`. Nine automated tests passed. The Development Agent verified the delivered and closed Git fixtures. Execution trace: TASK-00000029.
+Delivered the handoff guide at `2a56a7b3f70a4965a897bb129fb34f07acd13e1c`. Nine automated tests passed. The Development Agent verified the delivered and closed Git fixtures. Execution trace: CARD-00000029.
 
 ## Acceptance test summary
 

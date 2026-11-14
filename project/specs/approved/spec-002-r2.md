@@ -22,7 +22,7 @@ A native macOS app lets users discover and manage their existing Codex and Claud
 - Allow editing and deletion of supported existing configurations. Explain when an identified watcher is read-only because its configuration cannot be changed safely. Preserve unrelated settings, confirm deletion, and keep user scripts and logs unless removal is explicitly selected for app-owned files.
 - Offer Run Now for supported watchers when idle. Preserve the existing invocation and permissions and avoid restarting an active run.
 - Keep the latest result separately and retain at most 20 significant events per watcher in app history. Idle checks update the latest result. Repeated identical errors share a row with a count and last occurrence. Bound technical logs owned by the app through rotation and preserve existing external logs and Batch records.
-- Reuse existing Kanban Rememory Batch rules. Automated Batch pickup and closure are separate work, including TASK-00000039.
+- Reuse existing Kanban Rememory Batch rules. Automated Batch pickup and closure are separate work, including CARD-00000039.
 
 ## Create a watcher
 

@@ -24,11 +24,11 @@ At start, record the outcome, criteria, and authorization.
 ```markdown
 ---
 type: card
-id: "TASK-00000042"
+id: "CARD-00000042"
 batch: null
 specifications: []
 ---
-# TASK-00000042 — Prevent duplicate invoice emails
+# CARD-00000042 — Prevent duplicate invoice emails
 
 - Owner: Billing team
 - Dependencies: none

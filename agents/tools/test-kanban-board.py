@@ -64,7 +64,7 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board(*options, "--apply")
         self.run_board("validate")
         self.assertEqual(self.run_board("show").splitlines()[:-1], stages)
-        card = self.board / stages[0] / "task-00000001-example.md"
+        card = self.board / stages[0] / "card-00000001-example.md"
         self.assertIn("Preview", self.run_board("new", "Example", "--owner", "Test team"))
         self.assertFalse(card.exists())
         self.run_board("new", "Example", "--owner", "Test team", "--apply")
@@ -74,11 +74,11 @@ class KanbanBoardTests(unittest.TestCase):
         journal.parent.mkdir(parents=True, exist_ok=True)
         journal.write_text(
             f"[Criteria](../kanban/{stages[0]}/{card.name}#acceptance-criteria)\n"
-            "`[Example](../kanban/backlog/task-00000001-example.md)`\n"
-            "[External](https://example.com/kanban/backlog/task-00000001-example.md)\n"
+            "`[Example](../kanban/backlog/card-00000001-example.md)`\n"
+            "[External](https://example.com/kanban/backlog/card-00000001-example.md)\n"
         )
-        sibling = card.parent / "task-00000002-sibling.md"
-        sibling.write_text("# TASK-00000002 — Sibling\n")
+        sibling = card.parent / "card-00000002-sibling.md"
+        sibling.write_text("# CARD-00000002 — Sibling\n")
         with card.open("a") as stream:
             stream.write(f"\n[Related]({sibling.name})\n")
         self.run_board(*options, "--apply")
@@ -86,15 +86,15 @@ class KanbanBoardTests(unittest.TestCase):
         for stage in stages[1:stages.index("completion") + 1]:
             if stage == "completion":
                 self.assertIn("acceptance checklist", self.run_board(
-                    "move", "TASK-00000001", stage, expected=1))
+                    "move", "CARD-00000001", stage, expected=1))
                 card.write_text(card.read_text().replace("[ ]", "[x]"))
-            self.run_board("move", "TASK-00000001", stage)
+            self.run_board("move", "CARD-00000001", stage)
             card = self.board / stage / card.name
             self.assertIn(f"project/kanban/{stage}/{card.name}", self.run_board("show"))
             self.assertIn(f"to `{stage}`.", card.read_text())
             self.assertIn(f"../kanban/{stage}/{card.name}#acceptance-criteria", journal.read_text())
-            self.assertIn("`[Example](../kanban/backlog/task-00000001-example.md)`", journal.read_text())
-            self.assertIn("https://example.com/kanban/backlog/task-00000001-example.md", journal.read_text())
+            self.assertIn("`[Example](../kanban/backlog/card-00000001-example.md)`", journal.read_text())
+            self.assertIn("https://example.com/kanban/backlog/card-00000001-example.md", journal.read_text())
             self.assertIn(f"[Related](../backlog/{sibling.name})", card.read_text())
             self.run_board("validate")
         self.run_board("validate")
@@ -126,20 +126,20 @@ class KanbanBoardTests(unittest.TestCase):
 
     def test_move_guards_and_rework(self):
         self.run_board("init", "--template", "standard", "--apply")
-        name = "task-00000001-example.md"
+        name = "card-00000001-example.md"
         source = self.board / "backlog" / name
-        content = "# TASK-00000001 — Example\n- Actual start: 2026-11-10\n"
+        content = "# CARD-00000001 — Example\n- Actual start: 2026-11-10\n"
         source.write_text(content)
-        self.assertIn("not allowed", self.run_board("move", "TASK-00000001",
+        self.assertIn("not allowed", self.run_board("move", "CARD-00000001",
                                                     "code-review", expected=1))
-        self.run_board("move", "TASK-00000001", "development")
-        second = self.board / "backlog/task-00000002-example.md"
+        self.run_board("move", "CARD-00000001", "development")
+        second = self.board / "backlog/card-00000002-example.md"
         second.touch()
-        self.assertIn("WIP limit reached", self.run_board("move", "TASK-00000002",
+        self.assertIn("WIP limit reached", self.run_board("move", "CARD-00000002",
                                                           "development", expected=1))
         self.assertTrue(second.exists())
-        self.run_board("move", "TASK-00000001", "code-review")
-        self.run_board("move", "TASK-00000001", "development")
+        self.run_board("move", "CARD-00000001", "code-review")
+        self.run_board("move", "CARD-00000001", "development")
         self.assertEqual((self.board / "development" / name).read_text(), content)
 
     def test_new_uses_custom_intake_and_archived_ids(self):
@@ -156,8 +156,12 @@ class KanbanBoardTests(unittest.TestCase):
         (self.board / "workflow.json").write_bytes(source.read_bytes())
         archived = self.board / "archive/task-00000009-archived.md"
         archived.touch()
+        template = self.root / "agents/templates/kanban-card.md"
+        template.write_text(template.read_text().replace("CARD-NNNNNNNN", "TASK-NNNNNNNN"))
         self.run_board("new", "Test adoption", "--owner", "Maintainers", "--apply")
-        self.assertTrue((self.board / "queue/task-00000010-test-adoption.md").is_file())
+        created = (self.board / "queue/card-00000010-test-adoption.md").read_text()
+        self.assertIn('id: "CARD-00000010"', created)
+        self.assertIn("# CARD-00000010", created)
         (self.board / "shipped" / archived.name).touch()
         self.assertIn("Duplicate TASK-00000009", self.run_board(
             "new", "Another card", "--owner", "Maintainers", "--apply", expected=1))
@@ -166,21 +170,21 @@ class KanbanBoardTests(unittest.TestCase):
     def test_move_preserves_closed_history(self):
         self.run_board("init", "--template", "short", "--apply")
         self.run_board("new", "Linked task", "--owner", "Maintainers", "--apply")
-        card = self.board / "backlog/task-00000001-linked-task.md"
+        card = self.board / "backlog/card-00000001-linked-task.md"
         specs = self.root / "project/specs"
         specs.mkdir()
         (specs / "sheet.md").write_text("# Specification\n")
         card.write_text(card.read_text().replace(
             "## Acceptance criteria\n", "## Acceptance criteria\n\n- [x] Verified.\n", 1
         ) + "\n- Reference: [Sheet](../../specs/sheet.md)\n")
-        completed = self.board / "completion/task-00000002-history.md"
+        completed = self.board / "completion/card-00000002-history.md"
         completed.write_text(f"[Task](../backlog/{card.name})\n")
         original = completed.read_bytes()
-        self.assertIn("immutable history", self.run_board("move", "TASK-00000001",
+        self.assertIn("immutable history", self.run_board("move", "CARD-00000001",
                                                          "development", expected=1))
         self.assertEqual(completed.read_bytes(), original)
         self.assertTrue(card.exists())
-        completed.write_text("Reference: TASK-00000001\n")
+        completed.write_text("Reference: CARD-00000001\n")
         lot = self.root / "project/lots/Lot-001"
         lot.mkdir(parents=True)
         (specs / "frozen").mkdir()
@@ -192,16 +196,16 @@ class KanbanBoardTests(unittest.TestCase):
         report = lot / "report.md"
         report.write_text(f"[Task](../../kanban/backlog/{card.name})\n")
         original = report.read_bytes()
-        self.assertIn("immutable history", self.run_board("move", "TASK-00000001",
+        self.assertIn("immutable history", self.run_board("move", "CARD-00000001",
                                                          "development", expected=1))
         self.assertEqual(report.read_bytes(), original)
         self.assertTrue(card.exists())
         self.assertIn("cannot link to Kanban", self.run_board("validate", expected=1))
-        report.write_text("Reference: TASK-00000001\n")
+        report.write_text("Reference: CARD-00000001\n")
         self.assertIn("cannot reference Card", self.run_board("validate", expected=1))
         report.write_text("Historical delivery evidence.\n")
-        self.run_board("move", "TASK-00000001", "development")
-        self.run_board("move", "TASK-00000001", "completion")
+        self.run_board("move", "CARD-00000001", "development")
+        self.run_board("move", "CARD-00000001", "completion")
         self.run_board("validate")
 
     def test_lot_mapping(self):
@@ -226,7 +230,7 @@ class KanbanBoardTests(unittest.TestCase):
         frozen.write_bytes(original + b"\nEdited after approval.\n")
         self.assertIn("Approved specification content changed", self.run_board("validate", expected=1))
         frozen.write_bytes(original)
-        card = self.board / "backlog/task-00000001-linked.md"
+        card = self.board / "backlog/card-00000001-linked.md"
         card.write_text("- Lot ID: Lot-001\n- Fiche IDs: FICHE-001, FICHE-002, FICHE-003\n")
         result = self.run_board("validate", expected=1)
         self.assertIn("Specification FICHE-002 is outside batch Lot-001", result)
@@ -351,7 +355,7 @@ class KanbanBoardTests(unittest.TestCase):
         lot.mkdir(parents=True)
         self.populate_lot_templates(lot)
         self.run_board("new", "Check Lot", "--owner", "Test", "--apply")
-        card = self.board / "backlog/task-00000001-check-lot.md"
+        card = self.board / "backlog/card-00000001-check-lot.md"
         source = card.read_text().replace("batch: null", 'batch: "Batch-001"')
         card.write_text(source.replace("specifications: []", 'specifications: ["SPEC-001"]'))
         self.run_board("validate")
@@ -474,7 +478,7 @@ class KanbanBoardTests(unittest.TestCase):
         config["stages"].insert(1, "review")
         workflow.write_text(json.dumps(config))
         (self.board / "review").mkdir()
-        (self.board / "review/task-00000001-example.md").write_text("card\n")
+        (self.board / "review/card-00000001-example.md").write_text("card\n")
 
         def git(*args):
             return subprocess.check_output(["git", "-c", "user.name=Test", "-c", "user.email=t@example.invalid",
@@ -499,13 +503,13 @@ class KanbanBoardTests(unittest.TestCase):
             "import importlib.util as u;s=u.spec_from_file_location('g','agents/tools/guard-batch-work.py');"
             "m=u.module_from_spec(s);s.loader.exec_module(m);from pathlib import Path;"
             "print(m.artifact_digest(Path('app/artifact')))"], cwd=self.root, text=True).strip()
-        record = {"authorized_cards": ["TASK-00000001"], "base_revision": base,
+        record = {"authorized_cards": ["CARD-00000001"], "base_revision": base,
                   "acceptance": {"revision": head, "path": str(self.root / "app/artifact"), "sha256": digest},
                   "verification": {"revision": head, "technical_checks": "passed"},
                   "decision": {"revision": head, "result": "accepted"}}
-        self.assertIn("passed", guard({**record, "acceptance": None}, "change", "--card", "TASK-00000001"))
+        self.assertIn("passed", guard({**record, "acceptance": None}, "change", "--card", "CARD-00000001"))
         self.assertIn("Record out-of-scope", guard({**record, "acceptance": None}, "change", "--card",
-                                                   "TASK-00000002", expected=1))
+                                                   "CARD-00000002", expected=1))
         self.assertIn("passed", guard(record, "publish"))
         os.chmod(self.root / "app/artifact", 0o755)  # A build that gains or loses its executable bit changed.
         self.assertIn("changed", guard(record, "verify", expected=1))
@@ -707,7 +711,7 @@ class KanbanBoardTests(unittest.TestCase):
 
         spec, dev = "specification-agent", "development-agent"
         # Specification Agent: out of role, with the other agent named and no override offered.
-        for tool, fields in (("Read", {"file_path": "project/kanban/completion/task-1.md"}),
+        for tool, fields in (("Read", {"file_path": "project/kanban/completion/card-1.md"}),
                              ("Read", {"file_path": str(root / "src/example.py")}),
                              ("Write", {"file_path": "agents/tools/guard-batch-work.py"}),
                              ("Edit", {"file_path": "project/rememory/2026-11-14.md"}),

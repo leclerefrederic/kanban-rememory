@@ -12,10 +12,10 @@ from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, anchors,
 
 # Preserve the exact historical references recorded before this policy.
 HISTORICAL_CARD_REFERENCES = {
-    ("project/batches/batch-001/report.md", "TASK-00000029"): 1,
-    ("project/batches/batch-002/report.md", "TASK-00000058"): 1,
+    ("project/batches/batch-001/report.md", "CARD-00000029"): 1,
+    ("project/batches/batch-002/report.md", "CARD-00000058"): 1,
 }
-BATCH_CARD_ID = re.compile(r"\bTASK-[0-9]{8}\b", re.IGNORECASE)
+BATCH_CARD_ID = re.compile(r"\b(?:CARD|TASK)-([0-9]{8})\b", re.IGNORECASE)
 
 
 def archived_specification_resource(source, target):
@@ -47,7 +47,7 @@ def validate(workflow):
         for path in sorted((PROJECT / "kanban" / stage).glob("*.md")):
             match = CARD_ID.match(path.stem)
             if not match or match[1].endswith("-00000000"):
-                findings.append(f"{path.relative_to(ROOT)}: expected a task ID with eight digits from 00000001 to 99999999")
+                findings.append(f"{path.relative_to(ROOT)}: expected a card ID with eight digits from 00000001 to 99999999")
                 continue
             by_id[CARD_ID.match(path.stem)[1].upper()].append(path.relative_to(ROOT))
             if stage == workflow["completed"]:
@@ -68,7 +68,7 @@ def validate(workflow):
         if batch_record:
             references = defaultdict(int)
             for match in BATCH_CARD_ID.finditer(path.read_text(encoding="utf-8")):
-                references[match[0].upper()] += 1
+                references[f"CARD-{match[1]}"] += 1
             for task_id, count in references.items():
                 if count > HISTORICAL_CARD_REFERENCES.get((name.as_posix(), task_id), 0):
                     findings.append(f"{name}: Batch records cannot reference Card {task_id}")

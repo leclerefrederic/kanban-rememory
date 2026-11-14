@@ -1,6 +1,6 @@
 # YYYY-MM-DD
 
-## HH:MM — TASK-NNNNNNNN — Milestone
+## HH:MM — CARD-NNNNNNNN — Milestone
 
 - **Decision or action** — What was decided or done and the scope it covered.
 - **Verified result** — Revision, check performed, result, and evidence link.

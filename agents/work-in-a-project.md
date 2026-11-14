@@ -35,7 +35,7 @@ Only the AI Development Agent creates, writes, moves, and closes Cards, includin
 
 ## Default conventions
 
-Use the `TASK` prefix. For a single owner, keep the journal in the root `project/rememory/` directory. Use the project date and specify its time zone at adoption.
+Use the `CARD` prefix. For a single owner, keep the journal in the root `project/rememory/` directory. Use the project date and specify its time zone at adoption.
 
 ## Batch workflow roles
 

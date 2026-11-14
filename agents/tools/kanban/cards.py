@@ -177,14 +177,15 @@ def create_card(workflow, args):
                 if task_id in seen:
                     raise ValueError(f"Duplicate {task_id}. Resolve the collision before creating a card.")
                 seen.add(task_id)
-                if task_id.startswith("TASK-"):
+                if task_id.startswith(("CARD-", "TASK-")):
                     highest = max(highest, int(task_id.split("-")[1]))
         if highest >= 99999999:
-            raise ValueError("The eight-digit TASK range is exhausted.")
-        task_id = f"TASK-{highest + 1:08d}"
+            raise ValueError("The eight-digit CARD range is exhausted.")
+        task_id = f"CARD-{highest + 1:08d}"
         target = PROJECT / "kanban" / entry / f"{task_id.lower()}-{slug}.md"
-        content = template.replace('id: "TASK-NNNNNNNN"', f'id: "{task_id}"', 1)
-        content = re.sub(r"^# TASK-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
+        content = re.sub(r'^id: "(?:CARD|TASK)-NNNNNNNN"$', lambda _: f'id: "{task_id}"',
+                         template, count=1, flags=re.MULTILINE)
+        content = re.sub(r"^# (?:CARD|TASK)-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
                          content, count=1, flags=re.MULTILINE)
         content = re.sub(r"^- Owner:[^\n]*$", lambda _: f"- Owner: {owner}",
                          content, count=1, flags=re.MULTILINE)

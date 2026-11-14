@@ -57,7 +57,7 @@ Use the templates' YAML subset for machine-read fields: one key per line and JSO
 Use the stable ID to find a Card across stage directories. For example, inspect commits reachable from the locally fetched published main branch with:
 
 ```sh
-git log origin/main --full-history --name-status -- ':(glob)project/kanban/**/task-00000029-*.md'
+git log origin/main --full-history --name-status -- ':(glob)project/kanban/**/card-00000029-*.md' ':(glob)project/kanban/**/task-00000029-*.md'
 ```
 
 This identifies the commits that introduced or changed the Card on that branch. Fetch the remote first if you need its latest state. Record a tested code revision separately from the commit that published the Card. The publication commit cannot contain its own hash, and a Git commit date does not establish when it was pushed.

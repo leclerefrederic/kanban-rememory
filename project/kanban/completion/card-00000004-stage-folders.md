@@ -1,0 +1,8 @@
+# CARD-00000004 — Give each delivery stage its own folder
+
+- Owner: requester
+- Depends on: CARD-00000003
+- Acceptance criterion: A card's folder identifies its stage throughout implementation, review, release, and closure.
+
+- Verified locally against Git base `565700d`. The three active stages have distinct directories, each card has one location, relative Markdown links resolve, and `git diff --check` passes.
+- [Milestone log](../../rememory/2026-11-10.md).
