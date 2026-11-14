@@ -21,9 +21,8 @@ This skill only routes you to the kit's instructions. It restates no rule: the d
 | --- | --- |
 | Prepare Batch records, states and handoffs | `agents/batches/batch-workflow.md` |
 | See filled example records | `agents/batches/delivery-example.md` |
-| Resume acceptance or verify a closure | `agents/batches/resume-a-batch.md` |
+| Resume guided acceptance (Git checks there are for the Development Agent) | `agents/batches/resume-a-batch.md` |
 | Fill a Specification or Batch record | the matching file in `agents/templates/` |
-| Record a milestone in the journal | `agents/maintain-rememory.md` |
 
 ## Before acting
 

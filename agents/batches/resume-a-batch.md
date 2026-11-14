@@ -1,6 +1,6 @@
 # Resume a delivered or closed Batch
 
-Read `description.md`, `tests.md`, and `report.md` in that order. They identify status, the full tested commit and results, and the User's decision and closing evidence. The report's Handoff section locates the approval ref, branch, worktree, and any guard record. If the records disagree, report the discrepancy and keep the Batch at its current state.
+Read `description.md`, `tests.md`, and `report.md` in that order. They identify status, the full tested commit and results, and the User's decision and closing evidence. The report's Handoff section locates the approval ref, branch, worktree, and any guard record. If the records disagree, report the discrepancy and keep the Batch at its current state. The Git checks in this procedure are for the Development Agent. The Specification Agent reads the records only and asks the User to have the Development Agent, in a separate session, verify the Git evidence.
 
 ## Delivered and awaiting a decision
 

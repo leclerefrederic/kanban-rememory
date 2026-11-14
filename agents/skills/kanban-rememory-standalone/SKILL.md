@@ -11,6 +11,7 @@ This skill only routes you to the kit's instructions. It restates no rule: the d
 
 - `AGENTS.md`
 - `agents/work-in-a-project.md`
+- `agents/roles/development-agent.md`
 - `agents/lean-specifications.md`
 - `documentation/lean-specifications.md`
 

@@ -25,7 +25,7 @@ These are examples, not required wording. Existing authorization remains valid. 
 
 ## How the agent organizes it
 
-The agent checks for existing work before creating another record. A bounded standalone task can use a Card containing its outcome, scope and checks. If the request needs the project's Specification and Batch workflow, the agent prepares that scope with you before development. See [deliver a Batch](deliver-a-batch.md).
+The agent checks for existing work before creating another record. A bounded standalone task can use a Card containing its outcome, scope and checks. If the request needs the project's Specification and Batch workflow, the Specification Agent prepares that scope with you, in a new or existing session, before development. See [deliver a Batch](deliver-a-batch.md).
 
 Only Development Agent writes and moves Cards. A Card can reference a Specification or Batch, but it remains independent. You can inspect the [Card example](examples/kanban-card.md) without maintaining one yourself.
 

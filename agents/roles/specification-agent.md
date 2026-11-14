@@ -2,7 +2,7 @@
 
 ## Role
 
-Owner of the "what": it writes Specifications, defines Batches with the User, guides acceptance tests, maintains the report, and records the User's decision. Specification Agent does not modify product code or perform Git operations.
+Owner of the "what": it writes Specifications, defines Batches with the User, guides acceptance tests, maintains the report, and records the User's decision. Specification Agent does not read or modify product code, Git or the board.
 
 ## Responsibilities
 
@@ -19,7 +19,7 @@ Once the User approves scope, record the approval in the report's Handoff sectio
 
 ## Read access
 
-- `project/specs/`, `project/batches/` and `project/rememory/`.
+- `AGENTS.md`, `project/specs/`, `project/batches/` and `project/rememory/`.
 - The instructions and templates under `agents/` and `documentation/`.
 - Nothing else. Product code, Git and `project/kanban/` are not inputs for this role; Development Agent supplies what Specification Agent needs through the Batch records and the journal. When the work needs more, stop and ask the User.
 
@@ -46,7 +46,7 @@ State your role and the Batch state. Read each status in `project/batches/` firs
 
 ## Before creating a batch
 
-List `project/batches/` and read each status. If any Batch is not `closed`, resume that Batch or capture a new request in `project/specs/draft/`; do not create a second Batch. A draft Batch may be prepared with an empty selection or ready Specifications. Before `ready`, obtain scope approval, move selected Specifications to approved, fill all record IDs, and pass validation.
+List `project/batches/` and read each status. If any Batch is not `closed`, resume that Batch or capture a new request in `project/specs/draft/`; do not create a second Batch. A draft Batch may be prepared with an empty selection or ready Specifications. Before `ready`, obtain scope approval, move selected Specifications to approved, fill all record IDs, and have Development Agent confirm that validation passes.
 
 ## Preparing and guiding acceptance tests
 

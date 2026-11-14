@@ -16,7 +16,7 @@ Implement what the approved role-limits Specification requires, and nothing else
 
 ## Acceptance criteria
 
-- [ ] A write forbidden for the active role is refused with an explicit message; an allowed write passes.
+- [ ] A write or a read forbidden for the active role is refused with an explicit message; an allowed write or read passes.
 - [ ] The behavior is tested without relying on the model's cooperation, for the shared check and each hook branch, in `agents/tools/test-kanban-board.py`.
 - [ ] The kit works without either branch installed, and installing a branch is one documented command.
 - [ ] The hook files are part of the kit's package lists and `agents/templates/project-layout.md`.

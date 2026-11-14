@@ -58,7 +58,7 @@ Start with Cards and Rememory. Add the optional Specification and Batch module w
 
 ## How the work runs
 
-Two AI roles share the work. The **Specification Agent** helps you turn “I want this” into agreed behavior and guides acceptance. The **Development Agent** implements, tests, maintains Cards, and handles authorized Git operations. The same AI can wear both hats at different stages. It still has to remember which one is on.
+Two AI roles share the work. The **Specification Agent** helps you turn “I want this” into agreed behavior and guides acceptance. The **Development Agent** implements, tests, maintains Cards, and handles authorized Git operations. The same AI can wear both hats in separate sessions. It still has to remember which one is on.
 
 With the Batch module, the delivery loop looks like this:
 
