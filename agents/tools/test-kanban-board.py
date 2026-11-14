@@ -471,6 +471,37 @@ class KanbanBoardTests(unittest.TestCase):
         strict["verification"]["full_build"] = "passed"
         self.assertIn("passed", guard(strict, "publish"))
 
+    def test_push_check_guards_only_batch_closure(self):
+        shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
+        shutil.copy(KIT / "agents/tools/check-batch-publication.py", self.root / "agents/tools")
+        description = self.root / "project/batches/batch-001/description.md"
+        description.parent.mkdir(parents=True)
+
+        def git(*args):
+            return subprocess.check_output(["git", "-c", "user.name=Test", "-c", "user.email=t@example.invalid",
+                                            *args], cwd=self.root, text=True).strip()
+
+        def commit(status):
+            description.write_text(f"---\nstatus: {status}\n---\n")
+            git("add", "."); git("commit", "-qm", status)
+            return git("rev-parse", "HEAD")
+
+        def push(local, remote, ref="refs/heads/main"):
+            return subprocess.run([sys.executable, "agents/tools/check-batch-publication.py"], cwd=self.root,
+                                  input=f"{ref} {local} {ref} {remote}\n", capture_output=True, text=True)
+
+        delivered, closed = commit("delivered"), commit("closed")
+        self.assertEqual(push(closed, delivered).returncode, 0)  # No guard record: nothing to check.
+        record = self.root / ".git/kanban-rememory/batch-001/guard.json"
+        record.parent.mkdir(parents=True)
+        record.write_text('{"base_revision": "%s", "authorized_cards": []}' % delivered)
+        refused = push(closed, delivered)
+        self.assertEqual(refused.returncode, 1)
+        self.assertIn("batch-001 cannot be closed", refused.stderr)
+        self.assertEqual(push(closed, delivered, "refs/heads/other").returncode, 0)  # Not main.
+        self.assertEqual(push(closed, closed).returncode, 0)  # Already closed on the remote.
+        self.assertEqual(push(closed, "1" * 40).returncode, 0)  # Unknown remote commit.
+
     def test_notification_batch_id_preview(self):
         environment = {**os.environ, "TELEGRAM_CHAT_ID": "42", "TELEGRAM_EVENTS": "delivered"}
         environment.pop("TELEGRAM_BOT_TOKEN", None)

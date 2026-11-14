@@ -36,7 +36,7 @@ The tree shows the Standard workflow. Run `init` after approval to create `proje
 
 ## With the Batch module
 
-Copy all operating references under `agents/batches/`, `agents/run-scheduled-batch-job.md`, the Specification and three Batch templates under `agents/templates/`, and `agents/tools/guard-batch-work.py` as listed in the installation procedure. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch; keep local guard records in the shared Git directory as described in the Batch operations guide.
+Copy all operating references under `agents/batches/`, `agents/run-scheduled-batch-job.md`, the Specification and three Batch templates under `agents/templates/`, `agents/tools/guard-batch-work.py`, and optionally `agents/tools/check-batch-publication.py` with `agents/tools/git-hooks/`, as listed in the installation procedure. Add the project paths below when adopting Batches. Create a Batch directory when preparing a specific Batch; keep local guard records in the shared Git directory as described in the Batch operations guide.
 
 ```text
 project/

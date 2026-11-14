@@ -43,7 +43,7 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
 ## Optional Batch module
 
-Copy all operating references under `agents/batches/`, `agents/run-scheduled-batch-job.md`, the four Specification and Batch templates under `agents/templates/`, and `agents/tools/guard-batch-work.py`. Create the Specification state and resource directories shown in the project directory template. The reader guides explain this optional module without enabling it.
+Copy all operating references under `agents/batches/`, `agents/run-scheduled-batch-job.md`, the four Specification and Batch templates under `agents/templates/`, `agents/tools/guard-batch-work.py`, and optionally the push check `agents/tools/check-batch-publication.py` with `agents/tools/git-hooks/`. Create the Specification state and resource directories shown in the project directory template. The reader guides explain this optional module without enabling it.
 
 Configure the project instructions used by each agent to read the shared instructions and its role. For Specification Agent, use:
 
