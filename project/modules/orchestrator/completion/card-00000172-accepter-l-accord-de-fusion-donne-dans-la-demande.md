@@ -33,3 +33,5 @@ Décision de l’utilisateur du 2026-11-15 (« Oui, 2 à 4 »), point 3 présent
 - 2026-11-15T23:54:46+01:00 — Stage moved from `backlog` to `development`.
 
 - 2026-11-15T23:55:03+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-15T23:55:50+01:00 — Merge approved for the verified candidate `ed64e8bedaa92bc315a5e840c91056e92c65ac4d`: “Oui, fusionne”.

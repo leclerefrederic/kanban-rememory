@@ -43,3 +43,5 @@ Décision de l’utilisateur du 2026-11-15 (« Oui, 2 à 4 »), points 2 et 4 pr
 - 2026-11-15 — `test-kr.py` : 11 s → 8,2 s (6 tests, même processus). Objectif de 6 s non atteint : les appels `git` dominent.
 
 - 2026-11-15T23:54:45+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-15T23:55:50+01:00 — Merge approved for the verified candidate `ed64e8bedaa92bc315a5e840c91056e92c65ac4d`: “Oui, fusionne”.
