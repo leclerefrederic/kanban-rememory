@@ -52,25 +52,30 @@ Sending Telegram is an external notification tool action. It does not replace th
 
 ## Acceptance criteria
 
-- [ ] Walk through an intervention that requires user authorization. The actionable question is posted in the original chat and one alert is sent before waiting.
-- [ ] Walk through a developed Batch delivered for acceptance. One delivery alert identifies the tested candidate and the next action. An additional generic intervention alert is not sent for the same delivery.
-- [ ] Walk through a standalone Card whose requested work is finished and verified. One completion alert reports the outcome. When a User action is still required, the alert reflects that instead.
-- [ ] Verify that a report relayed between Developer and Orchestrator, repeated milestones and a resumed session do not produce duplicate alerts. Verify that a disabled or failed Telegram send leaves the next action visible in the original chat.
-- [ ] Record findings and evidence, including any gaps between written rules and behavior on Codex and Claude Code.
+- [x] Walk through an intervention that requires user authorization. The actionable question is posted in the original chat and one alert is sent before waiting.
+- [x] Walk through a developed Batch delivered for acceptance. One delivery alert identifies the tested candidate and the next action. An additional generic intervention alert is not sent for the same delivery.
+- [x] Walk through a standalone Card whose requested work is finished and verified. One completion alert reports the outcome. When a User action is still required, the alert reflects that instead.
+- [x] Verify that a report relayed between Developer and Orchestrator, repeated milestones and a resumed session do not produce duplicate alerts. Verify that a disabled or failed Telegram send leaves the next action visible in the original chat.
+- [x] Record findings and evidence, including any gaps between written rules and behavior on Codex and Claude Code.
 
-- [ ] In an isolated project, resend a confirmed alert with identical identifiers and text, then with reworded text from a fresh session: neither resend produces a second alert under the approved rule. Record any current mismatch.
-- [ ] Verify that a different request with a new identifier, the same wording on another task or project, and a corrected candidate remain notifiable; uncertainty leads the agent to use a new identifier.
-- [ ] Verify that Batch closure and completion produce one alert for the same outcome, and that an earlier receipt registry retains its receipts without unexpected duplicates.
-- [ ] Verify that intervention, acceptance and completion examples follow the approved five-part structure, identify the relevant Card or Batch and state the expected action or explicitly that none is required.
-- [ ] Verify French conversation output, English fallback when the language is unknown, and actual chat references for Codex and Claude Code without a hardcoded host or invented link.
+- [x] In an isolated project, resend a confirmed alert with identical identifiers and text, then with reworded text from a fresh session: neither resend produces a second alert under the approved rule. Record any current mismatch.
+- [x] Verify that a different request with a new identifier, the same wording on another task or project, and a corrected candidate remain notifiable; uncertainty leads the agent to use a new identifier.
+- [x] Verify that Batch closure and completion produce one alert for the same outcome, and that an earlier receipt registry retains its receipts without unexpected duplicates.
+- [x] Verify that intervention, acceptance and completion examples follow the approved five-part structure, identify the relevant Card or Batch and state the expected action or explicitly that none is required.
+- [x] Verify French conversation output, English fallback when the language is unknown, and actual chat references for Codex and Claude Code without a hardcoded host or invented link.
 
 ## Execution and evidence
 
-- State: in-progress
+- State: completed
 - Actual start: 2026-11-15
-- Actual finish:
+- Actual finish: 2026-11-15
 - Blocker: none
 - Target: origin/main
+- Candidate: `bbdf56d4bead674425f19f25abf9a8f1eb73ecc5`.
+- Evidence: [notification review and native-host checks](../../rememory/evidence/card-00000135-notifications.md).
+- Checks: 36 board tests, 22 setup tests; final affected language/CLI tests 2/2; exact candidate archive board and skill checks; diff review in Development.
+- Native Codex and Claude Code each captured six expected simulated messages. Codex used a scratch ledger after its native `.git` path was denied; Claude used the normal fixture ledger. Real Telegram transport is not claimed by these tests.
+- Flow review: no other Card in Development; CARD-00000128 still awaits an approved Specification, and CARD-00000141 is a separate backlog scope, not executed here. Unrelated local deletions and drafts are preserved.
 
 ### Legacy receipt decision
 
@@ -85,3 +90,7 @@ On 2026-11-15 the User chose: “Oui, privilégier une alerte en cas de doute”
 - 2026-11-15 — User approved the five-part message structure and clarified that Codex must not be hardcoded; use the User's language, otherwise English. This records the content decision, not implementation or test evidence.
 
 - 2026-11-15T11:02:58+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-15 — Reviewed implementation and evidence in Development; all scoped checks passed with explicit host/transport limitations. Orchestrator confirmed conformity. CARD-00000141 was recorded separately as requested; no work on its implementation.
+
+- 2026-11-15T11:16:48+01:00 — Stage moved from `development` to `completion`.
