@@ -25,11 +25,11 @@ Mise au backlog à la demande de l’utilisateur ; le démarrage reste à autori
 
 ## Acceptance criteria
 
-- [ ] Le jalon de publication contient la durée de la phase et par Card, calculée à partir d’horodatages enregistrés par l’outil.
-- [ ] Il contient les totaux de tokens pour Claude Code et pour Codex sur la période, ou la mention explicite qu’ils sont indisponibles.
-- [ ] Aucune étape manuelle n’est ajoutée à la séquence de commandes de livraison.
-- [ ] Aucun contenu de conversation ni chemin personnel n’est écrit dans le journal.
-- [ ] Les tests de l’outil de livraison couvrent le calcul des durées et la lecture des deux formats avec des journaux de test, et les contrôles applicables passent.
+- [x] Le jalon de publication contient la durée de la phase et par Card, calculée à partir d’horodatages enregistrés par l’outil.
+- [x] Il contient les totaux de tokens pour Claude Code et pour Codex sur la période, ou la mention explicite qu’ils sont indisponibles.
+- [x] Aucune étape manuelle n’est ajoutée à la séquence de commandes de livraison.
+- [x] Aucun contenu de conversation ni chemin personnel n’est écrit dans le journal.
+- [x] Les tests de l’outil de livraison couvrent le calcul des durées et la lecture des deux formats avec des journaux de test, et les contrôles applicables passent.
 
 ## Resources
 
@@ -37,11 +37,18 @@ Aucune.
 
 ## Execution and evidence
 
-- State: waiting
-- Actual start:
-- Actual finish:
+- State: done
+- Actual start: 2026-11-15
+- Actual finish: 2026-11-15
 - Blocker:
 
 ## History
 
 - 2026-11-15 — Mise au backlog à la demande de l’utilisateur. Constat préalable : une session Claude Code d’environ 150 messages totalisait 16,7 M de tokens lus en cache pour 0,1 M en sortie.
+
+- 2026-11-15T22:33:12+01:00 — Stage moved from `backlog` to `development`.
+- 2026-11-15 — Démarrage autorisé par l’utilisateur (« fais la 166 »), phase `claude/phase-card-166`.
+- 2026-11-15 — Implémenté dans `kanban/report.py` et `coordination.py` : heure du `claim` enregistrée dans l’état ; durée par Card lue dans l’historique de la Card (déjà horodaté par les déplacements) plutôt que par de nouveaux horodatages à `add-card`, `checkpoint` et `finish`, ce qui évite du code redondant ; ligne de performance ajoutée au jalon de publication. Essai sur de vraies données : phase 165/164, Claude Code 4,2 M tokens lus en cache pour 25 k en sortie ; Codex indisponible (aucune session Codex dans ce répertoire sur la période). Tests `test-module-delivery.py` (6) et `test-kanban-board.py` OK.
+
+- 2026-11-15T22:35:28+01:00 — Stage moved from `development` to `completion`.
+- 2026-11-15 — Approbation explicite de l’utilisateur (« Oui, fusionne ») pour le candidat vérifié `40ad7ed` de la phase `claude/phase-card-166`, sans déploiement automatique ; tests de livraison, tests du Kanban et `validate` OK.
