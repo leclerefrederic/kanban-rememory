@@ -10,7 +10,7 @@ import tempfile
 
 from .board import add_history, find_card, local, move
 from .markdown import unchecked
-from .project import JOURNAL, MODULES, common_directory, git
+from .project import JOURNAL, MODULES, SETTINGS, bump, common_directory, git, load_project
 from .report import report
 from .validation import validate
 
@@ -97,17 +97,25 @@ class Phase:
         if (stage in active or destination in active) and (state is None or task_id not in state["cards"]):
             raise ValueError(f"{task_id} is not in the active phase.")
 
-    def start(self, task_id):
-        """Open the phase with its first Card, or add the next Card, and move it to the first active stage."""
+    def start(self, task_id, mode=None, part="patch"):
+        """Open the phase with its first Card, or add the next Card, and move it to the first active stage.
+
+        The first Card chooses where the phase works: on main, or on a release branch that is tagged when published.
+        """
         module, _, _ = find_card(self.project, task_id)
         previous = self.state()
         if previous is None:
+            if mode is None:
+                raise ValueError("Choose where to work: --main, or --release on a dedicated branch.")
             branch = self.branch()
-            if branch == "main":
-                raise ValueError("Start a phase on a dedicated branch, never on main.")
-            state = {"module": module, "cards": [task_id], "branch": branch,
+            if (branch == "main") != (mode == "main"):
+                raise ValueError("Work on main with --main from main; start a release on a dedicated branch.")
+            state = {"module": module, "cards": [task_id], "branch": branch, "mode": mode,
+                     **({"bump": part} if mode == "release" else {}),
                      "started": self.project.now().isoformat(timespec="seconds"), "verified": None}
         else:
+            if mode is not None:
+                raise ValueError("The phase is already open: --main and --release only start a phase.")
             self.here()
             if module != previous["module"]:
                 raise ValueError(f"The phase delivers {previous['module']} Cards; {task_id} belongs to {module}.")
@@ -182,6 +190,12 @@ class Phase:
         day.write_text(f"{title}\n\n{entry}\n\n{rest.strip()}".rstrip() + "\n", encoding="utf-8")
         return [card for card, _ in paths]
 
+    def write_version(self, version):
+        path = self.root / SETTINGS
+        data = json.loads(path.read_text(encoding="utf-8"))
+        path.write_text(json.dumps({**data, "version": version}, indent=2, ensure_ascii=False) + "\n",
+                        encoding="utf-8")
+
     def publish(self, summary=None, approval=None, notify=None, language="en"):
         """Close the verified Cards, commit, push to origin/main, return to an up-to-date main and end the phase."""
         if any(text is not None and (not text.strip() or "\n" in text or "\r" in text) for text in (summary, approval)):
@@ -189,6 +203,7 @@ class Phase:
         if notify and not summary:
             raise ValueError("--notify needs --summary: it is the text of the alert.")
         state = self.here()
+        release = state.get("mode", "release") == "release"
         require_clean(self.root)
         head, verified = git(self.root, "rev-parse", "HEAD"), state["verified"]
         if not verified or not is_ancestor(self.root, verified, head):
@@ -200,14 +215,17 @@ class Phase:
             if not summary or not approval:
                 raise ValueError("Give --summary and --approval to close the verified revision.")
             closed = self.close(state, head, summary, approval)
-            git(self.root, "add", "--all", "--", *RECORDS)
+            if release:
+                self.write_version(bump(self.project.version, state.get("bump", "patch")))
+            git(self.root, "add", "--all", "--", *RECORDS, SETTINGS.as_posix())
             # The closing commit keeps the authorship trailers of the verified candidate.
             trailers = git(self.root, "log", "-1", "--format=%(trailers:key=Co-Authored-By)")
             git(self.root, "commit", "--quiet", "-m",
                 f"Close {', '.join(closed)} with recorded merge approval" + (f"\n\n{trailers}" if trailers else ""))
             head = git(self.root, "rev-parse", "HEAD")
+        allowed = RECORDS + ((SETTINGS.as_posix(),) if release else ())
         outside = [path for path in git(self.root, "diff", "--name-only", verified, head).splitlines()
-                   if not path.startswith(RECORDS)]
+                   if not path.startswith(allowed)]
         if outside:
             raise ValueError(f"The closing commit may change only Cards and the journal: {', '.join(outside)}.")
         marker = f"candidate `{verified}`"
@@ -221,19 +239,30 @@ class Phase:
             raise ValueError("The closing commit lacks the journal milestone.")
         if validate(self.project):
             raise ValueError("Fix the findings, amend the closing commit, then publish again.")
+        tag = f"v{load_project(self.root).version}"
+        if release:  # the version of the closing commit names the release
+            known = subprocess.run(["git", "rev-parse", "--quiet", "--verify", f"refs/tags/{tag}^{{commit}}"], cwd=self.root,
+                                   capture_output=True, text=True).stdout.strip()
+            if known and known != head:
+                raise ValueError(f"Tag {tag} already marks another revision: fix version in settings.json.")
         if upstream != head:
             git(self.root, "push", "--quiet", "origin", "HEAD:refs/heads/main")
             if origin_main(self.root) != head:
                 raise ValueError("Could not confirm the publication on origin/main.")
+        if release:
+            git(self.root, "tag", "--force", tag, head)
+            git(self.root, "push", "--quiet", "origin", f"refs/tags/{tag}")
         self.file.unlink()
-        git(self.root, "switch", "--quiet", "main")
-        try:
-            git(self.root, "merge", "--quiet", "--ff-only", head)
-        except subprocess.CalledProcessError:
-            raise ValueError(f"Published {head}, but main does not fast-forward to it: reconcile main, "
-                             f"then delete {state['branch']}.") from None
-        git(self.root, "branch", "--quiet", "--delete", state["branch"])
-        print(f"Published {head} on origin/main; main is up to date and the phase is over.")
+        if state["branch"] != "main":
+            git(self.root, "switch", "--quiet", "main")
+            try:
+                git(self.root, "merge", "--quiet", "--ff-only", head)
+            except subprocess.CalledProcessError:
+                raise ValueError(f"Published {head}, but main does not fast-forward to it: reconcile main, "
+                                 f"then delete {state['branch']}.") from None
+            git(self.root, "branch", "--quiet", "--delete", state["branch"])
+        print(f"Published {head} on origin/main" + (f" as {tag}" if release else "")
+              + "; main is up to date and the phase is over.")
         if notify:
             alert = subprocess.run(
                 [sys.executable, str(self.root / "orchestrator/tools/telegram.py"), "completed", "--card",

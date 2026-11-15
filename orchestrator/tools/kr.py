@@ -53,6 +53,10 @@ def main(argv=None, root=ROOT):
     move.add_argument("stage")
     start = sub.add_parser("start", help="open the phase with a Card, or add its next Card")
     start.add_argument("card", type=card)
+    where = start.add_mutually_exclusive_group()
+    where.add_argument("--main", action="store_true", help="first Card: deliver directly on main")
+    where.add_argument("--release", action="store_true", help="first Card: deliver on a release branch, tagged when published")
+    start.add_argument("--bump", choices=("patch", "minor", "major"), default="patch", help="release number step")
     sub.add_parser("check", help="validate, then run each command given after --, on the clean phase branch")
     publish = sub.add_parser("publish", help="after approval: close the Cards, commit, push to origin/main, end the phase")
     publish.add_argument("--summary", help="one line for the journal and the delivery alert")
@@ -84,7 +88,7 @@ def main(argv=None, root=ROOT):
         elif args.command == "move":
             board.move(project, args.card, args.stage, phase.guard_move)
         elif args.command == "start":
-            return phase.start(args.card)
+            return phase.start(args.card, "main" if args.main else "release" if args.release else None, args.bump)
         elif args.command == "check":
             return phase.check(commands)
         else:

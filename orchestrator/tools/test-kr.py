@@ -37,7 +37,7 @@ class KrTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         self.settings = {"schema_version": 2, "name": "Fixture", "modules": ["a", "b", "misc"],
-                         "workflow": WORKFLOW, "last_card_id": 0}
+                         "workflow": WORKFLOW, "last_card_id": 0, "version": "0.0.0"}
         self.proposal = self.base / "proposal.json"
         self.proposal.write_text(json.dumps(self.settings))
         self.root = self.repository("repo")
@@ -141,9 +141,11 @@ class KrTests(unittest.TestCase):
             self.kr(self.root, "new", title, "--module", module)
         self.commit(self.root, "Add Cards")
         root = self.root
-        self.assertIn("never on main", self.kr(root, "start", "CARD-00000001", expected=1))
+        self.assertIn("Choose where to work", self.kr(root, "start", "CARD-00000001", expected=1))
+        self.assertIn("dedicated branch", self.kr(root, "start", "CARD-00000001", "--release", expected=1))
         self.git(root, "switch", "-qc", "claude/phase-1")
-        self.kr(root, "start", "CARD-00000001")
+        self.assertIn("from main", self.kr(root, "start", "CARD-00000001", "--main", expected=1))
+        self.kr(root, "start", "CARD-00000001", "--release", "--bump", "minor")
         self.commit(root, "Start")
         self.git(root, "switch", "-qc", "other", "main")
         self.assertIn("runs on claude/phase-1", self.kr(root, "start", "CARD-00000003", expected=1))
@@ -184,7 +186,10 @@ class KrTests(unittest.TestCase):
         closing = self.git(root, "rev-parse", "HEAD")
         self.assertIn("Co-Authored-By: Fixture Agent <agent@example.invalid>", self.git(root, "log", "-1", "--format=%B"))
         output = self.kr(root, "publish", "--summary", "Alpha and Beta.", "--notify", "Chat", "--language", "fr")
-        self.assertIn(f"Published {closing}", output)
+        self.assertIn(f"Published {closing} on origin/main as v0.1.0", output)
+        self.assertEqual(json.loads((root / "project/settings.json").read_text())["version"], "0.1.0")
+        self.assertEqual(self.git(root, "rev-parse", "v0.1.0^{commit}"), closing)
+        self.assertEqual(self.git(root, "ls-remote", "origin", "refs/tags/v0.1.0").split()[0], self.git(root, "rev-parse", "v0.1.0"))
         self.assertIn("nothing was sent", output)  # no Telegram configuration in this HOME: the publication stands
         for task_id in ("CARD-00000001", "CARD-00000002"):
             self.assertEqual(self.card(root, task_id).read_text().count(
@@ -199,6 +204,25 @@ class KrTests(unittest.TestCase):
         self.assertEqual((self.git(root, "branch", "--show-current"), self.git(root, "rev-parse", "HEAD")),
                          ("main", closing))
         self.assertNotIn("claude/phase-1", self.git(root, "branch", "--list"))
+        self.assertIn("Phase: none", self.kr(root, "show"))
+
+    def test_phase_on_main_commits_there_and_publishes_without_a_tag(self):
+        self.kr(self.root, "new", "Direct", "--module", "a")
+        self.commit(self.root, "Add Card")
+        root = self.root
+        self.kr(root, "start", "CARD-00000001", "--main")
+        self.check_criteria(root, "CARD-00000001")
+        (root / "src.txt").write_text("change\n")
+        candidate = self.commit(root, "Implement on main")
+        self.kr(root, "check")
+        self.assertIn("main", self.kr(root, "show"))
+        output = self.kr(root, "publish", "--summary", "Direct.", "--approval", "Oui")
+        self.assertNotIn(" as v", output)
+        self.assertEqual(self.git(root, "tag", "--list"), "")
+        self.assertEqual(json.loads((root / "project/settings.json").read_text())["version"], "0.0.0")
+        self.assertEqual(self.git(root, "ls-remote", "origin", "refs/heads/main").split()[0],
+                         self.git(root, "rev-parse", "HEAD"))
+        self.assertEqual(self.git(root, "rev-parse", "HEAD~1"), candidate)
         self.assertIn("Phase: none", self.kr(root, "show"))
 
     def test_report_sums_durations_and_host_tokens_of_the_phase(self):

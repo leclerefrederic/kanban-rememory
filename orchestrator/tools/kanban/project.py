@@ -14,7 +14,8 @@ SETTINGS = Path("project/settings.json")
 MODULES = Path("project/modules")
 JOURNAL = Path("project/rememory")
 MISC = "misc"
-KEYS = ("schema_version", "name", "modules", "workflow", "last_card_id")
+KEYS = ("schema_version", "name", "modules", "workflow", "last_card_id", "version")
+VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
@@ -26,6 +27,7 @@ class Project:
     modules: tuple
     workflow: dict
     last_card_id: int
+    version: str
 
     def board(self, module):
         if module not in self.modules:
@@ -43,6 +45,12 @@ class Project:
 
     def now(self):
         return datetime.now(ZoneInfo(self.workflow["timezone"]))
+
+
+def bump(version, part):
+    """The next release number: part is patch, minor or major."""
+    major, minor, patch = map(int, version.split("."))
+    return {"major": f"{major + 1}.0.0", "minor": f"{major}.{minor + 1}.0", "patch": f"{major}.{minor}.{patch + 1}"}[part]
 
 
 def git(root, *args):
@@ -89,7 +97,10 @@ def parse_settings(root, source):
         last = data["last_card_id"]
         if type(last) is not int or not 0 <= last <= 99999999:
             raise ValueError("last_card_id must be an integer from 0 to 99999999.")
-        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), last)
+        version = data["version"]
+        if not isinstance(version, str) or not VERSION.fullmatch(version):
+            raise ValueError("version must be a release number such as 0.1.0.")
+        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), last, version)
     except ValueError as error:
         raise ValueError(f"Invalid project settings: {error}") from None
 

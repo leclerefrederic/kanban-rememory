@@ -4,9 +4,9 @@ The Orchestrator carries each Card from request to verified publication in the c
 
 ## Rules
 
-1. **Records.** Each module has a Kanban in `project/modules/<module>/`: one folder per stage, and `resources/<card-id>/` for attachments. A Card is one file with a stable ID, and its folder is its stage. Work without a natural owner, including cross-module work that ships together, goes to `misc` with an `affected_modules` list. `project/settings.json` holds the modules and the workflow. `project/rememory/` is the journal, one file per date.
+1. **Records.** Each module has a Kanban in `project/modules/<module>/`: one folder per stage, and `resources/<card-id>/` for attachments. A Card is one file with a stable ID, and its folder is its stage. Work without a natural owner, including cross-module work that ships together, goes to `misc` with an `affected_modules` list. `project/settings.json` holds the modules, the workflow and the current release `version`. `project/rememory/` is the journal, one file per date.
 2. **Intake.** Search with `kr show` and `kr path` before creating a Card. Reuse an existing Card and its authorization. Take the oldest eligible backlog Card unless one records an agreed priority. Unmet prerequisites keep a Card in backlog.
-3. **Phase.** Execute only in a phase: one branch `<host>/phase-<number>` of the checkout, delivering one or more Cards of one module with one merge approval. One agent runs one phase at a time. Never change deliverables on `main`. Creating a Card is not execution: outside a phase, create it on `main` and commit it there only when it waits in the backlog; a Card started at once goes to the new phase branch uncommitted. During a phase, create Cards on its branch. `kr` refuses records written elsewhere.
+3. **Phase.** Execute only in a phase, delivering one or more Cards of one module with one merge approval. One agent runs one phase at a time. When a Card starts, ask the user where to work, unless the request already says: **on `main`**, or **in a release**. A release is a branch `<host>/phase-<number>` of the checkout, tagged `vX.Y.Z` when published. Work on `main` commits there directly and creates no tag. Outside a phase, create a Card on `main` and commit it there only when it waits in the backlog; in a release, a Card started at once goes to the new branch uncommitted. During a phase, create Cards where it runs. `kr` refuses records written elsewhere.
 4. **Capacity.** WIP counts started, unfinished Cards, blocked ones included. A blocked Card stays in its stage with the date, the cause and the condition that clears it.
 5. **Scope.** Apply [the lean principles](../documentation/lean-specifications.md). Ask about ambiguous user-visible behavior instead of inventing it. Record a scope change on the Card before implementing it. Keep suggestions separate. Stop once the criteria are verified.
 6. **History.** Completed and cancelled Cards never change. A correction or a rollback is a successor Card that refers to the original.
@@ -31,8 +31,8 @@ kr new "Title" --module MODULE --body <<'CARD'
 - Dependencies: None.
 ## Expected outcome …
 CARD
-git switch -c claude/phase-NNN            # NNN: the Card number; the new Card comes along uncommitted
-kr start CARD-ID                          # opens the phase, Card in development
+git switch -c claude/phase-NNN            # release only; NNN: the Card number; the new Card comes along uncommitted
+kr start CARD-ID --release [--bump minor] # opens the phase on that branch; or: kr start CARD-ID --main, on main
 # implement and commit
 kr check -- python3 orchestrator/tools/test-kr.py
 # ask the user to approve the verified revision
@@ -41,10 +41,10 @@ kr publish --summary "One line" --approval "The user's words" --notify "Chat nam
 
 - **Create.** `--body` reads the whole Card below its title from stdin, so write it complete in one call. Without `--body`, `new` copies the template.
 
-- **Start.** `start` refuses `main`, a second phase and a full WIP. For a further Card of the phase: `kr move CARD-ID completion`, commit, then `kr start NEXT-ID`.
+- **Start.** The first Card needs `--main` (on `main`) or `--release` (on a dedicated branch, with `--bump patch|minor|major`, patch by default). `start` also refuses a second phase and a full WIP. On `main`, commit each step there; `check` and the approval still come before the push. For a further Card of the phase: `kr move CARD-ID completion`, commit, then `kr start NEXT-ID`.
 - **Check.** `check` needs a clean checkout that contains `origin/main`: merge it first. It runs `validate`, lists the CI workflows of `.github/workflows`, then each command given after its own `--`. It records the verified revision only when everything passes. A failure or a new commit cancels the verification, so run every required check in one call. Run the acceptance cases you can verify. Guide the user through those that need them and record the verdict.
 - **Approval.** Show the user the verified revision, what was checked and what merging or pushing triggers: read the listed workflows, none means nothing runs. The Card stays in Development until the user approves that exact revision. A changed candidate needs a new check and a new approval. An approval already given in the request, such as "do it and merge", covers the candidate once `check` verifies it within the requested scope: publish without asking again and send no merge alert. Ask again when the check fails or the change exceeds the request.
-- **Publish.** `publish` needs the verified revision and every criterion checked. It moves the phase Cards to completion, writes the approval on each and the journal milestone with the durations and token totals. It commits them with the candidate's `Co-Authored-By` trailers, pushes to `origin/main` as a fast-forward, ends the phase, fast-forwards `main` and deletes the branch. `--notify` then sends the Remy delivery alert. After an interruption, rerun `publish`: on an existing closing commit it only publishes. The Card is delivered once publication, and any agreed deployment, is verified.
+- **Publish.** `publish` needs the verified revision and every criterion checked. It moves the phase Cards to completion, writes the approval on each and the journal milestone with the durations and token totals. It commits them with the candidate's `Co-Authored-By` trailers, pushes to `origin/main` as a fast-forward and ends the phase. A release also raises `version` in `project/settings.json` in the closing commit, tags that commit `vX.Y.Z`, pushes the tag, fast-forwards `main` and deletes the branch. `publish` refuses a tag that already marks another revision. `--notify` then sends the Remy delivery alert. After an interruption, rerun `publish`: on an existing closing commit it only publishes. The Card is delivered once publication, and any agreed deployment, is verified.
 
 ## Recover
 

@@ -41,7 +41,8 @@ def show(project, module=None, phase=None):
     today = project.now().date()
     if phase:
         verified = phase["verified"] or "no"
-        print(f"Phase: {', '.join(phase['cards'])} ({phase['module']}) on {phase['branch']}; verified: {verified}")
+        print(f"Phase: {', '.join(phase['cards'])} ({phase['module']}) on {phase['branch']}, "
+              f"{phase.get('mode', 'release')}; verified: {verified}")
     else:
         print("Phase: none")
     wip = {name: 0 for name in project.modules}
