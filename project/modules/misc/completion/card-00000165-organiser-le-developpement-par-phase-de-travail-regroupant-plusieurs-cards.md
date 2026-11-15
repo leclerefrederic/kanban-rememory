@@ -29,11 +29,11 @@ Toute modification d’un outil ou des règles de `AGENTS.md` relève de cette C
 
 ## Acceptance criteria
 
-- [ ] La notion de phase est définie dans une seule source partagée et `AGENTS.md` y renvoie sans doublon.
-- [ ] Aucun travail ne démarre sur une Card sans branche de phase, et `main` ne reçoit aucun travail direct ; la règle est écrite et contrôlée par les outils ou garde-fous quand c’est faisable.
-- [ ] Une phase peut livrer plusieurs Cards avec une seule branche, un seul worktree et une seule approbation de fusion, sans perdre la traçabilité par Card.
-- [ ] La limite d’une Card en développement par scope est remplacée ou reformulée de façon cohérente avec les outils.
-- [ ] Les outils et leurs tests couvrent le cas à plusieurs Cards ; la validation du Kanban et les contrôles applicables passent.
+- [x] La notion de phase est définie dans une seule source partagée et `AGENTS.md` y renvoie sans doublon.
+- [x] Aucun travail ne démarre sur une Card sans branche de phase, et `main` ne reçoit aucun travail direct ; la règle est écrite et contrôlée par les outils ou garde-fous quand c’est faisable.
+- [x] Une phase peut livrer plusieurs Cards avec une seule branche, un seul worktree et une seule approbation de fusion, sans perdre la traçabilité par Card.
+- [x] La limite d’une Card en développement par scope est remplacée ou reformulée de façon cohérente avec les outils.
+- [x] Les outils et leurs tests couvrent le cas à plusieurs Cards ; la validation du Kanban et les contrôles applicables passent.
 
 ## Resources
 
@@ -41,9 +41,9 @@ Aucune.
 
 ## Execution and evidence
 
-- State: waiting
-- Actual start:
-- Actual finish:
+- State: done
+- Actual start: 2026-11-15
+- Actual finish: 2026-11-15
 - Blocker:
 
 ## History
@@ -51,3 +51,10 @@ Aucune.
 - 2026-11-15 — Mise au backlog à la demande de l’utilisateur : une branche par phase de développement, plusieurs Cards par phase.
 - 2026-11-15 — Décision de l’utilisateur : le travail sur une Card ne commence jamais sans branche, jamais directement sur `main`.
 - 2026-11-15 — Décision de l’utilisateur : une seule branche de dev active à la fois, gérée par l’Orchestrator.
+
+- 2026-11-15T22:20:00+01:00 — Stage moved from `backlog` to `development`.
+- 2026-11-15 — Démarrage autorisé par l’utilisateur (« fais 165 puis 164 »). Phase `claude/phase-cards-165-164` partagée avec CARD-00000164.
+- 2026-11-15 — Implémenté : `add-card`, clôture et jalon sur toutes les Cards de la phase, section Phase de `deliver-card.md`, `AGENTS.md` à jour. Tests `test-module-delivery.py` et `test-kanban-board.py` OK. Limite connue : rien n’empêche techniquement de créer une Card sur `main` ; la règle est écrite, pas verrouillée.
+
+- 2026-11-15T22:21:49+01:00 — Stage moved from `development` to `completion`.
+- 2026-11-15 — Approbation explicite de l’utilisateur (« Oui, fusionne ») pour le candidat vérifié `97d6577` de la phase `claude/phase-cards-165-164` (CARD-00000165 et CARD-00000164), sans déploiement automatique ; tests `test-module-delivery.py` et `test-kanban-board.py` et `validate` OK. Publication à vérifier au jalon du journal.
