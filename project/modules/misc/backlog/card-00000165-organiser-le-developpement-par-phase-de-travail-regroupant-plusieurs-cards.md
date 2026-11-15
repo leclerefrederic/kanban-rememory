@@ -18,6 +18,7 @@ Une branche et un worktree correspondent à une phase de développement, pas à 
 Revoir les règles actuelles qui lient une Card à une branche et à une livraison : « Keep one active delivery per scope and one Card in Development per scope », « Integrate one delivery at a time », l’approbation avant fusion « of a Card » et le workflow `orchestrator/actions/deliver-card.md`. Définir :
 
 - ce qu’est une phase (périmètre, durée, nommage de la branche et du worktree) ;
+- le principe d’une seule branche de dev active à la fois, l’Orchestrator pilotant le processus : une Card créée pendant la phase reste sur la branche de la phase et part avec sa fusion, ce qui exclut les collisions d’ID entre branches ;
 - la règle de démarrage : aucun travail ne commence sur une Card sans branche de phase active, jamais directement sur `main` ; la Card rejoint une phase existante ou en ouvre une ;
 - comment plusieurs Cards partagent la phase : capacité en développement, un commit ou plus par Card pour garder la traçabilité, état et historique de chaque Card ;
 - l’approbation de fusion au niveau de la phase, avec la liste des Cards couvertes, sans perdre la vérification du candidat exact ;
@@ -49,3 +50,4 @@ Aucune.
 
 - 2026-11-15 — Mise au backlog à la demande de l’utilisateur : une branche par phase de développement, plusieurs Cards par phase.
 - 2026-11-15 — Décision de l’utilisateur : le travail sur une Card ne commence jamais sans branche, jamais directement sur `main`.
+- 2026-11-15 — Décision de l’utilisateur : une seule branche de dev active à la fois, gérée par l’Orchestrator.
