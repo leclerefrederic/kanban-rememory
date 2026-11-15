@@ -21,6 +21,18 @@ A phase is one delivery: one branch, one worktree, one claim, one integration an
 
 The claim names the first Card. Add each further backlog Card of the module with `D add-card FIRST_CARD NEXT_CARD --owner OWNER`, then start it with `B move NEXT_CARD development --owner-token OWNER` once the previous Card is in `completion`. Capacity stays one Card in Development. Within a phase a Card moves to `completion` when its criteria are verified on the branch, with its own commit. The merge approval covers the whole candidate. List its Cards and record the approval on each in the closing commit. Closure, publication, milestone and `finish` apply to every Card of the phase, and the journal entry names them all.
 
+## Keep the context small
+
+Every tool call resends the whole context, so cost grows with context size times number of calls. In a long session:
+
+- Record the state a successor needs on the Card (`checkpoint`, History) before compacting, then compact (`/compact` with a focus on the Card in progress) when a Card closes, a phase opens or the context nears about half the window. Hosts also compact automatically near the limit; Codex exposes `model_auto_compact_token_limit` in `config.toml`, which can only lower that trigger.
+- Send audits, wide reads and noisy test runs to a separate agent that returns only its conclusion.
+- Bound tool output: read file ranges, search precisely, show the tail of test output.
+- Batch independent tool calls in one message.
+- Keep the files loaded every turn (`AGENTS.md`, `CLAUDE.md`, skills) short; put procedures here.
+
+Do not change a user's personal host settings without their agreement.
+
 ## Command sequence
 
 Run delivery commands from the delivery worktree. Board moves write the Card in the primary checkout. `OWNER` is the recorded session ID.
