@@ -29,6 +29,8 @@ The agent looks for an existing Card, checks dependencies and records the agreed
 
 ## Follow progress and completion
 
-The same agent updates the Card, carries out the work, runs the applicable automated checks and publishes when authorized. It updates the chat at meaningful checkpoints, blockers and delivery. The project's Rememory links published milestones to the relevant Cards.
+Once authorized, the agent updates the Card, carries out the work, resolves issues within scope, runs the applicable automated checks and completes the agreed delivery. It hands control back when it needs a decision or action only you can provide, or when the work is complete. The project's Rememory links published milestones to the relevant Cards.
+
+Before merging into `main`, the agent asks you to approve the verified revision and tells you if merging or pushing will trigger an automatic production deployment. After your approval it finishes the authorized delivery.
 
 If a session ends before completion, use [resume work](resume-work.md). If you discover a problem with delivered behavior, use [report a defect](report-a-defect.md).

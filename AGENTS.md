@@ -8,4 +8,4 @@ Each module owns its Kanban and Cards. Use `misc` for Cards without a natural ow
 
 Use Europe/Paris time. Record one concise milestone for each verified publication in the project journal. Keep one project journal in `project/rememory/` with one file per date. Link milestones and useful resumption notes to the relevant Cards. Use `project/settings.json` for project settings and the shared workflow.
 
-Publish each verified change to `origin/main` after closing its card. The repository owner has granted standing authorization for these pushes.
+Before merging a Card into `main`, obtain the user's explicit approval for the verified candidate. Identify any automatic production deployment triggered by merging or pushing `main`. After approval, close the Card and publish to `origin/main` under the repository owner's standing push authorization.
