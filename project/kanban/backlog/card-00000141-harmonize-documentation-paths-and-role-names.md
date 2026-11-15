@@ -14,6 +14,10 @@ specifications: []
 
 Users and agents can navigate and apply the entire repository documentation through coherent names, clear document responsibilities and consistent instructions. The audit and refactoring cover the repository-wide documentation corpus, not only role files, the agents root or installation guides. Each document has a clear purpose, each shared rule has an authoritative source, and related procedures compose without duplication or contradictions.
 
+## Agent-first design principle
+
+The User explicitly confirmed that `agents/` is internal machinery for Codex and Claude Code, not human-facing reading material. Optimize for fast routing, minimal necessary context and unambiguous execution. Use concise operational instructions, explicit inputs/prerequisites, decisions, actions and expected outputs where useful. Remove repeated explanations and narrative that do not help an agent act. Keep human-facing explanations in `documentation/`; preserve binding constraints and exceptions. Brevity is measured by total task-reading cost and reliable execution, not just shorter files or more folders.
+
 ## Proposed scope
 
 - Inventory the entire repository documentation corpus: root entry points, reader documentation, agent rules and procedures, roles, host adapters, skills, templates, examples and project records/references. Account for every area in a coverage map; distinguish active material that may be refactored from frozen historical evidence. The examples below illustrate problems to investigate throughout the corpus and do not bound the scope.
@@ -32,6 +36,7 @@ Users and agents can navigate and apply the entire repository documentation thro
 - [ ] A repository-wide coverage map accounts for every documentation area, its documents and findings, with justified historical exclusions; the audit is not limited to the User's examples.
 - [ ] Inventory and before/after mapping identify every proposed rename, its rationale, affected consumers and any compatibility exception; the User approves the concrete implementation scope.
 - [ ] The audit reports Markdown sizes, estimated tokens and cumulative reading by representative agent journey. A proposed readability/context budget is reviewed with the User; large files (including around 15 KB) have an explicit keep/simplify/split rationale.
+- [ ] `agents/` contains concise execution-oriented instructions for Codex and Claude Code, with effective routing and task-relevant loading. Human pedagogy and redundant narrative are removed or placed in reader documentation; permissions and mandatory rules remain explicit.
 - [ ] The revised reading paths are concise and task-relevant, with before/after context-cost evidence. Splitting preserves discoverability and all binding rules without forcing every agent to load every detail.
 - [ ] A document-responsibility map identifies normative sources, overlaps and contradictions. Every active document in the audited corpus has a clear purpose; shared rules and procedures have one authoritative definition.
 - [ ] The installation/adoption example has one coherent order for prerequisites, choices, approval, copying/configuration and validation; no duplicated commands or approval steps create competing instructions.
@@ -60,3 +65,5 @@ Users and agents can navigate and apply the entire repository documentation thro
 - 2026-11-15 — User clarified that the scope is global to the repository. Role paths, the agents root and installation/adoption guides are illustrative examples only. Expanded the outcome, coverage inventory and acceptance criteria accordingly.
 
 - 2026-11-15 — User required Markdown to remain digestible within agent context windows and expressed concern about 15 KB files. Added corpus-wide file/token sizing and cumulative task-reading review; no hard size threshold is assumed.
+
+- 2026-11-15 — User confirmed that agents/ is exclusively internal agent machinery, optimized for Codex/Claude navigation, consultation and execution rather than human exposition (“Voilà exactement”). Recorded agent-first efficiency as the governing design principle.
