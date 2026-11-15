@@ -56,6 +56,6 @@ Old receipts hash task/text and preserve their delivery state. They match only p
 | `not sent, the request was refused` | Definitely not delivered; fix cause then retry safely. |
 | `delivery not confirmed and the outcome is unknown` | Tell the User; do not automatically resend. Check destination, then use `--confirm-retry` only if it did not arrive. Plain retry is refused. |
 
-After each attempt report what the tool actually printed in the chat. Never claim the User was notified without confirmed delivery. Missing/disabled configuration or failed sends do not remove the chat request. Keep stable IDs on safe retries and follow this state table for uncertain outcomes. The ledger is in the shared local Git directory; the tool adds no scheduler.
+Record the actual tool result in the work record. Keep successful delivery receipts there. Report a failure or uncertain delivery in the original chat when it affects the outcome or requires intervention. Claim notification only with confirmed delivery. Missing/disabled configuration or failed sends do not remove the chat request. Keep stable IDs on safe retries and follow this state table for uncertain outcomes. The ledger is in the shared local Git directory; the tool adds no scheduler.
 
 For module work, pass `--module MODULE_ID` when the manifest contains more than one module. The solution title defaults to `project.json`; the reference displays the module and Card or Batch. Module receipts use the stable project ID and module-qualified reference. Legacy receipts apply to single-project events.

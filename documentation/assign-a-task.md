@@ -33,8 +33,10 @@ Priority does not remove dependencies or the work-in-progress limit. If another 
 
 ## Follow progress and completion
 
+KR Orchestrator shows short progress lines in the original chat as work starts, changes stage or takes time. If you need to make a decision, the agent explains what it needs and why. At completion, it gives the outcome and keeps the technical details in the work records.
+
 Ask what has been verified, what is blocked and what comes next. A status request alone does not change scope or priorities. If work needs your decision, the agent explains the specific question and keeps the affected task visible.
 
-At completion, expect the result, the checks actually run, any remaining limitation and the publication status. A completed standalone Card follows the project's agreed delivery rules. For Batch work, technical completion leads to [your acceptance tests and decision](test-and-accept-a-batch.md).
+At completion, expect the outcome, any limitation that matters to you and the publication status when relevant. The work records contain the checks that ran. A completed standalone Card follows the project's agreed delivery rules. For Batch work, technical completion leads to [your acceptance tests and decision](test-and-accept-a-batch.md).
 
 If a session ends before completion, use [resume work](resume-work.md). If you discover a problem with delivered behavior, use [report a defect](report-a-defect.md).

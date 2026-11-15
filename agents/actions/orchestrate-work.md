@@ -2,6 +2,14 @@
 
 Use the [Orchestrator role](../roles/orchestrator.md), inherited [Writer limits](../roles/writer.md) and [shared rules](../guidelines/working-rules.md). Developer owns execution/Git/Rememory; Tester acceptance results. Request their evidence when review needs work outside this role.
 
+## Show progress in the original chat
+
+Start authorized work with one short, visible line. Before each meaningful stage starts, show its name in the conversation language, such as “Breaking the Batch into tasks”, “Calling KR Developer”, “Running regression tests” or “Publishing”. Show only real stages; tool calls, tool output and journal entries do not count as visible updates.
+
+During work, including delegated work, show verified checkpoints in one line. Use waits that allow a visible update after about one minute if the stage is still running without a new checkpoint. Confirm the current stage briefly and use counts only when observed. Distinguish active work, waiting for the User and blocked work.
+
+If User action is needed, say what is waiting, why it matters and what to decide or do. Give relevant options and consequences. Answer requests for detail, then return to short updates when work resumes. At completion, state the outcome briefly. Keep routine implementation details, individual checks and successful notification receipts in the work records. Surface failures in chat when they affect the result or require intervention.
+
 ## Frame and approve
 
 Read applicable records and reuse an existing Card/Spec/Batch/handoff. Without a board, route approved adoption through [installation](../setup/install.md). For clear standalone outcomes, prepare backlog scope/checks and propose execution. For changed behavior, draft a Specification; for a shared candidate/decision, propose a Batch with exact Specifications, mission order and constraints. Keep suggestions outside approved scope.
