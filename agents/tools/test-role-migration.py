@@ -28,7 +28,7 @@ class MigrationTests(unittest.TestCase):
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.root = Path(temporary.name)
+        self.root = Path(temporary.name).resolve()
         for name in ("install-claude-role-hook.py", "sync-skills.py", "role-limit-hook.py"):
             self.write("agents/tools/" + name, (KIT / "agents/tools" / name).read_text())
         shutil.copytree(KIT / "agents/roles", self.root / "agents/roles")
@@ -286,6 +286,19 @@ class MigrationTests(unittest.TestCase):
             "execution": {"active_deliveries_per_module": 1, "branch_required": True,
                           "worktree_required": True, "concurrent_integrations": 1},
         }))
+        stages = ["backlog", "development", "completion", "cancellation"]
+        self.write("project/kanban/workflow.json", json.dumps({
+            "stages": stages, "active": ["development"], "completed": "completion",
+            "wip_limit": 1, "timezone": "UTC",
+        }))
+        for stage in stages:
+            (self.root / "project/kanban" / stage).mkdir(exist_ok=True)
+
+    def shared_card(self, number, scope, stage="backlog"):
+        identifier = f"CARD-{number:08d}"
+        scope_field = f"scope: {json.dumps(scope)}\n" if scope is not None else ""
+        return self.write(f"project/kanban/{stage}/{identifier.lower()}-fixture.md",
+                          f'---\nid: "{identifier}"\n{scope_field}---\n\n# Original body\n')
 
     def test_scoped_role_paths_use_existing_permissions(self):
         hook = self.role_hook()
@@ -304,7 +317,7 @@ class MigrationTests(unittest.TestCase):
             self.assertFalse(allowed(role, "Write", "project/kanban/backlog/card-1.md"))
             self.assertFalse(allowed(role, "Write", "project.json"))
         self.assertTrue(allowed("writer", "Write", "tracking/a/specs/draft/spec.md"))
-        self.assertTrue(allowed("writer", "Write", "tracking/a/kanban/backlog/card-1.md"))
+        self.assertFalse(allowed("writer", "Write", "tracking/a/kanban/backlog/card-1.md"))
         self.assertFalse(allowed("writer", "Write", "tracking/a/kanban/development/card-1.md"))
         self.assertFalse(allowed("writer", "Write", "src/shared.py"))
         self.assertTrue(allowed("developer", "Write", "src/shared.py"))
@@ -323,8 +336,9 @@ class MigrationTests(unittest.TestCase):
 
     def test_hook_checks_normal_module_invocation(self):
         self.module_manifest()
+        card = self.shared_card(1, "a")
         event = {"agent_type": "writer", "cwd": str(self.root), "tool_name": "Write",
-                 "tool_input": {"file_path": "tracking/a/kanban/backlog/card-1.md"}}
+                 "tool_input": {"file_path": str(card), "content": card.read_text().replace("Original", "Edited")}}
         environment = {**os.environ, "CLAUDE_PROJECT_DIR": str(self.root), "PYTHONDONTWRITEBYTECODE": "1"}
         environment.pop("KR_MODULE", None)
 
@@ -348,13 +362,125 @@ class MigrationTests(unittest.TestCase):
         roles = hook.load_roles(self.root)
         project, chosen = hook.scoped_project(self.root, "a")
         local = self.root.parent / "separate-candidate-worktree"
-        record = "tracking/a/kanban/backlog/card-1.md"
+        record = "tracking/a/specs/draft/spec.md"
         allowed = hook.decide(roles, "writer", local, "Write",
                               {"file_path": str(self.root / record)}, str(local), project, chosen)
         stale = hook.decide(roles, "writer", local, "Write",
                             {"file_path": record}, str(local), project, chosen)
         self.assertIsNone(allowed)
         self.assertIsNotNone(stale)
+
+    def test_shared_board_card_permissions_follow_scope_and_stage(self):
+        self.module_manifest()
+        hook = self.role_hook()
+        roles = hook.load_roles(self.root)
+        project, chosen = hook.scoped_project(self.root, "a")
+        first = self.shared_card(1, "a")
+        other = self.shared_card(2, "b")
+        global_card = self.shared_card(3, "@project")
+        active = self.shared_card(4, "a", "development")
+        frozen = self.shared_card(5, "a", "completion")
+        archive = self.shared_card(6, None, "completion")
+        unscoped = self.shared_card(7, None)
+
+        def allowed(role, selected, verb, file, **fields):
+            return hook.decide(roles, role, self.root, verb, {"file_path": str(file), **fields},
+                               str(self.root), project, selected) is None
+
+        def edit(role, selected, path):
+            return allowed(role, selected, "Edit", path, old_string="Original", new_string="Edited")
+
+        for role in ("writer", "tester", "developer"):
+            with self.subTest(role=role):
+                self.assertTrue(allowed(role, chosen, "Read", first))
+                self.assertTrue(allowed(role, chosen, "Read", archive))
+                self.assertFalse(allowed(role, chosen, "Read", other))
+                self.assertFalse(allowed(role, chosen, "Read", unscoped))
+                self.assertFalse(edit(role, chosen, other))
+                self.assertFalse(edit(role, chosen, frozen))
+                self.assertFalse(edit(role, chosen, global_card))
+                self.assertFalse(allowed(role, chosen, "Write", first.with_name("card-00000008-new.md"),
+                                         content=first.read_text()))
+                self.assertIsNotNone(hook.decide(roles, role, self.root, "Grep",
+                                                {"path": "project/kanban", "pattern": "body"},
+                                                str(self.root), project, chosen))
+        self.assertTrue(edit("writer", chosen, first))
+        self.assertFalse(edit("writer", chosen, active))
+        self.assertTrue(edit("developer", chosen, active))
+        self.assertFalse(edit("tester", chosen, first))
+        _, global_scope = hook.scoped_project(self.root, "@project")
+        self.assertTrue(edit("writer", global_scope, global_card))
+        self.assertFalse(edit("developer", global_scope, first))
+
+    def test_shared_board_edit_preserves_scope_and_refuses_linked_paths(self):
+        self.module_manifest()
+        hook = self.role_hook()
+        roles = hook.load_roles(self.root)
+        project, chosen = hook.scoped_project(self.root, "a")
+        card = self.shared_card(1, "a")
+        body = {"old_string": "Original", "new_string": "Edited"}
+        scope = {"old_string": 'scope: "a"', "new_string": 'scope: "b"'}
+
+        def allowed(verb, path, **fields):
+            return hook.decide(roles, "developer", self.root, verb, {"file_path": str(path), **fields},
+                               str(self.root), project, chosen) is None
+
+        self.assertTrue(allowed("Write", card, content=card.read_text().replace("Original", "Edited")))
+        self.assertTrue(allowed("MultiEdit", card, edits=[body]))
+        self.assertFalse(allowed("Edit", card, **scope))
+        self.assertFalse(allowed("MultiEdit", card, edits=[body, scope]))
+        self.assertFalse(allowed("Write", card, content=card.read_text().replace('scope: "a"\n', "")))
+        self.assertFalse(allowed("Write", card, content=card.read_text().replace('scope: "a"', 'scope: "a"\nscope: "b"')))
+        alias = card.with_name("card-00000002-alias.md")
+        alias.symlink_to(self.write("src/shared-example.md", card.read_text()))
+        self.assertFalse(allowed("Write", alias, content=card.read_text()))
+        os.link(card, card.with_name("card-00000003-hardlink.md"))
+        self.assertFalse(allowed("Edit", card, **body))
+        self.assertIsNotNone(hook.decide(roles, "developer", self.root, "Bash",
+                                        {"command": f"cat {card.relative_to(self.root)}"},
+                                        str(self.root), project, chosen))
+
+    def test_shared_cards_use_primary_board_from_delivery_worktree(self):
+        self.module_manifest()
+        hook = self.role_hook()
+        roles = hook.load_roles(self.root)
+        project, chosen = hook.scoped_project(self.root, "a")
+        card = self.shared_card(1, "a")
+        with tempfile.TemporaryDirectory() as candidate:
+            local = Path(candidate).resolve()
+            record = card.relative_to(self.root)
+            clone = local / record
+            clone.parent.mkdir(parents=True)
+            clone.write_bytes(card.read_bytes())
+            for path, expected in ((card, True), (clone, False)):
+                decision = hook.decide(roles, "writer", local, "Edit",
+                                       {"file_path": str(path), "old_string": "Original", "new_string": "Edited"},
+                                       str(local), project, chosen)
+                self.assertEqual(decision is None, expected, decision)
+
+    def test_literal_board_writes_require_role_and_assigned_scope(self):
+        self.module_manifest()
+        hook = self.role_hook()
+        roles = hook.load_roles(self.root)
+        project, _ = hook.scoped_project(self.root, "a")
+        board = "python3 -B agents/tools/manage-kanban-board.py"
+        cases = (
+            ("writer", "a", f"{board} --module a new Task --owner Writer --apply", True),
+            ("tester", "a", f"{board} new Task --owner Tester", True),
+            ("tester", "a", f"{board} new Task --owner Tester --apply", False),
+            ("writer", "a", f"{board} new Task --owner Writer --scope=b --apply", False),
+            ("developer", "a", f"KR_MODULE=b {board} move CARD-00000001 development", False),
+            ("writer", "a", f"{board} move CARD-00000001 development", False),
+            ("developer", "a", f"{board} move CARD-00000001 development --scope a", True),
+            ("writer", "a", f"{board} reassign CARD-00000001 --to-scope b", False),
+            ("writer", "@project", f"{board} reassign CARD-00000001 --to-scope b", True),
+            ("tester", "@project", f"{board} reassign CARD-00000001 --to-scope b", False),
+        )
+        for role, scope, command, expected in cases:
+            with self.subTest(role=role, scope=scope, command=command):
+                decision = hook.decide(roles, role, self.root, "Bash", {"command": command},
+                                       str(self.root), project, scope)
+                self.assertEqual(decision is None, expected, decision)
 
     def test_legacy_only_upgrade_uses_aliases_and_canonical_policy_wins_when_present(self):
         hook = self.role_hook()

@@ -40,6 +40,9 @@ def check_legacy_work():
         for stage in workflow["active"]:
             if cards(stage):
                 raise ValueError("Close existing active Cards before activating modules.")
+        intake = workflow.get("intake", workflow["stages"][0])
+        if cards(intake):
+            raise ValueError("Account for existing backlog Cards in an approved migration plan.")
     for description in batch_descriptions():
         status = header_value(description.read_text(encoding="utf-8"), "status")
         if status not in {"draft", "ready", "closed"}:
@@ -47,25 +50,24 @@ def check_legacy_work():
 
 
 def plan(manifest, workflow):
-    paths = [manifest.memory]
+    manifest.check_legacy_boards()
+    board = manifest.board / "kanban"
+    paths = [manifest.memory, board, *(board / stage for stage in workflow["stages"])]
     for workspace in manifest.modules.values():
-        paths.extend((workspace / "rememory", workspace / "kanban"))
-        paths.extend(workspace / "kanban" / stage for stage in workflow["stages"])
+        paths.append(workspace / "rememory")
     for path in paths:
         if path.resolve() != path or (path.exists() and not path.is_dir()):
             raise ValueError(f"Not a local directory: {path.relative_to(ROOT)}.")
-    for workspace in manifest.modules.values():
-        board = workspace / "kanban"
-        config = board / "workflow.json"
-        if config.is_symlink():
-            raise ValueError(f"Not a local workflow: {config.relative_to(ROOT)}.")
-        if config.exists() and json.loads(config.read_text(encoding="utf-8")) != workflow:
-            raise ValueError(f"Different workflow already exists: {config.relative_to(ROOT)}.")
-        if board.exists():
-            outside = [p for p in board.iterdir()
-                       if p.is_dir() and p.name not in workflow["stages"] and any(p.glob("*.md"))]
-            if outside:
-                raise ValueError(f"Module contains Cards outside the approved stages: {workspace.relative_to(ROOT)}.")
+    config = board / "workflow.json"
+    if config.is_symlink():
+        raise ValueError(f"Not a local workflow: {config.relative_to(ROOT)}.")
+    if config.exists() and check_workflow(json.loads(config.read_text(encoding="utf-8"))) != workflow:
+        raise ValueError(f"Different workflow already exists: {config.relative_to(ROOT)}.")
+    if board.exists():
+        outside = [p for p in board.iterdir()
+                   if p.is_dir() and p.name not in workflow["stages"] and any(p.glob("*.md"))]
+        if outside:
+            raise ValueError("The project contains Cards outside the approved stages.")
     return paths
 
 
@@ -99,12 +101,11 @@ def configure(args):
                 path.mkdir(parents=True, exist_ok=True)
                 if not any(path.iterdir()):
                     (path / ".gitkeep").touch(exist_ok=True)
-            for workspace in manifest.modules.values():
-                config = workspace / "kanban/workflow.json"
-                if not config.exists():
-                    with config.open("x", encoding="utf-8") as stream:
-                        json.dump(workflow, stream, indent=2)
-                        stream.write("\n")
+            config = manifest.board / "kanban/workflow.json"
+            if not config.exists():
+                with config.open("x", encoding="utf-8") as stream:
+                    json.dump(workflow, stream, indent=2)
+                    stream.write("\n")
             with tempfile.NamedTemporaryFile(dir=ROOT, prefix=".project-", delete=False) as pending:
                 staged = Path(pending.name)
                 pending.write(snapshot.read_bytes())

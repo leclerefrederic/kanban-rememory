@@ -72,6 +72,11 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.git(cwd, "commit", "-qm", args[0], *args[1:])
         return self.git(cwd, "rev-parse", "HEAD")
 
+    def publication_note(self, module, delivery, owner, revision, *, expected=0):
+        return self.control(module, "milestone", "published", delivery, "--owner", owner,
+                            "--summary", f"Published {delivery} for {module}.",
+                            "--revision", revision, "--published", expected=expected)
+
     def test_activation_refuses_active_work_and_preserves_history(self):
         board = self.root / "project/kanban"
         for stage in ("backlog", "development", "completion", "cancellation"):
@@ -87,10 +92,16 @@ class ModuleDeliveryTests(unittest.TestCase):
         active.write_text("# Active Card\n")
         self.assertIn("Close existing active Cards", self.setup_modules("--apply", expected=1))
         active.rename(board / "completion" / active.name)
+        pending = board / "backlog/card-00000003-pending.md"
+        pending.write_text("# Backlog Card\n")
+        self.assertIn("approved migration plan", self.setup_modules("--apply", expected=1))
+        pending.unlink()
         self.setup_modules("--apply")
         self.assertEqual(sha256(closed.read_bytes()).hexdigest(), digest)
         for module in ("a", "b"):
-            self.assertTrue((self.root / f"project/modules/{module}/kanban/workflow.json").is_file())
+            self.assertTrue((self.root / f"project/modules/{module}/rememory").is_dir())
+            self.assertFalse((self.root / f"project/modules/{module}/kanban").exists())
+        self.assertTrue((board / "workflow.json").is_file())
 
     def test_manifest_errors_block_activation(self):
         original = self.proposal.read_text()
@@ -112,6 +123,26 @@ class ModuleDeliveryTests(unittest.TestCase):
         (workspaces / "b").symlink_to("a", target_is_directory=True)
         self.proposal.write_text(original)
         self.assertIn("Overlapping", self.setup_modules("--apply", expected=1))
+
+    def test_old_module_board_requires_an_explicit_plan_for_unfinished_cards(self):
+        self.setup_modules("--apply")
+        legacy = self.root / "project/modules/a/kanban"
+        for stage in ("backlog", "completion"):
+            (legacy / stage).mkdir(parents=True, exist_ok=True)
+        frozen = legacy / "completion/card-00000008-frozen.md"
+        frozen.write_text("# Historic closure\n")
+        stale = legacy / "backlog/card-00000009-pending.md"
+        stale.write_text("# Unfinished task\n")
+        original = {path: path.read_bytes() for path in (stale, frozen)}
+        refused = self.run_tool(self.root, "manage-kanban-board", "--scope", "a", "new",
+                                "Another", "--owner", "Fixture", "--apply", expected=1)
+        self.assertIn("approved migration plan", refused)
+        self.assertFalse(list((self.root / "project/kanban/backlog").glob("*.md")))
+        self.assertIn(str(frozen.relative_to(self.root)), self.run_tool(
+            self.root, "manage-kanban-board", "history", "a/CARD-00000008",
+        ))
+        self.run_tool(self.root, "manage-kanban-board", "history", "a/CARD-00000009", expected=1)
+        self.assertEqual({path: path.read_bytes() for path in original}, original)
 
     def write_batch(self, module):
         workspace = self.root / "project/modules" / module
@@ -153,13 +184,13 @@ class ModuleDeliveryTests(unittest.TestCase):
             self.git(self.root, "worktree", "add", "-qb", f"delivery-{module}", str(self.base / module))
         card = "CARD-00000001"
         self.control("a", "claim", card, "--owner", "a-card", "--base", revision)
-        self.control("b", "claim", card, "--owner", "b-card", "--base", revision)
+        self.control("b", "claim", "CARD-00000002", "--owner", "b-card", "--base", revision)
         self.assertIn("No matching ownership", self.control(
             "a", "claim", BATCH, "--owner", "a-batch", "--base", revision, "--approval", revision, expected=1,
         ))
         self.run_tool(self.base / "a", "manage-kanban-board", "--module", "a", "move", card, "development",
                       "--owner-token", "a-card")
-        stage = self.root / "project/modules/a/kanban"
+        stage = self.root / "project/kanban"
         active = next((stage / "development").glob("*.md"))
         active.write_text(active.read_text().replace("## Acceptance criteria\n", "## Acceptance criteria\n\n- [x] Verified.\n"))
         self.run_tool(self.base / "a", "manage-kanban-board", "--module", "a", "move", card, "completion",
@@ -167,16 +198,32 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.control("a", "integration", "begin", card, "--owner", "a-card")
         integration = self.base / "integration-card"
         self.git(self.root, "worktree", "add", "-q", "--detach", str(integration), "main")
-        before = next((integration / "project/modules/a/kanban/backlog").glob("*.md"))
+        before = next((integration / "project/kanban/backlog").glob("card-00000001-*.md"))
         before.unlink()
         completed = next((stage / "completion").glob("*.md"))
         shutil.copy(completed, integration / completed.relative_to(self.root))
         closed = self.commit(integration, "Close independent A Card")
         self.control("a", "run-check", card, "--owner", "a-card", "--integration-checkout", integration,
                      "--", sys.executable, "-c", "from pathlib import Path; "
-                     "assert any(Path('project/modules/a/kanban/completion').glob('card-*.md'))")
+                     "assert any(Path('project/kanban/completion').glob('card-00000001-*.md'))")
+        self.assertIn("not on published main", self.publication_note("a", card, "a-card", closed, expected=1))
         self.control("a", "publish-card", card, "--owner", "a-card", "--closing", closed)
         self.control("a", "integration", "release", card, "--owner", "a-card")
+        self.assertIn("Record the verified project publication milestone", self.control(
+            "a", "finish", card, "--owner", "a-card", "--revision", closed, expected=1,
+        ))
+        self.publication_note("a", card, "a-card", closed)
+        self.publication_note("a", card, "a-card", closed)
+        self.git(integration, "commit", "-qm", "Unrelated later commit", "--allow-empty")
+        later = self.git(integration, "rev-parse", "HEAD")
+        self.git(integration, "push", "origin", f"{later}:refs/heads/main")
+        self.assertIn("recorded publication revision", self.publication_note(
+            "a", card, "a-card", later, expected=1,
+        ))
+        journal = next((self.root / "project/rememory").glob("*.md")).read_text()
+        self.assertEqual(journal.count(f"published/{closed}"), 1)
+        self.assertIn("kanban/completion/card-00000001-", journal)
+        self.assertFalse(list((self.root / "project/modules/a/rememory").glob("*.md")))
         self.control("a", "finish", card, "--owner", "a-card", "--revision", closed)
         self.control("a", "claim", BATCH, "--owner", "a-batch", "--base", revision, "--approval", revision)
         self.control("a", "checkpoint", BATCH, "--owner", "a-batch", "waiting")
@@ -223,6 +270,37 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.assertNotEqual(paths[0].parent, paths[1].parent)
         self.control("a", "run-check", BATCH, "--owner", "a", "--", sys.executable,
                      "-c", "raise SystemExit(7)", expected=7)
+
+    def test_project_slot_is_independent_and_routes_work_notes(self):
+        self.setup_modules("--apply")
+        board = self.root / "project/kanban"
+        for scope, title in (("@project", "Project operation"), ("a", "Module operation"),
+                             ("@project", "Second project operation")):
+            self.run_tool(self.root, "manage-kanban-board", "--scope", scope, "new",
+                          title, "--owner", "Fixture", "--apply")
+        revision = self.commit(self.root, "Prepare project and module Cards")
+        for scope, branch in (("@project", "project"), ("a", "a")):
+            self.git(self.root, "worktree", "add", "-qb", f"delivery-{branch}", str(self.base / scope))
+        project_card, module_card, second = ("CARD-00000001", "CARD-00000002", "CARD-00000003")
+        self.control("@project", "claim", project_card, "--owner", "p", "--base", revision)
+        self.control("a", "claim", module_card, "--owner", "a", "--base", revision)
+        self.assertIn("No matching ownership", self.control(
+            "@project", "claim", second, "--owner", "other", "--base", revision, expected=1,
+        ))
+
+        def note(scope, card, owner):
+            target = next((board / "backlog").glob(f"{card.lower()}-*.md")).relative_to(self.root)
+            return self.control(scope, "milestone", "resumption", card, "--owner", owner,
+                                "--summary", f"Resume {scope}.", "--revision", revision,
+                                "--evidence", target)
+
+        note("@project", project_card, "p")
+        note("a", module_card, "a")
+        project_memory = next((self.root / "project/rememory").glob("*.md")).read_text()
+        module_memory = next((self.root / "project/modules/a/rememory").glob("*.md")).read_text()
+        self.assertIn("Resume @project.", project_memory)
+        self.assertNotIn("Resume a.", project_memory)
+        self.assertIn("Resume a.", module_memory)
 
     def test_incompatible_combined_revision_cannot_prepare_closure(self):
         _, paths = self.initialize_deliveries()
@@ -320,7 +398,6 @@ class ModuleDeliveryTests(unittest.TestCase):
         prepare("b", b_closing, b_accepted)
         self.control("b", "closure", "publish", BATCH, "--owner", "b")
         self.control("b", "integration", "release", BATCH, "--owner", "b")
-        self.control("b", "finish", BATCH, "--owner", "b", "--revision", b_closing)
         self.git(self.root, "merge", "--ff-only", b_closing)
         self.assertIn(b_closing, self.control("a", "integration", "begin", BATCH, "--owner", "a"))
 
@@ -334,7 +411,16 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.assertEqual(self.git(self.root, "ls-remote", "origin", "refs/tags/fixture/a/batch-001").split()[0], approved)
         self.assertTrue((directory / f"closure-a-batch-001-previous-{stale}.json").is_file())
         self.control("a", "integration", "release", BATCH, "--owner", "a")
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            notes = [executor.submit(self.publication_note, module, BATCH, module, sha)
+                     for module, sha in (("a", closing), ("b", b_closing))]
+            for note in notes:
+                note.result()
+        journal = next((self.root / "project/rememory").glob("*.md")).read_text()
+        self.assertIn(f"a/{BATCH}/published/{closing}", journal)
+        self.assertIn(f"b/{BATCH}/published/{b_closing}", journal)
         self.control("a", "finish", BATCH, "--owner", "a", "--revision", closing)
+        self.control("b", "finish", BATCH, "--owner", "b", "--revision", b_closing)
         self.assertEqual(self.control("a", "status").strip(), "null")
 
     def test_interrupt_and_resume_accepted_and_rejected_publication(self):
@@ -389,6 +475,7 @@ class ModuleDeliveryTests(unittest.TestCase):
             self.assertIn("Release integration", self.control(module, "finish", BATCH, "--owner", module,
                                                              "--revision", closing, expected=1))
             self.control(module, "integration", "release", BATCH, "--owner", module)
+            self.publication_note(module, BATCH, module, closing)
             self.control(module, "finish", BATCH, "--owner", module, "--revision", closing)
             self.assertEqual(self.control(module, "status").strip(), "null")
             self.git(self.root, "merge", "--ff-only", closing)

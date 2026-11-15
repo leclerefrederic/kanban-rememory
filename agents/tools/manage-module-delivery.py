@@ -18,7 +18,7 @@ DELIVERY = re.compile(r"(?:CARD-[0-9]{8}|Batch-[0-9]{3,})")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--module", help="Module ID from the root project.json")
+    parser.add_argument("--module", "--scope", help="Module ID from project.json or @project")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
     claim = commands.add_parser("claim")
@@ -31,8 +31,8 @@ def main():
     milestone.add_argument("event", help="Stable milestone identifier")
     milestone.add_argument("--summary", required=True)
     milestone.add_argument("--revision", required=True)
-    milestone.add_argument("--evidence", required=True, help="Evidence path relative to the control checkout")
-    milestone.add_argument("--shared", action="store_true", help="Also record the impact in the global journal")
+    milestone.add_argument("--evidence", help="Evidence path relative to the control checkout for local notes")
+    milestone.add_argument("--published", action="store_true", help="Record the verified publication in the project journal")
     closure = commands.add_parser("closure")
     closure.add_argument("action", choices=("prepare", "publish"))
     closure.add_argument("--closing")
@@ -74,7 +74,7 @@ def main():
                 if not re.fullmatch(r"[A-Za-z0-9_-]+", args.event):
                     raise ValueError("Use a stable alphanumeric milestone identifier.")
                 state = coordination.milestone(args.owner, args.delivery, args.event, args.summary,
-                                              args.revision, args.evidence, args.shared)
+                                              args.revision, args.evidence, args.published)
             elif args.command == "publish-card":
                 state = coordination.publish_card(args.owner, args.delivery, args.closing)
             elif args.command == "closure":

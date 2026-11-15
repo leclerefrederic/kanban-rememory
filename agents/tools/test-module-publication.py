@@ -143,16 +143,16 @@ class ModulePublicationTests(unittest.TestCase):
 
     def test_artifact_guard_uses_the_module_and_batch_of_active_card(self):
         name = "CARD-00000001"
-        for module, batch in (("a", "Batch-001"), ("b", "Batch-002")):
-            board = self.root / f"work/{module}/kanban"
-            stage = board / "development"
-            stage.mkdir(parents=True)
-            (board / "completion").mkdir()
-            (board / "workflow.json").write_text(json.dumps({
-                "stages": ["development", "completion"], "active": ["development"],
-                "completed": "completion", "wip_limit": 1, "timezone": "UTC",
-            }))
-            (stage / f"{name.lower()}-example.md").write_text(f'---\nbatch: "{batch}"\n---\n')
+        board = self.root / "project/kanban"
+        stage = board / "development"
+        stage.mkdir(parents=True)
+        (board / "completion").mkdir()
+        (board / "workflow.json").write_text(json.dumps({
+            "stages": ["development", "completion"], "active": ["development"],
+            "completed": "completion", "wip_limit": 1, "timezone": "UTC",
+        }))
+        (stage / f"{name.lower()}-example.md").write_text('---\nscope: "a"\nbatch: "Batch-001"\n---\n')
+        (stage / "card-00000002-other.md").write_text('---\nscope: "b"\nbatch: "Batch-002"\n---\n')
 
         def invoke(selected, record):
             return subprocess.run(

@@ -25,6 +25,8 @@ repository/
 
 The example is Standard; the actual configured workflow owns stage names/order and active WIP. Cards live in their stage folders, journals by date/owner in Rememory. Kit templates remain under agents, never as a dated project journal.
 
+With modules, root `project.json` declares their workspace locations. The project board and journal stay above the module workspaces. Each workspace has its own `rememory/` and, when enabled, a `specs/` and `batches/` pair. A project's Cards carry a module or project scope and use one shared sequence of IDs.
+
 With the Batch module:
 
 ```text

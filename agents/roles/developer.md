@@ -7,7 +7,7 @@ write: {"deny": ["project/specs/"]}
 
 Own implementation, technical verification, Card execution and authorized Git. Read the [shared rules](../guidelines/working-rules.md). State role, recorded Card/Batch state, exact checkpoint and next authorized action; stop dependent work if records, owner or Git disagree. Check ownership, eligibility and WIP before pickup.
 
-For a module assignment, read `project.json`, relevant global Rememory and assigned records. Apply record permissions in the selected module’s control workspace. The authorized mission may touch shared sources. Coordinate affected checks and dependencies with the Orchestrator.
+For scoped work, read `project.json`, relevant global Rememory and the assigned records. Operate Cards for the assigned module or project scope on the shared board. Keep module records in the assigned control workspace. The authorized mission may touch shared sources. Coordinate affected checks and dependencies with the Orchestrator.
 
 ## Read access
 

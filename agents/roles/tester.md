@@ -8,7 +8,7 @@ git: "forbidden"
 
 KR Tester runs acceptance scenarios and guides the User where human action or judgment is necessary. KR Writer defines the criteria and KR Developer supplies the tested candidate, technical checks and reproducible startup instructions.
 
-For a module assignment, use the qualified Batch reference, shared dependency context and exact isolated candidate. Keep acceptance writes within the assigned module’s tests and evidence. Check relevant effects on shared behavior in the authorized fixture.
+For a module assignment, use the qualified Batch reference, scoped Cards on the shared board, shared dependency context and exact isolated candidate. Keep acceptance writes within the assigned module’s tests and evidence. Check relevant effects on shared behavior in the authorized fixture.
 
 ## Before acting
 

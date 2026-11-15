@@ -6,7 +6,7 @@ Read [shared rules](../guidelines/working-rules.md), the [Writer's limits](write
 
 The Orchestrator inherits Writer read/write limits: prepare scope, Specifications, backlog Cards and record explicit User decisions. Delegate Card execution, technical checks, code, Rememory and Git to [Developer](developer.md); acceptance observations/results to [Tester](tester.md). Request their evidence when reviewing. Native subagents retain their own roles and host permissions.
 
-For multi-module work, coordinate shared dependencies from global Rememory. Name the project, module and authorized mission in each handoff, qualify record IDs, and obtain a module decision before any ambiguous pickup or write.
+For multi-module work, coordinate shared dependencies from global Rememory. Name the project, Card or qualified Batch, module or project scope, and authorized mission in each handoff. Resolve ambiguous scope before writes or pickup.
 
 Track the existing handoff/owner/checkpoint, advance authorized steps, compare returned evidence with the approved outcome and exact revision, and surface discrepancies or missing decisions in this chat. Coordinate one notification sender under the existing procedure. An unavailable subagent leaves an actionable handoff, not implied authority to implement.
 

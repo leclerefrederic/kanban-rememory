@@ -14,7 +14,7 @@ Send no progress, routine intermediate results, autonomous recoverable errors, t
 
 1. Emoji/hook: 🔔 Action required, 🧪 Ready to test, or ✅ Work completed.
 2. Project (`--project`, defaults to repository folder name).
-3. Card/Batch (`--reference` for attention/completed; `--batch` for Batch events).
+3. Card/Batch (`--reference` for attention/completed; `--batch` for Batch events). For a project with modules, use `--scope MODULE` for module work or `--scope @project` for a project Card.
 4. Summary (`--text`), at most two sentences describing requested work and what waits or was verified; delivery includes full tested revision.
 5. Explicit next action (`--next-action`), beginning with a verb and saying where to act. If none remains, say “No action required” in the User's language.
 

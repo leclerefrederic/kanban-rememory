@@ -12,8 +12,9 @@ import shlex
 import subprocess
 import sys
 
-from kanban.files import header_value
-from kanban.project import load_project, primary_worktree
+from kanban.files import CARD_ID, header_value
+from kanban.project import PROJECT_SCOPE, load_project, primary_worktree
+from kanban.workflow import load_workflow
 
 ROLE_ALIASES = {"development-agent": "developer", "specification-agent": "writer"}
 
@@ -107,6 +108,8 @@ def module_policy_path(project, module, kind, rel, directory, in_control):
         if path.is_relative_to(workspace):
             if name != module or not in_control:
                 return None
+            if kind == "write" and path.is_relative_to(workspace / "kanban"):
+                return None
             return (Path("project") / path.relative_to(workspace)).as_posix()
         if directory and workspace.is_relative_to(path):
             return None
@@ -120,13 +123,150 @@ def module_policy_path(project, module, kind, rel, directory, in_control):
     return rel
 
 
+def card_header(source):
+    lines = source.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        raise ValueError("Card front matter is missing.")
+    end = next((index for index, line in enumerate(lines[1:], 1) if line.strip() == "---"), None)
+    if end is None:
+        raise ValueError("Card front matter is unclosed.")
+    return "".join(lines[:end + 1])
+
+
+def preserves_card_header(source, tool, fields):
+    """Allow body edits only. The board CLI owns Card identity and scope."""
+    before = card_header(source)
+    if tool == "Write":
+        result = fields.get("content")
+        return isinstance(result, str) and card_header(result) == before
+    edits = [fields] if tool == "Edit" else fields.get("edits") if tool == "MultiEdit" else None
+    if not isinstance(edits, list) or not edits:
+        return False
+    for edit in edits:
+        if not isinstance(edit, dict):
+            return False
+        old, new = edit.get("old_string"), edit.get("new_string")
+        if not isinstance(old, str) or not old or not isinstance(new, str) or old not in source:
+            return False
+        source = source.replace(old, new, -1 if edit.get("replace_all") is True else 1)
+        if card_header(source) != before:
+            return False
+    return True
+
+
+def card_board_access(project, selected, kind, rel, directory, in_control, tool, fields):
+    """Return the policy path of a permitted scoped access to the common board."""
+    board = project.board / "kanban"
+    path = project.root / rel
+    if directory:
+        return None  # Use a scoped board view; a raw search would mix assignments.
+    if tool == "Bash" or not in_control:
+        return None
+    parts = path.relative_to(board).parts
+    if parts == ("workflow.json",):
+        return rel if kind == "read" else None
+    if len(parts) != 2 or path.suffix != ".md" or not CARD_ID.match(path.stem):
+        return None
+    if not path.is_file() or path.stat().st_nlink != 1:
+        return None
+    scope = project.card_scope(path, allow_legacy=True)
+    if kind == "read":
+        # Explicitly scoped Cards stay within the assignment. Historical
+        # project-wide Cards without a scope remain readable.
+        if scope is None:
+            return rel if parts[0] in historical_stages(project) else None
+        return rel if scope == selected else None
+    workflow = load_workflow(project.board)
+    stage = parts[0]
+    if (stage not in workflow["stages"] or stage in {workflow["completed"], "cancellation"}
+            or scope != selected):
+        return None
+    return rel if preserves_card_header(path.read_text(encoding="utf-8"), tool, fields) else None
+
+
+def historical_stages(project):
+    workflow = load_workflow(project.board)
+    return {workflow["completed"], "cancellation"}
+
+
+def aliases_shared_board(project, root, raw, cwd):
+    """Reject a linked literal under the board, even when it resolves outside it."""
+    path = Path(raw)
+    lexical = Path(os.path.abspath(path if path.is_absolute() else Path(cwd) / path))
+    suffix = project.board.relative_to(project.root) / "kanban"
+    for checkout in {root, project.root}:
+        checkout = Path(checkout)
+        if lexical.is_relative_to(checkout / suffix):
+            return lexical.resolve() != checkout.resolve() / lexical.relative_to(checkout)
+    return False
+
+
+def literal_board_command(command, cwd, root, project):
+    """Recognize a direct board CLI call, with an optional Python prefix."""
+    try:
+        words = shlex.split(command)
+    except ValueError:
+        return (), ()
+    if words and words[0] == "env":
+        words.pop(0)
+    environment = []
+    while words and re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*=", words[0]):
+        environment.append(words.pop(0))
+    if words and re.fullmatch(r"(?:python[0-9.]*)|py", Path(words[0]).name):
+        words.pop(0)
+        while words and words[0] in {"-3", "-B", "-E", "-I", "-s", "-S", "-u"}:
+            words.pop(0)
+    if not words:
+        return (), ()
+    script = (Path(cwd) / words[0]).resolve()
+    board_cli = Path("agents/tools/manage-kanban-board.py")
+    if script not in {(checkout / board_cli).resolve() for checkout in (root, project.root)}:
+        return (), ()
+    return words[1:], environment
+
+
+def board_command_violation(role, project, scope, root, cwd, command):
+    args, environment = literal_board_command(command, cwd, root, project)
+    if not args:
+        return None
+    scopes = [entry.split("=", 1)[1] for entry in environment if entry.startswith("KR_MODULE=")]
+    switches = {"--module", "--scope"}
+    verb = None
+    index = 0
+    while index < len(args):
+        name, equal, value = args[index].partition("=")
+        if name in switches:
+            if not equal:
+                index += 1
+                value = args[index] if index < len(args) else ""
+            scopes.append(value)
+        elif verb is None:
+            verb = args[index]
+        index += 1
+    if verb in {"new", "init"} and "--apply" not in args:
+        return None
+    write_paths = {
+        "new": "project/kanban/backlog/card.md",
+        "reassign": "project/kanban/backlog/card.md",
+        "move": "project/kanban/development/card.md",
+        "init": "project/kanban/workflow.json",
+    }
+    if verb not in write_paths:
+        return None
+    if any(value != scope for value in scopes) or (verb in {"init", "reassign"} and scope != PROJECT_SCOPE):
+        return "write", f"running the board {verb} command outside the assigned scope"
+    if not permits(role, "write", write_paths[verb]):
+        return "write", f"running the board {verb} command"
+    return None
+
+
 def module_shell_paths(project, root, cwd, command):
     """Recognize simple literal arguments for custom module and memory paths."""
     try:
         words = shlex.split(command)
     except ValueError:
         return
-    tracked = (*project.modules.values(), project.memory)
+    tracked = (*project.modules.values(), project.memory, project.board / "kanban")
     for word in words:
         if word.startswith("-") or not word or "\x00" in word:
             continue
@@ -183,14 +323,32 @@ def refusal(role, kind, label):
 
 
 def violation(role, root, tool, tool_input, cwd, project=None, module=None):
+    if project and tool == "Bash":
+        invalid = board_command_violation(role, project, module, root, cwd, tool_input.get("command", ""))
+        if invalid:
+            return invalid
+    file_tool = READ_TOOLS.get(tool) or WRITE_TOOLS.get(tool)
+    if project and file_tool and tool_input.get(file_tool):
+        if aliases_shared_board(project, root, tool_input[file_tool], cwd):
+            kind = "read" if tool in READ_TOOLS else "write"
+            return kind, "accessing a linked project Card path"
     for kind, rel, directory, label, in_control in checks(root, tool, tool_input, cwd, project):
         if kind == "git":
             if role.get("git") == "forbidden":
                 return kind, label
         else:
-            policy_path = module_policy_path(project, module, kind, rel, directory, in_control) if project else rel
+            policy_path = rel
+            if project:
+                path = project.root / rel
+                board = project.board / "kanban"
+                if path.is_relative_to(board) or (directory and board.is_relative_to(path)):
+                    policy_path = card_board_access(
+                        project, module, kind, rel, directory, in_control, tool, tool_input
+                    )
+                else:
+                    policy_path = module_policy_path(project, module, kind, rel, directory, in_control)
             if policy_path is None:
-                return kind, f"{label} outside the selected module's control records or scope"
+                return kind, f"{label} outside the selected scope's permitted records"
             if policy_path == "project.json" and kind == "read" and project:
                 continue
             if not permits(role, kind, policy_path, directory):
@@ -221,6 +379,8 @@ def decide(roles, agent_type, root, tool, tool_input, cwd, project=None, module=
 def scoped_project(root, requested):
     control = primary_worktree(root) if (root / ".git").exists() else root
     project = load_project(control)
+    if project.modules and requested == PROJECT_SCOPE:
+        return project, PROJECT_SCOPE
     selected = project.select_module(requested)
     return (project, selected) if selected is not None else (None, None)
 
@@ -242,7 +402,7 @@ def main():
         project, selected = scoped_project(root, os.environ.get("KR_MODULE"))
         message = decide(roles, agent_type, root, event.get("tool_name", ""),
                          event.get("tool_input") or {}, cwd, project, selected)
-    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         message = f"Refused: module scope could not be resolved. {error}"
     if message:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",

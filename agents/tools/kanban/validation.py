@@ -5,9 +5,10 @@ import re
 import subprocess
 from urllib.parse import unquote, urlsplit
 
-from .batches import validate_lot_mapping
+from .batches import relationship, validate_lot_mapping
 from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, anchors,
-                    markdown_files, markdown_lines)
+                    check_module_records, markdown_files, markdown_lines)
+from .project import PROJECT_SCOPE
 
 
 # Preserve the exact historical references recorded before this policy.
@@ -86,9 +87,15 @@ def archived_specification_resource(source, target, project=PROJECT, root=ROOT):
     return False
 
 
-def validate(workflow, project=PROJECT, workspaces=(), root=ROOT):
+def validate(workflow, project=PROJECT, workspaces=(), root=ROOT, *, context=None, selected_scope=None):
     findings = []
     by_id = defaultdict(list)
+    scoped_paths = defaultdict(list)
+    card_scopes = {}
+    active_counts = defaultdict(int)
+    if context:
+        for workspace in workspaces:
+            check_module_records(workspace)
     for stage in workflow["stages"]:
         for path in sorted((project / "kanban" / stage).glob("*.md")):
             match = CARD_ID.match(path.stem)
@@ -96,6 +103,23 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT):
                 findings.append(f"{path.relative_to(root)}: expected a card ID with eight digits from 00000001 to 99999999")
                 continue
             by_id[CARD_ID.match(path.stem)[1].upper()].append(path.relative_to(root))
+            if context:
+                try:
+                    scope = context.card_scope(path, allow_legacy=True)
+                except ValueError as error:
+                    findings.append(f"{path.relative_to(root)}: {error}")
+                    continue
+                if scope is None and stage not in {workflow["completed"], "cancellation"}:
+                    findings.append(f"{path.relative_to(root)}: assign a scope to unfinished Cards before switching boards")
+                    continue
+                scoped_paths[scope or PROJECT_SCOPE].append(path)
+                if scope is not None:
+                    card_scopes[path] = scope
+                    if (scope == PROJECT_SCOPE and selected_scope in {None, PROJECT_SCOPE}
+                            and relationship(path.read_text(encoding="utf-8"), "batch")):
+                        findings.append(f"{path.relative_to(root)}: Batch Cards require a module scope")
+                    if stage in workflow["active"]:
+                        active_counts[scope] += 1
             if stage == workflow["completed"]:
                 for check in acceptance_checks(path.read_text(encoding="utf-8")):
                     if re.match(r"[-*+]\s+\[ \]", check):
@@ -104,12 +128,27 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT):
         if len(paths) > 1:
             findings.append(f"duplicate {task_id}: {', '.join(map(str, paths))}")
 
-    findings.extend(validate_lot_mapping((root / path for paths in by_id.values() for path in paths), project, root))
+    if context:
+        for scope in (PROJECT_SCOPE, *context.modules) if selected_scope is None else (selected_scope,):
+            if active_counts[scope] > workflow["wip_limit"]:
+                findings.append(f"{scope}: Card WIP exceeds the shared workflow limit")
+            findings.extend(validate_lot_mapping(scoped_paths[scope], context.scope_workspace(scope), root))
+    else:
+        findings.extend(validate_lot_mapping(
+            (root / path for paths in by_id.values() for path in paths), project, root,
+        ))
 
     board_paths = (root / "project/kanban", *(space / "kanban" for space in workspaces))
-    for path in markdown_files(None if project == PROJECT else project, root):
+    batch_folders = ("batches", "lots", "Lots")
+    for path in markdown_files(None if project == root / "project" else project, root):
         name = path.relative_to(root)
-        batch_record = any(path.is_relative_to(project / folder) for folder in ("batches", "lots", "Lots"))
+        records = next((space for space in workspaces if path.is_relative_to(space)), project)
+        if selected_scope is not None and (
+            (records != project and records != context.scope_workspace(selected_scope))
+            or (path in card_scopes and card_scopes[path] != selected_scope)
+        ):
+            continue
+        batch_record = any(path.is_relative_to(records / folder) for folder in batch_folders)
         if batch_record:
             references = defaultdict(int)
             for match in BATCH_CARD_ID.finditer(path.read_text(encoding="utf-8")):
@@ -130,9 +169,15 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT):
                 if url.scheme or url.netloc:
                     continue
                 target = path.parent / unquote(url.path) if url.path else path
-                if not target.exists() and path.is_relative_to(project / "batches"):
+                if path in card_scopes and url.path:
+                    resolved = target.resolve()
+                    expected = context.scope_workspace(card_scopes[path])
+                    if any(resolved.is_relative_to(space / folder)
+                           for space in (project, *workspaces) if space != expected for folder in batch_folders):
+                        findings.append(f"{name}: Card cannot link to a Batch in a different scope: {href}")
+                if not target.exists() and path.is_relative_to(records / "batches"):
                     target = target.with_name(target.name.lower())
-                if not target.exists() and archived_specification_resource(path, target.resolve(), project, root):
+                if not target.exists() and archived_specification_resource(path, target.resolve(), records, root):
                     continue
                 reference = (name.as_posix(), href)
                 if not target.exists() and (reference in HISTORICAL_RETIRED_LINKS

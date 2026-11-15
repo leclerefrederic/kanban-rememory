@@ -37,18 +37,19 @@ def record_scope(record, module):
     selected = project.select_module(invocation_module(module))
     workspace = project.workspace(selected)
     if selected is None:
-        return workspace, None
+        return project.board, None, None
     check_module_records(workspace)
+    check_module_records(project.board)
     prefix = coordination_root(ROOT).resolve() / "projects" / project.id / "modules" / selected
     path = record.absolute()
     if (not path.is_relative_to(prefix) or len(path.relative_to(prefix).parts) != 2
             or path.name != "guard.json" or path != path.resolve()
             or not re.fullmatch(r"batch-[0-9]+", path.parent.name)):
         raise ValueError(f"Expected a local guard at {prefix}/<batch>/guard.json.")
-    return workspace, f"Batch-{path.parent.name[6:]}"
+    return project.board, f"Batch-{path.parent.name[6:]}", selected
 
 
-def active_card(card, workspace, batch=None):
+def active_card(card, workspace, batch=None, scope=None):
     from kanban.files import header_value
 
     board = workspace / "kanban"
@@ -65,7 +66,10 @@ def active_card(card, workspace, batch=None):
         raise ValueError("workflow.json must list its active stages.")
     for stage in stages:
         for path in (board / stage).glob(card.lower() + "-*.md"):
-            if batch is None or header_value(path.read_text(encoding="utf-8"), "batch") == batch:
+            if path.is_symlink() or not path.is_file():
+                continue
+            source = path.read_text(encoding="utf-8")
+            if batch is None or (header_value(source, "batch") == batch and header_value(source, "scope") == scope):
                 return True
     return False
 
@@ -104,14 +108,14 @@ def main():
     try:
         # Pre-push already selects and verifies the record against the pushed commit.
         if args.operation != "publish" or args.module is not None:
-            workspace, batch = record_scope(args.record, args.module)
+            workspace, batch, scope = record_scope(args.record, args.module)
         record = json.loads(args.record.read_text())
         current = revision("HEAD")
         frozen = record.get("acceptance")
         if args.operation in {"change", "correct"}:
             if not re.fullmatch(r"[A-Z][A-Z0-9]*-[0-9]{8}", args.card or ""):
                 raise ValueError("An active Card ID is required.")
-            if args.card not in record["authorized_cards"] or not active_card(args.card, workspace, batch):
+            if args.card not in record["authorized_cards"] or not active_card(args.card, workspace, batch, scope):
                 raise ValueError("Record out-of-scope work in Backlog and defer it.")
             if args.operation == "correct":
                 if not frozen or not args.blocking_test or record.get("correction"):

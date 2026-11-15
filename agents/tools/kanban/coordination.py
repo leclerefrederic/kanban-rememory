@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 from .batches import batch_descriptions, verify_approval
 from .files import CARD_ID, cards, check_module_records, header_value
 from .workflow import load_workflow
-from .project import coordination_root, load_project, primary_worktree
+from .project import PROJECT_SCOPE, coordination_root, load_project, primary_worktree
 
 
 class BusyError(ValueError):
@@ -72,16 +72,23 @@ def replace_json(path, value):
     replace_text(path, json.dumps(value, indent=2) + "\n")
 
 
-def add_milestone(directory, day, timezone, identity, entry):
-    if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
-        raise ValueError(f"Not a local journal directory: {directory}.")
-    directory.mkdir(parents=True, exist_ok=True)
+def recorded_milestone(directory, identity):
     marker = f"<!-- kr-event: {identity} -->"
     for file in directory.glob("????-??-??.md"):
         if file.is_symlink():
             raise ValueError(f"Not a local journal file: {file}.")
         if marker in file.read_text(encoding="utf-8").splitlines():
-            return
+            return True
+    return False
+
+
+def add_milestone(directory, day, timezone, identity, entry):
+    if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+        raise ValueError(f"Not a local journal directory: {directory}.")
+    directory.mkdir(parents=True, exist_ok=True)
+    if recorded_milestone(directory, identity):
+        return
+    marker = f"<!-- kr-event: {identity} -->"
     file = directory / f"{day}.md"
     current = file.read_text(encoding="utf-8") if file.exists() else f"# {day} ({timezone})\n"
     title, _, previous = current.partition("\n")
@@ -93,9 +100,10 @@ class Coordination:
         self.root = Path(root).resolve()
         self.primary = primary_worktree(self.root)
         self.project = load_project(self.primary)
-        self.module = self.project.select_module(module)
-        if self.module is None:
+        if not self.project.modules:
             raise ValueError("Module delivery coordination requires an active project.json.")
+        self.module = (self.project.validate_scope(module) if module is not None
+                       else self.project.select_module())
         self.directory = coordination_root(self.root) / "projects" / self.project.id
         self.module_file = self.directory / f"module-{self.module}.json"
 
@@ -123,9 +131,11 @@ class Coordination:
 
     @property
     def workspace(self):
-        return self.project.workspace(self.module)
+        return self.project.scope_workspace(self.module)
 
     def description(self, delivery):
+        if self.module == PROJECT_SCOPE:
+            raise ValueError("Batches in a module-aware project require a module scope.")
         matches = [path for path in batch_descriptions(self.workspace)
                    if header_value(path.read_text(encoding="utf-8"), "id") == delivery]
         if len(matches) != 1:
@@ -134,11 +144,15 @@ class Coordination:
 
     def check_intake(self, delivery, approval):
         check_module_records(self.workspace)
-        workflow = load_workflow(self.workspace)
-        if any(cards(stage, self.workspace) for stage in workflow["active"]):
+        check_module_records(self.project.board)
+        self.project.check_legacy_boards()
+        workflow = load_workflow(self.project.board)
+        if any(self.scope_cards(stage) for stage in workflow["active"]):
             raise ValueError("Reconcile active Cards before claiming a new delivery.")
         open_batches = [path for path in batch_descriptions(self.workspace)
                         if header_value(path.read_text(encoding="utf-8"), "status") != "closed"]
+        if self.module == PROJECT_SCOPE:
+            open_batches = []
         if len(open_batches) > 1:
             raise ValueError("Reconcile multiple open Batches before claiming a delivery.")
         if delivery.startswith("Batch-"):
@@ -153,10 +167,18 @@ class Coordination:
                    for p in open_batches):
                 raise ValueError("Reconcile the active Batch before claiming a Card.")
             intake = workflow.get("intake", workflow["stages"][0])
-            matches = [path for path in cards(intake, self.workspace)
+            matches = [path for stage in workflow["stages"] for path in cards(stage, self.project.board)
                        if CARD_ID.match(path.stem)[1].upper() == delivery]
-            if len(matches) != 1 or header_value(matches[0].read_text(encoding="utf-8"), "batch"):
+            if (len(matches) != 1 or matches[0].parent.name != intake
+                    or self.project.card_scope(matches[0]) != self.module
+                    or header_value(matches[0].read_text(encoding="utf-8"), "batch")):
                 raise ValueError("Claim a standalone Card in intake or its approved Batch.")
+
+    def scope_cards(self, stage):
+        workflow = load_workflow(self.project.board)
+        archived = stage in {workflow["completed"], "cancellation"}
+        return [path for path in cards(stage, self.project.board)
+                if self.project.card_scope(path, allow_legacy=archived) == self.module]
 
     def claim(self, owner, delivery, base, approval=None):
         branch = self.branch()
@@ -165,7 +187,9 @@ class Coordination:
             ["git", "merge-base", "--is-ancestor", base_revision, "HEAD"],
             cwd=self.root, check=True,
         )
-        with exclusive(self.directory, "pickup"), exclusive(self.directory, f"module-{self.module}"):
+        with (exclusive(self.directory, "pickup"),
+              exclusive(self.directory, f"module-{self.module}"),
+              exclusive(self.directory, "board-write")):
             current = self.status()
             if current:
                 self.require_owner(owner, delivery)
@@ -244,19 +268,25 @@ class Coordination:
         if not delivery.startswith("CARD-"):
             raise ValueError("Use qualified Batch closure for a Batch.")
         with exclusive(self.directory, f"module-{self.module}"):
-            self.require_owner(owner, delivery)
+            claim = self.require_owner(owner, delivery)
             with exclusive(self.directory, "integration-update"):
                 state = self.update_integration("verify", owner, delivery)
                 if state.get("verified_revision") != closing:
                     raise ValueError("Verify the exact combined Card closing revision.")
                 self.check_closure(delivery, closing)
                 remote_main = self.remote_main()
+                previous = claim.get("closing_revision")
+                if previous and previous != closing and self.is_ancestor(previous, remote_main):
+                    raise ValueError("The Card was already published at a different closing revision.")
                 if self.is_ancestor(closing, remote_main):
+                    self.require_card_publication(claim, delivery, closing)
                     return remote_main
                 if remote_main != state["main_revision"]:
                     raise ValueError("Remote main advanced. Reconcile and verify again before publishing.")
                 if not self.is_ancestor(remote_main, closing) or not self.is_ancestor(self.git("rev-parse", "HEAD"), closing):
                     raise ValueError("Closing revision must preserve main and the delivery branch.")
+                claim["closing_revision"] = closing
+                replace_json(self.module_file, claim)
                 self.git("push", f"--force-with-lease=refs/heads/main:{remote_main}", "origin",
                          f"{closing}:refs/heads/main")
                 published = self.remote_main()
@@ -281,7 +311,7 @@ class Coordination:
 
     def finish(self, owner, delivery, revision):
         with exclusive(self.directory, f"module-{self.module}"):
-            self.require_owner(owner, delivery)
+            claim = self.require_owner(owner, delivery)
             with exclusive(self.directory, "integration-update"):
                 integration = self.directory / "integration.json"
                 if integration.exists() and json.loads(integration.read_text())["module"] == self.module:
@@ -291,11 +321,14 @@ class Coordination:
                 published = self.remote_main()
                 if not self.is_ancestor(revision, published):
                     raise ValueError("The exact closing revision is not on published main.")
+                self.require_card_publication(claim, delivery, revision)
                 self.check_closure(delivery, revision)
                 if delivery.startswith("Batch-"):
                     from .closure import Closure
 
                     Closure(self, owner, delivery).verify_published(revision, published)
+                if not recorded_milestone(self.project.memory, self.publication_identity(delivery, revision)):
+                    raise ValueError("Record the verified project publication milestone before releasing capacity.")
                 self.module_file.unlink()
 
     def check_closure(self, delivery, revision):
@@ -311,36 +344,65 @@ class Coordination:
             if header_value(published, "id") != delivery:
                 raise ValueError("Published closure belongs to another Batch.")
         else:
-            completed = load_workflow(self.workspace)["completed"]
-            matches = [path for path in cards(completed, self.workspace)
+            completed = load_workflow(self.project.board)["completed"]
+            matches = [path for path in self.scope_cards(completed)
                        if CARD_ID.match(path.stem)[1].upper() == delivery]
             if len(matches) != 1:
                 raise ValueError("Complete the matching Card before releasing capacity.")
             relative = matches[0].relative_to(self.primary)
             published = self.git("show", f"{revision}:{relative}")
+            if header_value(published, "scope") != self.module or header_value(published, "id") != delivery:
+                raise ValueError("Published Card closure belongs to another scope or Card.")
             checks = list(acceptance_checks(published))
             if not checks or any("[ ]" in check for check in checks):
                 raise ValueError("Published Card closure is missing verified criteria.")
+        return self.primary / relative
 
-    def milestone(self, owner, delivery, event, summary, revision, evidence, shared=False):
+    def publication_identity(self, delivery, revision):
+        return f"{self.project.id}/{self.module}/{delivery}/published/{revision}"
+
+    def require_card_publication(self, claim, delivery, revision):
+        if delivery.startswith("CARD-") and claim.get("closing_revision") != revision:
+            raise ValueError("Use the Card's recorded publication revision.")
+
+    def milestone(self, owner, delivery, event, summary, revision, evidence=None, published=False):
         if not summary.strip() or "\n" in summary or "\r" in summary:
             raise ValueError("Supply a short single-line milestone.")
         check_module_records(self.workspace)
-        target = (self.primary / evidence).resolve()
-        if not target.is_relative_to(self.workspace) or not target.is_file():
-            raise ValueError("Link a local evidence file within this module.")
         if self.git("rev-parse", "--verify", f"{revision}^{{commit}}") != revision:
             raise ValueError("Supply the full milestone commit.")
-        timezone = load_workflow(self.workspace)["timezone"]
+        timezone = load_workflow(self.project.board)["timezone"]
         day = datetime.now(ZoneInfo(timezone)).date()
         event_identity = f"{self.project.id}/{self.module}/{delivery}/{event}"
         reference = f"{self.module}/{delivery}"
         with exclusive(self.directory, f"module-{self.module}"):
-            self.require_owner(owner, delivery)
+            claim = self.require_owner(owner, delivery)
+            if published:
+                remote_main = self.remote_main()
+                if not self.is_ancestor(revision, remote_main):
+                    raise ValueError("The milestone revision is not on published main.")
+                self.require_card_publication(claim, delivery, revision)
+                target = self.check_closure(delivery, revision)
+                if delivery.startswith("Batch-"):
+                    from .closure import Closure
+
+                    Closure(self, owner, delivery).verify_published(revision, remote_main)
+                event_identity = self.publication_identity(delivery, revision)
+                directory = self.project.memory
+            else:
+                if not evidence:
+                    raise ValueError("Link to existing evidence for a work note.")
+                target = (self.primary / evidence).resolve()
+                in_board = target.is_relative_to(self.project.board / "kanban")
+                same_scope = (in_board and target.is_file()
+                              and self.project.card_scope(target, allow_legacy=True) == self.module)
+                if not target.is_file() or (not same_scope and
+                        (in_board or not target.is_relative_to(self.workspace))):
+                    raise ValueError("Link a local evidence file within the current scope.")
+                directory = self.project.scope_memory(self.module)
             with exclusive(self.directory, "journal-update"):
-                local = self.workspace / "rememory"
-                for directory in (local, self.project.memory) if shared else (local,):
-                    relative = Path(os.path.relpath(target, directory)).as_posix()
-                    entry = (f"## {reference}\n\n{summary}\n\n"
-                             f"Revision: `{revision}`. [Local evidence](<{relative}>).")
-                    add_milestone(directory, day, timezone, event_identity, entry)
+                relative = Path(os.path.relpath(target, directory)).as_posix()
+                verb = "Published revision" if published else "Revision"
+                entry = (f"## {reference}\n\n{summary}\n\n"
+                         f"{verb}: `{revision}`. [Reference record](<{relative}>).")
+                add_milestone(directory, day, timezone, event_identity, entry)

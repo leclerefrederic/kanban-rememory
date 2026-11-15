@@ -1,10 +1,13 @@
 """Keep acceptance tied to the product content that will be published."""
 
+import json
 import os
 from pathlib import PurePosixPath
 import subprocess
 
-from .project import parse_manifest
+from .files import CARD_ID, header_value
+from .project import PROJECT_SCOPE, parse_manifest
+from .workflow import check_workflow
 
 
 class StaleAcceptance(ValueError):
@@ -31,17 +34,45 @@ def verify_accepted_content(root, accepted, closing):
     sources = tuple(map(relative, project.sources))
     memory = relative(project.memory)
     modules = tuple(map(relative, project.modules.values()))
+    board = PurePosixPath("project/kanban")
     changed = git(root, "diff", "--no-ext-diff", "--no-textconv", "--ignore-submodules=none",
                   "--no-renames", "--name-only", "-z", accepted, closing, "--")
     for name in changed.split(b"\0"):
         if not name:
             continue
         path = PurePosixPath(os.fsdecode(name))
-        if not tracking_record(path, memory, modules, sources):
+        if path.is_relative_to(board) and not any(path.is_relative_to(source) for source in sources):
+            tracking = committed_card_change(root, accepted, closing, board, path, project.modules)
+        else:
+            tracking = tracking_record(path, memory, modules, sources)
+        if not tracking:
             raise StaleAcceptance(
                 f"The combined product differs from the accepted candidate at {path.as_posix()!r}. "
                 "Repeat affected acceptance checks and record a decision for the new candidate."
             )
+
+
+def committed_card_change(root, accepted, closing, board, path, modules):
+    name = CARD_ID.match(path.stem)
+    if len(path.relative_to(board).parts) != 2 or path.suffix != ".md" or name is None:
+        return False
+    try:
+        workflow = check_workflow(json.loads(git(root, "show", f"{closing}:{board}/workflow.json")))
+        if path.parent.name not in workflow["stages"]:
+            return False
+        for revision in (accepted, closing):
+            entry = git(root, "ls-tree", revision, "--", path.as_posix()).split()
+            if not entry:
+                continue
+            if entry[:2] != [b"100644", b"blob"]:
+                return False
+            source = git(root, "cat-file", "blob", entry[2].decode("ascii")).decode("utf-8")
+            if (header_value(source, "type") != "card" or header_value(source, "id") != name[1]
+                    or header_value(source, "scope") not in (PROJECT_SCOPE, *modules)):
+                return False
+    except (ValueError, KeyError):
+        return False
+    return True
 
 
 def tracking_record(path, memory, modules, sources):

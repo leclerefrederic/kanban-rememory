@@ -1,32 +1,61 @@
 """Card creation, display, and guarded moves."""
 
 from contextlib import contextmanager
+from collections import Counter
 from datetime import date, datetime
+import json
 import os
 import re
 from unicodedata import normalize
 from urllib.parse import quote, unquote, urlsplit
 from zoneinfo import ZoneInfo
 
-from .batches import is_closed_lot_report
+from .batches import is_closed_lot_report, relationship, validate_lot_mapping
+from .coordination import replace_text
 from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, cards, field,
                     header_value, markdown_files, markdown_lines, prose_lines)
+from .project import PROJECT_SCOPE
 from .validation import FROZEN_CARD_MOVE_LINKS
 
 
-def show_board(workflow, limit, today, project=PROJECT, root=ROOT):
-    wip = 0
+def scoped_cards(stage, project, context=None, scope=None):
+    """Read current Cards on the shared board, or all Cards in a simple project."""
+    for path in cards(stage, project):
+        if context is None:
+            yield path
+            continue
+        found = context.card_scope(path, allow_legacy=True)
+        if found is not None and (scope is None or found == scope):
+            yield path
+
+
+def find_card(workflow, task_id, project=PROJECT, context=None):
+    matches = [(stage, path) for stage in workflow["stages"]
+               for path in cards(stage, project)
+               if CARD_ID.match(path.stem)[1].upper() == task_id]
+    if len(matches) != 1:
+        raise ValueError(f"Expected exactly one current card for {task_id}, found {len(matches)}.")
+    stage, path = matches[0]
+    if context and context.card_scope(path, allow_legacy=True) is None:
+        raise ValueError(f"{task_id} is an unscoped historical record. Use history or an approved migration.")
+    return stage, path
+
+
+def show_board(workflow, limit, today, project=PROJECT, root=ROOT, *, context=None, scope=None):
+    wip = Counter()
     for stage in workflow["stages"]:
         print(stage)
-        for path in cards(stage, project):
+        for path in scoped_cards(stage, project, context, scope):
             source = path.read_text(encoding="utf-8")
+            card_scope = context.card_scope(path) if context else None
             heading = next((line[2:] for line in markdown_lines(source)
                             if line.startswith("# ")), path.stem)
             task_id = CARD_ID.match(path.stem)[1].upper()
             title = heading.removeprefix(task_id).lstrip(" —-")
-            print(f"  {task_id} | {title} | {path.relative_to(root)}")
+            scope_column = f"{card_scope} | " if context else ""
+            print(f"  {task_id} | {scope_column}{title} | {path.relative_to(root)}")
             if stage in workflow["active"]:
-                wip += 1
+                wip[card_scope] += 1
                 try:
                     age = f"{(today - date.fromisoformat(field(source, 'Actual start'))).days} days"
                 except ValueError:
@@ -38,7 +67,11 @@ def show_board(workflow, limit, today, project=PROJECT, root=ROOT):
                 blocker = field(source, "Blocker")
                 if blocker:
                     print(f"    Blocker: {blocker}")
-    print(f"WIP: {wip}/{limit} | Available slots: {max(0, limit - wip)}")
+    if context and scope is None:
+        for item in (PROJECT_SCOPE, *context.modules):
+            print(f"{item} WIP: {wip[item]}/{limit} | Available slots: {max(0, limit - wip[item])}")
+    else:
+        print(f"WIP: {wip[scope]}/{limit} | Available slots: {max(0, limit - wip[scope])}")
     return 0
 
 
@@ -77,9 +110,9 @@ def rewrite_card_links(source, document, card, target, root=ROOT):
     return "".join(lines)
 
 
-def relocate_card(card, target, completed, transition, project=PROJECT, root=ROOT):
+def relocate_card(card, target, completed, transition, project=PROJECT, root=ROOT, *, context=None, scope=None):
     updates = {}
-    documents = markdown_files() if project == PROJECT else markdown_files(project, root)
+    documents = markdown_files(None if project == root / "project" else project, root)
     for document in set(documents) | {card}:
         original = document.read_bytes()
         source = original.decode("utf-8")
@@ -90,7 +123,14 @@ def relocate_card(card, target, completed, transition, project=PROJECT, root=ROO
                 updated += "\n\n## History"
             updated += f"\n\n- {transition}\n"
         if source != updated:
-            if project != PROJECT and not any(
+            if context and document != card:
+                same_scope_card = (document.is_relative_to(project / "kanban")
+                                   and CARD_ID.match(document.stem)
+                                   and context.card_scope(document, allow_legacy=True) == scope)
+                local_journal = document.is_relative_to(context.scope_memory(scope))
+                if not (same_scope_card or local_journal):
+                    raise ValueError(f"Move would rewrite a protected record: {document.relative_to(root)}. Use a stable Card ID.")
+            if project != root / "project" and not any(
                 document.is_relative_to(project / directory) for directory in ("kanban", "rememory")
             ):
                 raise ValueError(f"Move would rewrite a protected record: {document.relative_to(root)}. Use a qualified Card reference.")
@@ -112,12 +152,17 @@ def relocate_card(card, target, completed, transition, project=PROJECT, root=ROO
         raise
 
 
-def move_card(workflow, task_id, destination, project=PROJECT, root=ROOT, authorize_active=None):
-    matches = [(stage, card) for stage in workflow["stages"] for card in cards(stage, project)
-               if CARD_ID.match(card.stem)[1].upper() == task_id]
-    if len(matches) != 1:
-        raise ValueError(f"Expected exactly one card for {task_id}, found {len(matches)}.")
-    stage, card = matches[0]
+def move_card(workflow, task_id, destination, project=PROJECT, root=ROOT, authorize_active=None,
+              *, context=None, scope=None):
+    stage, card = find_card(workflow, task_id, project, context)
+    if context:
+        actual_scope = context.card_scope(card)
+        if actual_scope != scope:
+            raise ValueError(f"{task_id} belongs to scope {actual_scope}, not {scope}.")
+        if scope == PROJECT_SCOPE and relationship(card.read_text(encoding="utf-8"), "batch"):
+            raise ValueError("A Batch Card must have the same module scope as its Batch.")
+        if findings := validate_lot_mapping((card,), context.scope_workspace(scope), root):
+            raise ValueError("\n".join(findings))
     if stage == workflow["completed"]:
         raise ValueError("Completed cards are immutable. Create a follow-up card.")
     if "transitions" not in workflow:
@@ -130,7 +175,7 @@ def move_card(workflow, task_id, destination, project=PROJECT, root=ROOT, author
         delivery = header_value(source, "batch") or task_id
         authorize_active(delivery)
     if destination in active and stage not in active:
-        if sum(len(cards(column, project)) for column in active) >= workflow["wip_limit"]:
+        if sum(1 for column in active for _ in scoped_cards(column, project, context, scope)) >= workflow["wip_limit"]:
             raise ValueError("WIP limit reached. Finish active work before starting another card.")
     if destination == workflow["completed"]:
         checks = list(acceptance_checks(card.read_text(encoding="utf-8")))
@@ -141,8 +186,34 @@ def move_card(workflow, task_id, destination, project=PROJECT, root=ROOT, author
         raise ValueError(f"Destination already exists: {target.relative_to(root)}")
     timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
     transition = f"{timestamp} — Stage moved from `{stage}` to `{destination}`."
-    relocate_card(card, target, project / "kanban" / workflow["completed"], transition, project, root)
+    relocate_card(card, target, project / "kanban" / workflow["completed"], transition, project, root,
+                  context=context, scope=scope)
     print(f"Moved {task_id} from {stage} to {destination}.")
+    return 0
+
+
+def reassign_card(workflow, task_id, context, new_scope, is_claimed):
+    stage, path = find_card(workflow, task_id, context.board, context)
+    old_scope = context.card_scope(path)
+    if stage != workflow.get("intake", workflow["stages"][0]) or is_claimed(old_scope):
+        raise ValueError("Scope can be reassigned only while the Card is unclaimed in backlog.")
+    if old_scope == new_scope:
+        print(f"{task_id} already has scope {new_scope}.")
+        return 0
+    source = path.read_text(encoding="utf-8")
+    if relationship(source, "batch") or relationship(source, "specifications"):
+        raise ValueError("Resolve Batch and Specification references before reassigning the Card.")
+    marker = source.index("\n---", 4)
+    header, count = re.subn(r"(?m)^scope:[^\n]*", lambda _: f"scope: {json.dumps(new_scope)}",
+                            source[:marker], count=1)
+    if count != 1:
+        raise ValueError("Expected one scoped Card header.")
+    timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
+    updated = (header + source[marker:]).rstrip()
+    if not re.search(r"^## History$", updated, re.MULTILINE):
+        updated += "\n\n## History"
+    replace_text(path, f"{updated}\n\n- {timestamp} — Scope reassigned from `{old_scope}` to `{new_scope}`.\n")
+    print(f"Reassigned {task_id} to scope {new_scope}.")
     return 0
 
 
@@ -159,7 +230,7 @@ def board_write_lock(project=PROJECT):
         lock.rmdir()
 
 
-def create_card(workflow, args, project=PROJECT, root=ROOT):
+def create_card(workflow, args, project=PROJECT, root=ROOT, *, scope=None, write_lock=None):
     title, owner = args.title.strip(), args.owner.strip()
     if not title or not owner or len(title.splitlines()) != 1 or len(owner.splitlines()) != 1:
         raise ValueError("Title and owner must each be a nonempty single line.")
@@ -185,7 +256,10 @@ def create_card(workflow, args, project=PROJECT, root=ROOT):
     def prepare():
         highest = 0
         seen = set()
-        for stage in workflow["stages"]:
+        stages = workflow["stages"]
+        if scope is not None:
+            stages = [path.name for path in (project / "kanban").iterdir() if path.is_dir()]
+        for stage in stages:
             for card in cards(stage, project):
                 task_id = CARD_ID.match(card.stem)[1].upper()
                 if task_id in seen:
@@ -199,6 +273,8 @@ def create_card(workflow, args, project=PROJECT, root=ROOT):
         target = project / "kanban" / entry / f"{task_id.lower()}-{slug}.md"
         content = re.sub(r'^id: "(?:CARD|TASK)-NNNNNNNN"$', lambda _: f'id: "{task_id}"',
                          template, count=1, flags=re.MULTILINE)
+        if scope is not None:
+            content = content.replace(f'id: "{task_id}"\n', f'id: "{task_id}"\nscope: {json.dumps(scope)}\n', 1)
         content = re.sub(r"^# (?:CARD|TASK)-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
                          content, count=1, flags=re.MULTILINE)
         content = re.sub(r"^- Owner:[^\n]*$", lambda _: f"- Owner: {owner}",
@@ -211,7 +287,7 @@ def create_card(workflow, args, project=PROJECT, root=ROOT):
         print("Run again with --apply once the project intake rules permit recording the backlog Card.")
         return 0
 
-    with board_write_lock(project):
+    with (write_lock if write_lock is not None else board_write_lock(project)):
         target, content = prepare()
         with target.open("x", encoding="utf-8") as stream:
             stream.write(content)

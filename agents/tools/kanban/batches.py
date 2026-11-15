@@ -36,7 +36,7 @@ def fiche_entries(source):
 
 def project_reference(path, project=PROJECT, root=ROOT):
     relative = Path(path)
-    if project != PROJECT:
+    if project != root / "project":
         root_relative = (root / relative).resolve()
         if not root_relative.is_relative_to(project / "specs"):
             raise ValueError("A Batch must pin a repository-relative Specification path in its own module.")
@@ -46,7 +46,7 @@ def project_reference(path, project=PROJECT, root=ROOT):
     if relative.parts and relative.parts[0] == "specs":
         relative = Path("project") / path.lower()
     if relative.parts[:3] == ("project", "specs", "frozen"):
-        migrated = PROJECT / "specs/approved" / relative.name
+        migrated = project / "specs/approved" / relative.name
         if relative.name == "fiche-001-r1.md" and not migrated.is_file():
             migrated = migrated.with_name("spec-001-r1.md")
         if migrated.is_file():
@@ -217,7 +217,7 @@ def verify_approval(lot_id, revision, project=PROJECT, root=ROOT):
         recorded = subprocess.run(
             ["git", "show", f"{revision}:{relative}"], cwd=root, capture_output=True,
         )
-        if recorded.returncode and path == description and project == PROJECT:
+        if recorded.returncode and path == description and project == root / "project":
             for directory in ("batches", "lots", "Lots"):
                 historical = f"{directory}/{lot_id}/Description.md"
                 recorded = subprocess.run(

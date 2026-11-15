@@ -302,14 +302,17 @@ class SetupTests(unittest.TestCase):
             self.assertIn('Choose a module explicitly', errors.getvalue())
             self.assertFalse(sent)
             for module_args in (['--module', 'a'], ['--module', 'b'],
-                                ['--module', 'a', '--project', 'Renamed solution']):
+                                ['--module', 'a', '--project', 'Renamed solution'],
+                                ['--scope', '@project'], ['--scope', '@project']):
                 with patch.object(sys, 'argv', [*args, *module_args]):
                     self.assertEqual(notifier.main(), 0)
-        self.assertEqual(len(sent), 2)
+        self.assertEqual(len(sent), 3)
         for module, message in zip(('a', 'b'), sent):
             self.assertIn('Projet: Example solution', message)
             self.assertIn(f'Référence: {module} / CARD-00000001', message)
             self.assertIn('Prochaine action: Aucune action requise.', message)
+        self.assertIn('Référence: CARD-00000001\n', sent[2])
+        self.assertNotIn('@project', sent[2])
 
     @unittest.skipIf(sys.platform == 'win32', 'Real POSIX terminal; Windows needs live acceptance')
     def test_real_terminal_accepts_all_answers_without_echoing_token(self):

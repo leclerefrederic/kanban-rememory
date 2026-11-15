@@ -8,17 +8,56 @@ from subprocess import CalledProcessError
 from zoneinfo import ZoneInfo
 
 from kanban.batches import verify_approval
-from kanban.cards import board_write_lock, create_card, move_card, show_board
+from kanban.cards import board_write_lock, create_card, find_card, move_card, reassign_card, show_board
 from kanban.coordination import Coordination, exclusive
-from kanban.files import ROOT, check_module_records
-from kanban.project import control_workspace, invocation_module, load_project
+from kanban.files import CARD_ID, ROOT, check_module_records
+from kanban.project import PROJECT_SCOPE, coordination_root, invocation_module, load_project, primary_worktree
 from kanban.validation import validate
 from kanban.workflow import TEMPLATES, initialize, load_workflow
 
 
+def board_context():
+    local = load_project(ROOT)
+    if (ROOT / ".git").exists() or local.modules:
+        primary = primary_worktree(ROOT)
+        canonical = local if primary == ROOT else load_project(primary)
+        if canonical.modules:
+            return canonical
+        if local.modules:
+            raise ValueError("Activate modules from the primary worktree before using tracking tools.")
+    return local
+
+
+def historical_path(project, reference, requested_scope):
+    qualified, sep, identifier = reference.partition("/")
+    scope = qualified if sep else PROJECT_SCOPE
+    task_id = (identifier if sep else qualified).upper()
+    if not (match := CARD_ID.fullmatch(task_id)) or match[1] != task_id:
+        raise ValueError("Expected a Card ID or an archived module/Card ID.")
+    if requested_scope is not None and requested_scope != scope:
+        raise ValueError("The archived reference does not belong to the selected scope.")
+    workspace = project.scope_workspace(scope)
+    check_module_records(workspace)
+    matching = [path for path in (workspace / "kanban").glob("*/*.md")
+                if (match := CARD_ID.match(path.stem)) and match[1].upper() == task_id
+                and stage_is_archive(project, scope, path)]
+    if len(matching) != 1:
+        raise ValueError(f"Expected one archived Card for {reference}, found {len(matching)}.")
+    print(matching[0].relative_to(project.root))
+    return 0
+
+
+def stage_is_archive(project, scope, path):
+    if scope != PROJECT_SCOPE:
+        return path.parent.name in project.archived_stages(project.scope_workspace(scope))
+    return project.card_scope(path, allow_legacy=True) is None and path.parent.name in {
+        load_workflow(project.board)["completed"], "cancellation",
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--module", dest="global_module", help="Select a configured module")
+    parser.add_argument("--scope", "--module", dest="global_scope", help="Module ID or @project")
     commands = parser.add_subparsers(dest="command", required=True)
     validation = commands.add_parser("validate")
     approval = commands.add_parser("verify-approval")
@@ -32,6 +71,9 @@ def main():
     move.add_argument("task_id")
     move.add_argument("destination")
     move.add_argument("--owner-token", help="Recorded delivery owner for active module moves")
+    reassign = commands.add_parser("reassign", help="Change the approved scope of a shared backlog Card")
+    reassign.add_argument("task_id")
+    reassign.add_argument("--to-scope", required=True)
     init = commands.add_parser("init")
     source = init.add_mutually_exclusive_group(required=True)
     source.add_argument("--template", choices=TEMPLATES)
@@ -40,14 +82,16 @@ def main():
     init.add_argument("--timezone", help="Template IANA time zone (default: UTC)")
     init.add_argument("--apply", action="store_true", help="Apply the approved preview")
     board = commands.add_parser("show")
-    board.add_argument("--wip-limit", type=int, help="Overall WIP limit for this board")
+    board.add_argument("--wip-limit", type=int, help="WIP limit per scope for this display")
     board.add_argument("--timezone", help="IANA time zone for age")
-    for command in (validation, approval, new, move, init, board):
-        command.add_argument("--module", help="Select a configured module")
+    history = commands.add_parser("history", help="Find a frozen Card by its historical reference")
+    history.add_argument("reference")
+    for command in (validation, approval, new, move, reassign, init, board, history):
+        command.add_argument("--scope", "--module", dest="scope", help="Module ID or @project")
     args = parser.parse_args()
-    if args.module and args.global_module and args.module != args.global_module:
-        parser.error("Conflicting module selections.")
-    module = args.module or args.global_module
+    if args.scope and args.global_scope and args.scope != args.global_scope:
+        parser.error("Conflicting scope selections.")
+    scope = args.scope or args.global_scope
     id_field = {"move": "task_id", "verify-approval": "batch_id"}.get(args.command)
     if id_field:
         reference = getattr(args, id_field)
@@ -55,45 +99,86 @@ def main():
             qualified_module, _, local_id = reference.partition("/")
             if not qualified_module or not local_id or "/" in local_id:
                 parser.error("Expected a qualified reference such as module/CARD-00000001.")
-            if module is not None and module != qualified_module:
+            if scope is not None and scope != qualified_module:
                 parser.error("The qualified reference does not belong to the selected module.")
-            module = qualified_module
+            if args.command == "move":
+                parser.error("Use a project-wide Card ID for moves. Qualified historical Card IDs are read-only.")
+            scope = qualified_module
             setattr(args, id_field, local_id)
     if args.command == "init" and args.config and (args.wip_limit is not None or args.timezone):
         init.error("Set wip_limit and timezone in the custom configuration.")
     try:
-        module = invocation_module(module)
-        local = load_project(ROOT)
-        if (ROOT / ".git").exists() or local.modules:
-            root, workspace = control_workspace(local, module)
-        else:
-            root, workspace = ROOT, local.workspace(module)
-        project = load_project(root)
-        if project.modules:
+        scope = invocation_module(scope)
+        project = board_context()
+        root, workspace = project.root, project.board
+        context = project if project.modules else None
+        if scope is not None:
+            project.validate_scope(scope)
+        if context:
             check_module_records(workspace)
+        if args.command == "history":
+            return historical_path(project, args.reference, scope)
+        if context:
+            context.check_legacy_boards()
         if args.command == "init":
+            if scope is not None and scope != PROJECT_SCOPE:
+                raise ValueError("The workflow is shared. Configure it in project scope.")
             return initialize(args, workspace, root)
         workflow = load_workflow(workspace)
         if args.command == "verify-approval":
-            return verify_approval(args.batch_id, args.revision, workspace, root)
+            if context and (scope is None or scope == PROJECT_SCOPE):
+                raise ValueError("Select the Batch's module scope explicitly.")
+            records = project.scope_workspace(scope) if context else workspace
+            if context:
+                check_module_records(records)
+            return verify_approval(args.batch_id, args.revision, records, root)
         if args.command == "new":
-            return create_card(workflow, args, workspace, root)
+            if context and scope is None:
+                raise ValueError("Choose a module scope or @project explicitly before creating a Card.")
+            lock = exclusive(coordination_root(root) / "projects" / project.id, "board-write") if context else None
+            return create_card(workflow, args, workspace, root, scope=scope if context else None, write_lock=lock)
+        if args.command == "reassign":
+            if not context or scope != PROJECT_SCOPE:
+                raise ValueError("Reassignment requires explicit @project scope on the shared board.")
+            task_id = args.task_id.upper()
+            target_scope = project.validate_scope(args.to_scope)
+            directory = coordination_root(root) / "projects" / project.id
+
+            def is_claimed(current_scope):
+                state = Coordination(ROOT, current_scope).status()
+                return bool(state and state.get("delivery") == task_id)
+
+            with exclusive(directory, "board-write"):
+                return reassign_card(workflow, task_id, project, target_scope, is_claimed)
         if args.command == "move":
-            coordination = Coordination(ROOT, module) if project.modules else None
-            lock = exclusive(coordination.directory, f"module-{coordination.module}") if coordination else nullcontext()
+            task_id = args.task_id.upper()
+            if context:
+                _, path = find_card(workflow, task_id, workspace, context)
+                actual_scope = context.card_scope(path)
+                if scope is not None and scope != actual_scope:
+                    raise ValueError(f"{task_id} belongs to scope {actual_scope}, not {scope}.")
+                scope = actual_scope
+                coordination = Coordination(ROOT, scope)
+                lock = exclusive(coordination.directory, f"module-{scope}")
+                write_lock = exclusive(coordination.directory, "board-write")
+                check_module_records(context.scope_workspace(scope))
+            else:
+                lock = nullcontext()
+                write_lock = board_write_lock(workspace)
 
             def authorize(delivery):
                 if not args.owner_token:
-                    raise ValueError("Active module moves require the recorded --owner-token.")
+                    raise ValueError("Active scoped moves require the recorded --owner-token.")
                 coordination.require_owner(args.owner_token, delivery)
 
-            with lock, board_write_lock(workspace):
+            with lock, write_lock:
                 return move_card(
-                    workflow, args.task_id.upper(), args.destination, workspace, root,
-                    authorize_active=authorize if coordination else None,
+                    workflow, task_id, args.destination, workspace, root,
+                    authorize_active=authorize if context else None, context=context, scope=scope,
                 )
         if args.command == "validate":
-            return validate(workflow, workspace, project.modules.values(), root)
+            return validate(workflow, workspace, project.modules.values(), root,
+                            context=context, selected_scope=scope if context else None)
     except (OSError, ValueError, CalledProcessError) as error:
         parser.exit(1, f"{error}\n")
     if args.wip_limit is not None and args.wip_limit < 1:
@@ -102,7 +187,11 @@ def main():
         today = datetime.now(ZoneInfo(args.timezone or workflow["timezone"])).date()
     except (KeyError, ValueError):
         board.error(f"unknown time zone: {args.timezone}")
-    return show_board(workflow, args.wip_limit or workflow["wip_limit"], today, workspace, root)
+    try:
+        return show_board(workflow, args.wip_limit or workflow["wip_limit"], today, workspace, root,
+                          context=context, scope=scope if context else None)
+    except (OSError, ValueError) as error:
+        parser.exit(1, f"{error}\n")
 
 
 

@@ -6,8 +6,10 @@ Begin by telling your agent which repository you want to use and that you want t
 
 On a new installation the agent asks which layout you want, whether you choose express or custom setup.
 
-- **Single project** gives you one Kanban board and one journal in `project/`.
-- **Multi-module** gives each named module its own board and journal, plus shared project memory. The agent shows the proposed layout before it creates `project.json` and configures the workspaces.
+Both choices use one project Kanban and one project journal.
+
+- **Single project** tracks everything directly under the project.
+- **Multi-module** adds workspaces for the named modules. Filter the project Kanban by scope. Modules have journals and can use their own Specifications and Batches. The agent previews the layout before creating `project.json` and configuring the workspaces.
 
 If you already specified a mode, the agent uses that choice. Upgrades keep the installed mode unless you request a migration.
 

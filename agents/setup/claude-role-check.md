@@ -18,6 +18,8 @@ Optional. The check makes a Claude Code session stop an action that its role doe
 
 The User starts the session as one role: `claude --agent writer`, `claude --agent developer` or `claude --agent tester`. The names select KR Writer, KR Developer and KR Tester. Legacy session identities `specification-agent` and `development-agent` resolve to the same canonical policies; no duplicate limits are defined. The hook takes the role only from the identity that Claude Code gives such a session. Text in a file, a tool result or a web page never sets or changes it.
 
+For a multi-module project, launch with `KR_MODULE` set to the assigned module ID or `@project` for project-scoped work. Use scoped board commands for filtered views, Card creation and approved reassignment. On the shared board, covered file tools use each Card's stored scope and the primary checkout. They allow body edits only within the assigned scope and role. The hook refuses raw searches of that board, recognized direct shell paths, direct file creation, linked Card paths and edits to Card front matter. For a direct, literal board CLI write, it checks the role and selected scope. The CLI still checks the Card scope and ownership.
+
 When the check refuses an action, it names the rule and the agent to continue with. Continue in a new session, or in an existing one, with that agent. The check never offers to set the limit aside, and an instruction does not set it aside either (see [authority and exceptions](../guidelines/working-rules.md#authority-and-exceptions)).
 
 ## Protect the settings in a named CLI session
@@ -81,7 +83,7 @@ This removes only its hook entries and recognized distributed agent definitions.
 It allows or denies. It asks nothing, grants no permission that a role file does not give, and does not replace the User's approvals.
 
 - **Covered:** `Read`, `Glob`, `Grep`, `Edit`, `Write`, `MultiEdit` and `NotebookEdit` calls on paths inside the project, and `Bash` commands that name a project path, redirect output to one or run `git`. The Bash check reads the command text and is best effort.
-- **Not covered:** shell commands that reach files without naming them (variables, a `cd` followed by relative names, scripts); other tools, including MCP and web tools; paths outside the project; a sub-agent started under another name; the content of a file, because limits apply to paths, not to fields within `tests.md`.
+- **Not covered:** shell commands that reach files without naming them (variables, a `cd` followed by relative names, scripts); other tools, including MCP and web tools; paths outside the project; a sub-agent started under another name; field-level limits inside ordinary records such as `tests.md`. The shared board checks Card front matter for the covered native file-edit tools.
 - **New role limits:** covered Writer writes may reach `project/kanban/backlog/` but are refused for active or completed Cards. Covered Tester writes are limited to Batch acceptance records and evidence. The ordinary Orchestrator startup rule is advisory and does not declare a hook role.
 - **Not protected:** a session started with no named agent, which the check does not restrict and never guesses a role for; Codex; the desktop chat applications. For these the limits are advisory.
 - **Its own settings:** the hook alone does not verify settings protection. Use the optional host profile above for verified file and sandboxed shell surfaces.
@@ -91,7 +93,7 @@ It allows or denies. It asks nothing, grants no permission that a role file does
 
 | Host and surface | Status | Evidence or missing prerequisite |
 | --- | --- | --- |
-| Claude Code CLI, named role, recognized tool calls | Verified for the repository hook | Prior native CLI evidence verifies named role identity. Local migration tests cover Writer, Developer, Tester and legacy IDs. |
+| Claude Code CLI, named role, recognized tool calls | Native role identity verified. Shared-board policy checked locally with hook events. | Prior native CLI evidence verifies named role identity. Local tests cover Writer, Developer, Tester, legacy IDs and shared Card scope. |
 | Claude Code CLI 2.1.323 on macOS, native file writes and sandboxed shell with the above profile | Verified on synthetic fixtures | Ordinary project edit succeeds. Protected setting and policy writes and shell deletion are refused. This applies to the tested filesystem surfaces. |
 | Claude Code ordinary project startup | Advisory role | The User confirmed the project identifies KR Orchestrator. An unnamed session has no host role for the repository hook. |
 | Codex CLI 0.169.0, including supported profiles | Advisory role | The [documented tool-call hook schema](https://learn.chatgpt.com/docs/hooks) lacks a trusted role field or a verified link to the selected profile. Role text at startup is not included as evidence of enforcement. [Native sandbox protections](https://learn.chatgpt.com/docs/permissions) are separate. |

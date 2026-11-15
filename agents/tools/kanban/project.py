@@ -8,8 +8,11 @@ import re
 import subprocess
 from typing import Dict, Optional
 
+from .files import CARD_ID, header_value
+
 
 IDENTIFIER = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
+PROJECT_SCOPE = "@project"
 EXECUTION = {
     "active_deliveries_per_module": 1,
     "branch_required": True,
@@ -26,6 +29,62 @@ class Project:
     memory: Path
     sources: tuple
     modules: Dict[str, Path]
+
+    @property
+    def board(self) -> Path:
+        return self.root / "project"
+
+    def validate_scope(self, scope: str) -> str:
+        if not isinstance(scope, str) or (scope != PROJECT_SCOPE and scope not in self.modules):
+            raise ValueError(f"Unknown Card scope: {scope!r}.")
+        return scope
+
+    def scope_workspace(self, scope: str) -> Path:
+        self.validate_scope(scope)
+        return self.board if scope == PROJECT_SCOPE else self.modules[scope]
+
+    def scope_memory(self, scope: str) -> Path:
+        workspace = self.scope_workspace(scope)
+        return self.memory if scope == PROJECT_SCOPE else workspace / "rememory"
+
+    def card_scope(self, path: Path, *, allow_legacy=False) -> Optional[str]:
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"Not a regular Card record: {path}.")
+        source = path.read_text(encoding="utf-8")
+        lines = source.splitlines()
+        declared = (sum(line.partition(":")[0] == "scope"
+                        for line in lines[1:lines.index("---", 1)])
+                    if lines[:1] == ["---"] and "---" in lines[1:] else 0)
+        if declared > 1:
+            raise ValueError(f"Duplicate Card scope: {path}.")
+        scope = header_value(source, "scope")
+        if not declared:
+            if allow_legacy:
+                return None
+            if not self.modules:
+                return PROJECT_SCOPE
+        return self.validate_scope(scope)
+
+    def archived_stages(self, workspace: Path) -> set:
+        from .workflow import check_workflow
+
+        config = workspace / "kanban/workflow.json"
+        if config.is_symlink():
+            raise ValueError(f"Historical workflow must be a local record: {config}.")
+        completed = (check_workflow(json.loads(config.read_text(encoding="utf-8")))["completed"]
+                     if config.exists() else "completion")
+        return {completed, "cancellation"}
+
+    def check_legacy_boards(self) -> None:
+        for module, workspace in self.modules.items():
+            board = workspace / "kanban"
+            if board.is_symlink():
+                raise ValueError(f"Historical board must be a local record: {board}.")
+            archived = self.archived_stages(workspace)
+            for path in board.glob("*/*.md"):
+                if path.parent.name not in archived and CARD_ID.match(path.stem):
+                    raise ValueError(f"Module {module} has unfinished Cards on an earlier board. "
+                                     "Use an approved migration plan for those Cards.")
 
     def select_module(self, module: Optional[str] = None) -> Optional[str]:
         if not self.modules:
@@ -118,6 +177,8 @@ def parse_manifest(root, source, *, resolve_paths=True):
             raise ValueError("project.name must be a nonempty display name.")
         shared = object_fields(data["shared"], ("memory", "sources"), "shared")
         memory = repo_path(root, shared["memory"], "shared.memory", resolve_paths=resolve_paths)
+        if overlaps(memory, root / "project/kanban"):
+            raise ValueError("Shared memory overlaps the project board.")
         if not isinstance(shared["sources"], list):
             raise ValueError("shared.sources must be a list.")
         sources = tuple(repo_path(root, path, "shared.sources", resolve_paths=resolve_paths)
@@ -135,8 +196,9 @@ def parse_manifest(root, source, *, resolve_paths=True):
             definition = object_fields(value, ("workspace",), f"modules.{name}")
             workspace = repo_path(root, definition["workspace"], f"modules.{name}.workspace",
                                   resolve_paths=resolve_paths)
-            if overlaps(workspace, memory) or any(overlaps(workspace, other) for other in modules.values()):
-                raise ValueError(f"Overlapping workspace or memory directory: modules.{name}.")
+            if (overlaps(workspace, memory) or overlaps(workspace, root / "project/kanban")
+                    or any(overlaps(workspace, other) for other in modules.values())):
+                raise ValueError(f"Overlapping workspace, board or memory directory: modules.{name}.")
             modules[name] = workspace
         return Project(root, project_id, project["name"], memory, sources, modules)
     except (OSError, ValueError, RuntimeError) as error:

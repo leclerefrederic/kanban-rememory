@@ -1,6 +1,6 @@
 # Kanban rules
 
-The configured workflow defines stages, active stages, completion, transitions, WIP and timezone. Read it from the selected module workspace, or from `project/kanban/workflow.json` in single-project mode. Example workflows are not additional project stages. The folder is the Card stage; the optional state is `waiting`, `in-progress` or `blocked` within it. Keep one file and stable ID through moves/rework. Use [board commands](../actions/manage-board.md) and [Card content](../actions/write-card.md).
+`project/kanban/workflow.json` defines stages, active stages, completion, transitions, Card WIP and timezone. Apply Card WIP by scope for a project with modules. The folder is the Card stage; the optional state is `waiting`, `in-progress` or `blocked` within it. Keep one file and a stable project-wide ID. Use [board commands](../actions/manage-board.md) and [Card content](../actions/write-card.md).
 
 ## Intake and execution
 

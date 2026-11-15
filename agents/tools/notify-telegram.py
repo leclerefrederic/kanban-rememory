@@ -13,6 +13,8 @@ import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from kanban.project import PROJECT_SCOPE
+
 ICONS = {"attention": "🔔", "completed": "✅"}
 LABELS = {
     "en": {"attention": "Action required", "delivered": "Ready to test", "completed": "Work completed",
@@ -92,7 +94,7 @@ def render(args, project):
         action += f"\n{args.link}"
     reference = args.batch or args.reference
     module = getattr(args, "module", None)
-    if module is not None:
+    if module is not None and module != PROJECT_SCOPE:
         reference = f"{module} / {reference}"
     return (f"{icon} {label}\n\n"
             f"{labels['project']}: {project}\n"
@@ -187,7 +189,7 @@ def main():
     parser.add_argument("--chat-name", help="title of the conversation to resume, with the application")
     parser.add_argument("--link", help="direct link to the conversation, only if the environment provides one")
     parser.add_argument("--project", help="display name; defaults to the configured project name or repository folder name")
-    parser.add_argument("--module", help="module ID from project.json; may be omitted if there is only one module")
+    parser.add_argument("--module", "--scope", help="module ID from project.json or @project for a project Card")
     parser.add_argument("--batch")
     parser.add_argument("--blocker-id")
     parser.add_argument("--revision", help="full tested commit, required for delivered")
@@ -260,15 +262,23 @@ def main():
             try:
                 primary = primary_worktree(root) if (root / ".git").is_file() else root
                 context = load_project(primary)
-                args.module = context.select_module(invocation_module(args.module))
+                assigned = invocation_module(args.module)
+                if assigned == PROJECT_SCOPE:
+                    if args.event in LEGACY or (args.reference or "").startswith("Batch-"):
+                        raise ValueError("Batch notifications in module-aware projects require a module scope.")
+                    args.module = PROJECT_SCOPE if context.modules else None
+                else:
+                    args.module = context.select_module(assigned)
             except (OSError, ValueError, subprocess.CalledProcessError) as error:
                 parser.error(str(error))
             project = args.project or (context.name if context.modules else root.name)
             if "\n" in project or "\r" in project:
                 parser.error("The project display name must be a single line.")
             project_id = context.id if context.modules else None
-        elif args.module is not None:
+        elif args.module is not None and args.module != PROJECT_SCOPE:
             parser.error("Module selection requires an active project.json.")
+        elif args.module == PROJECT_SCOPE:
+            args.module = None
     if args.send_to is None:
         print(f"Preview: {args.event} notification to chat {chat}. Confirm with --send-to {chat}.")
         if args.event != "test":

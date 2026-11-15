@@ -117,8 +117,9 @@ class KanbanBoardTests(unittest.TestCase):
             },
         }
         (self.root / "project.json").write_text(json.dumps(manifest), encoding="utf-8")
+        self.run_board("init", "--template", "short", "--apply")
         for name in manifest["modules"]:
-            self.run_board("init", "--template", "short", "--module", name, "--apply")
+            (self.root / manifest["modules"][name]["workspace"] / "rememory").mkdir(parents=True)
         return tuple(self.root / "project/modules" / name for name in ("a", "b"))
 
     def commit_fixture(self, message):
@@ -136,19 +137,24 @@ class KanbanBoardTests(unittest.TestCase):
         subprocess.run(["git", "worktree", "add", "-qb", "candidate", str(worktree)], cwd=self.root, check=True)
         return worktree
 
-    def test_module_scoped_commands_and_qualified_ids(self):
-        a, b = self.initialize_modules()
-        self.assertIn("Choose a module explicitly", self.run_board("new", "Ambiguous", "--owner", "Test", "--apply", expected=1))
+    def test_module_scoped_commands_on_shared_board(self):
+        self.initialize_modules()
+        self.assertIn("Choose a module scope", self.run_board("new", "Ambiguous", "--owner", "Test", "--apply", expected=1))
         self.run_board("--module", "a", "new", "Twin", "--owner", "Owner A", "--apply")
         self.run_board("new", "Twin", "--owner", "Owner B", "--apply", "--module", "b")
-        name = "card-00000001-twin.md"
-        card_a, card_b = (space / "kanban/backlog" / name for space in (a, b))
+        cards = self.board / "backlog"
+        card_a = cards / "card-00000001-twin.md"
+        card_b = cards / "card-00000002-twin.md"
         b_content = card_b.read_text()
-        self.assertIn("- Owner: Owner A", card_a.read_text())
-        self.assertIn("- Owner: Owner B", b_content)
-        self.assertIn("CARD-00000001", self.run_board("show", "--module", "a"))
+        self.assertIn('scope: "a"', card_a.read_text())
+        self.assertIn('scope: "b"', b_content)
+        view = self.run_board("show", "--scope", "a")
+        self.assertIn("CARD-00000001", view)
+        self.assertNotIn("CARD-00000002", view)
+        self.assertIn("CARD-00000002", self.run_board("show"))
         self.assertIn("does not belong", self.run_board("--module", "b", "move", "a/CARD-00000001", "development", expected=2))
-        self.assertIn("--owner-token", self.run_board("move", "a/CARD-00000001", "development", expected=1))
+        self.assertIn("belongs to scope a", self.run_board("--scope", "b", "move", "CARD-00000001", "development", expected=1))
+        self.assertIn("--owner-token", self.run_board("move", "CARD-00000001", "development", expected=1))
         revision = self.commit_fixture("Initialize module fixture")
         worktree = self.module_worktree()
         subprocess.run(
@@ -158,15 +164,60 @@ class KanbanBoardTests(unittest.TestCase):
              "Coordination('.', 'a').claim('owner-a', 'CARD-00000001', sys.argv[1])", revision],
             cwd=worktree, check=True,
         )
-        self.assertIn("No matching ownership", self.run_board(
-            "move", "a/CARD-00000001", "development", "--owner-token", "wrong-owner", cwd=worktree, expected=1,
+        self.assertIn("unclaimed", self.run_board(
+            "--scope", "@project", "reassign", "CARD-00000001", "--to-scope", "b", expected=1,
         ))
-        self.run_board("move", "a/CARD-00000001", "development", "--owner-token", "owner-a", cwd=worktree)
+        self.assertIn("No matching ownership", self.run_board(
+            "move", "CARD-00000001", "development", "--owner-token", "wrong-owner", cwd=worktree, expected=1,
+        ))
+        self.run_board("move", "CARD-00000001", "development", "--owner-token", "owner-a", cwd=worktree)
         self.assertFalse(card_a.exists())
-        self.assertTrue((a / "kanban/development" / name).is_file())
+        self.assertTrue((self.board / "development" / card_a.name).is_file())
         self.assertEqual(b_content, card_b.read_text())
-        for module in ("a", "b"):
-            self.run_board("validate", "--module", module)
+        self.run_board("validate")
+
+    def test_scoped_creation_reserves_global_ids_and_preserves_history(self):
+        a, _ = self.initialize_modules()
+        central_history = self.board / "completion/card-00000010-before-modules.md"
+        module_history = a / "kanban/completion/card-00000011-old-module-record.md"
+        module_history.parent.mkdir(parents=True)
+        central_history.write_bytes(b"# Historical project Card\n")
+        module_history.write_bytes(b"# Historical module Card\n")
+        with ThreadPoolExecutor(max_workers=3) as concurrent:
+            requests = [
+                concurrent.submit(self.run_board, "new", scope, "--owner", "Fixture",
+                                  "--scope", scope, "--apply")
+                for scope in ("a", "b", "@project")
+            ]
+            for request in requests:
+                request.result()
+        records = sorted((self.board / "backlog").glob("*.md"))
+        self.assertEqual([path.name[5:13] for path in records], ["00000011", "00000012", "00000013"])
+        self.assertEqual(sorted(re.search(r'^scope: "(.+)"$', path.read_text(), re.M)[1] for path in records),
+                         ["@project", "a", "b"])
+        self.assertNotIn("CARD-00000010", self.run_board("show"))
+        self.assertIn(str(central_history.relative_to(self.root)), self.run_board("history", "CARD-00000010"))
+        self.assertIn(str(module_history.relative_to(self.root)), self.run_board("history", "a/CARD-00000011"))
+        self.assertIn("read-only", self.run_board("move", "a/CARD-00000011", "development", expected=2))
+        self.assertEqual(module_history.read_bytes(), b"# Historical module Card\n")
+        self.run_board("validate")
+
+    def test_reassign_requires_project_context_and_keeps_identity(self):
+        self.initialize_modules()
+        self.run_board("new", "First", "--owner", "Fixture", "--scope", "a", "--apply")
+        task_id = "CARD-00000001"
+        path = self.board / "backlog/card-00000001-first.md"
+        original = path.read_bytes()
+        self.assertIn("explicit @project", self.run_board(
+            "--scope", "a", "reassign", task_id, "--to-scope", "b", expected=1,
+        ))
+        self.assertEqual(path.read_bytes(), original)
+        self.run_board("--scope", "@project", "reassign", task_id, "--to-scope", "b")
+        self.assertNotIn(task_id, self.run_board("--scope", "a", "show"))
+        self.assertIn(task_id, self.run_board("--scope", "b", "show"))
+        self.assertIn(f'id: "{task_id}"', path.read_text())
+        self.assertIn("Scope reassigned from `a` to `b`.", path.read_text())
+        self.run_board("validate")
 
     def test_module_batch_pins_its_own_specification_revision(self):
         a, b = self.initialize_modules()
@@ -193,28 +244,36 @@ class KanbanBoardTests(unittest.TestCase):
         revision = self.commit_fixture("Record both module approvals")
         for module in ("a", "b"):
             self.run_board("verify-approval", f"{module}/Batch-001", revision)
+        self.run_board("new", "Module A", "--owner", "Fixture", "--scope", "a", "--apply")
+        card = self.board / "backlog/card-00000001-module-a.md"
+        card.write_text(card.read_text().replace("batch: null", 'batch: "b/Batch-001"'))
+        self.assertIn("Unknown batch: b/Batch-001", self.run_board("validate", expected=1))
+        card.write_text(card.read_text().replace('batch: "b/Batch-001"', 'batch: "Batch-001"'))
+        self.run_board("validate")
         original = b_description.read_text()
         b_description.write_text(original.replace("modules/b/specs", "modules/a/specs").replace("spec-001-r2", "spec-001-r1"))
-        self.assertIn("in its own module", self.run_board("validate", "--module", "b", expected=1))
-        self.run_board("validate", "--module", "a")
+        self.assertIn("in its own module", self.run_board("validate", expected=1))
+        self.run_board("validate", "--scope", "a")
 
     def test_module_board_rejects_linked_stage(self):
-        a, b = self.initialize_modules()
-        backlog = a / "kanban/backlog"
+        self.initialize_modules()
+        external = self.root / "other"
+        external.mkdir()
+        backlog = self.board / "backlog"
         shutil.rmtree(backlog)
-        backlog.symlink_to(b / "kanban/backlog", target_is_directory=True)
+        backlog.symlink_to(external, target_is_directory=True)
         self.assertIn("symbolic link", self.run_board("new", "Forbidden", "--owner", "Test", "--apply", "--module", "a", expected=1))
-        self.assertEqual([], list((b / "kanban/backlog").glob("*.md")))
+        self.assertEqual([], list(external.glob("*.md")))
 
     def test_module_board_uses_primary_tracking_from_worktree(self):
-        a, _ = self.initialize_modules()
+        self.initialize_modules()
         self.commit_fixture("Initialize module fixture")
         worktree = self.module_worktree()
         (worktree / "project.json").unlink()
         self.run_board("new", "From branch", "--owner", "Test", "--apply", "--module", "a", cwd=worktree)
-        name = "kanban/backlog/card-00000001-from-branch.md"
-        self.assertTrue((a / name).is_file())
-        self.assertFalse((worktree / a.relative_to(self.root) / name).exists())
+        name = "project/kanban/backlog/card-00000001-from-branch.md"
+        self.assertTrue((self.root / name).is_file())
+        self.assertFalse((worktree / name).exists())
         self.assertIn("From branch", self.run_board("show", "--module", "a"))
 
     def test_module_claim_race_integration_and_journal(self):
@@ -238,17 +297,17 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
             return result
 
-        card = "CARD-00000001"
+        scopes = {"a": "CARD-00000001", "b": "CARD-00000002"}
         with ThreadPoolExecutor(max_workers=3) as concurrent:
             attempts = {
-                owner: concurrent.submit(operation, owner, "claim", card, "--owner", owner, "--base", revision)
+                owner: concurrent.submit(operation, owner, "claim", scopes[owner[0]], "--owner", owner, "--base", revision)
                 for owner in worktrees
             }
             results = {owner: job.result() for owner, job in attempts.items()}
         winner, = (owner for owner in ("a1", "a2") if results[owner].returncode == 0)
         self.assertEqual(results["b1"].returncode, 0, results["b1"].stderr)
-        args_a = (card, "--owner", winner)
-        args_b = (card, "--owner", "b1")
+        args_a = (scopes["a"], "--owner", winner)
+        args_b = (scopes["b"], "--owner", "b1")
         operation(winner, "integration", "begin", *args_a, expected=0)
         self.assertIn("Integration is held", operation("b1", "integration", "begin", *args_b, expected=1).stderr)
         advanced = subprocess.check_output(
@@ -261,21 +320,23 @@ class KanbanBoardTests(unittest.TestCase):
         operation("b1", "integration", "begin", *args_b, expected=0)
         operation("b1", "integration", "release", *args_b, expected=0)
 
-        def record_milestone(owner, space):
-            evidence = next((space / "kanban/backlog").glob("*.md")).relative_to(self.root)
+        def record_milestone(owner):
+            card = scopes[owner[0]]
+            evidence = next((self.board / "backlog").glob(f"{card.lower()}-*.md")).relative_to(self.root)
             operation(owner, "milestone", "verified", card, "--owner", owner,
                       "--summary", f"Verification for {owner}", "--revision", revision,
-                      "--evidence", str(evidence), "--shared", expected=0)
+                      "--evidence", str(evidence), expected=0)
 
         with ThreadPoolExecutor(max_workers=2) as concurrent:
-            both = [concurrent.submit(record_milestone, winner, a), concurrent.submit(record_milestone, "b1", b)]
+            both = [concurrent.submit(record_milestone, winner), concurrent.submit(record_milestone, "b1")]
             for entry in both:
                 entry.result()
-        record_milestone(winner, a)
-        journal = "".join(p.read_text() for p in (self.root / "project/rememory").glob("*.md"))
-        self.assertEqual(journal.count("<!-- kr-event:"), 2)
-        self.assertIn("a/CARD-00000001", journal)
-        self.assertIn("b/CARD-00000001", journal)
+        record_milestone(winner)
+        self.assertEqual([], list((self.root / "project/rememory").glob("*.md")))
+        for scope, space in (("a", a), ("b", b)):
+            journal = "".join(p.read_text() for p in (space / "rememory").glob("*.md"))
+            self.assertEqual(journal.count("<!-- kr-event:"), 1)
+            self.assertIn(f"{scope}/{scopes[scope]}", journal)
 
     def lifecycle(self, template, stages):
         options = ("init", "--template", template)
