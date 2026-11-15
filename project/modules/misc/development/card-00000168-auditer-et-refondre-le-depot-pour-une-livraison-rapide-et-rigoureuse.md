@@ -44,3 +44,6 @@ Après publication, hors critères : suppression de l’état local périmé de 
 ## History
 
 - 2026-11-15 — Créée à la demande de l’utilisateur, avec ses décisions sur le flux, les guides, les modules et l’état local.
+
+- 2026-11-15T23:11:07+01:00 — Stage moved from `backlog` to `development`.
+- 2026-11-15 — Phase `claude/phase-168` ouverte (claim enregistré). Passage en development fait sur la branche et non dans le checkout de `main` : l’hôte interdit d’écrire dans le checkout principal depuis le worktree, et la refonte approuvée garde les Cards sur la branche de phase.
