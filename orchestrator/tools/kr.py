@@ -77,7 +77,7 @@ def main(argv=None, root=ROOT):
         if args.command == "show":
             if args.module:
                 project.board(args.module)
-            return board.show(project, args.module, phase.state())
+            return board.show(project, args.module, phase.state(), phase.next_action())
         if args.command == "validate":
             return validate(project)
         if args.command == "path":

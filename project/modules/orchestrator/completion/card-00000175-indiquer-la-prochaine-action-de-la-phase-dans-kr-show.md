@@ -17,11 +17,11 @@ Demande de l’utilisateur du 2026-11-16 (voir la Card du lanceur `kr`). Pas de 
 
 ## Acceptance criteria
 
-- [ ] Checkout sale : `Next: commit the changes`.
-- [ ] Checkout propre sans vérification, ou HEAD plus récent que la révision vérifiée : `Next: run check`.
-- [ ] HEAD égal à la révision vérifiée : `Next: ask for approval, then publish`.
-- [ ] Sans phase, aucune ligne `Next:`.
-- [ ] Un test de `test-kr.py` couvre ces cas ; `validate` passe.
+- [x] Checkout sale : `Next: commit the changes`.
+- [x] Checkout propre sans vérification, ou HEAD plus récent que la révision vérifiée : `Next: run check`.
+- [x] HEAD égal à la révision vérifiée : `Next: ask for approval, then publish`.
+- [x] Sans phase, aucune ligne `Next:`.
+- [x] Un test de `test-kr.py` couvre ces cas ; `validate` passe.
 
 ## Execution and evidence
 
@@ -31,3 +31,7 @@ Demande de l’utilisateur du 2026-11-16 (voir la Card du lanceur `kr`). Pas de 
 ## History
 
 - 2026-11-16 — Créée à la demande de l’utilisateur.
+
+- 2026-11-16T00:25:18+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:25:51+01:00 — Stage moved from `development` to `completion`.

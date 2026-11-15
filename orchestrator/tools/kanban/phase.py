@@ -83,6 +83,18 @@ class Phase:
             raise ValueError(f"The active phase runs on {state['branch']}: switch to it to change the records.")
         return state
 
+    def next_action(self):
+        """What the active phase waits for, or None without a phase."""
+        state = self.state()
+        if state is None:
+            return None
+        if state["branch"] != self.branch():
+            return f"switch to {state['branch']}"
+        if git(self.root, "status", "--porcelain", "--untracked-files=normal"):
+            return "commit the changes"
+        return ("ask for approval, then publish" if state["verified"] == git(self.root, "rev-parse", "HEAD")
+                else "run check")
+
     def guard_write(self):
         """During a phase, the records change only on its branch."""
         if self.state() is not None:

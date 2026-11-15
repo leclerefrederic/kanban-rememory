@@ -36,13 +36,14 @@ def local(directory):
     return directory
 
 
-def show(project, module=None, phase=None):
+def show(project, module=None, phase=None, action=None):
     workflow = project.workflow
     today = project.now().date()
     if phase:
         verified = phase["verified"] or "no"
         print(f"Phase: {', '.join(phase['cards'])} ({phase['module']}) on {phase['branch']}, "
               f"{phase.get('mode', 'release')}; verified: {verified}")
+        print(f"Next: {action}")
     else:
         print("Phase: none")
     wip = {name: 0 for name in project.modules}
