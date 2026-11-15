@@ -2,8 +2,10 @@
 
 from dataclasses import dataclass
 import json
+import os
 from pathlib import Path, PureWindowsPath
 import re
+import subprocess
 from typing import Dict, Optional
 
 
@@ -130,9 +132,6 @@ def read_manifest(root, manifest):
 
 def primary_worktree(root):
     """Locate the primary checkout for this local Git clone."""
-    import os
-    import subprocess
-
     output = subprocess.check_output(
         ["git", "worktree", "list", "--porcelain", "-z"], cwd=root,
     )
@@ -154,3 +153,16 @@ def control_workspace(project, module=None):
     if project.modules:
         raise ValueError("Activate modules from the primary worktree before using module tools.")
     return project.root, project.workspace(module)
+
+
+def coordination_root(root):
+    common = subprocess.check_output(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=root, text=True,
+    ).strip()
+    return Path(common) / "kanban-rememory"
+
+def invocation_module(explicit):
+    assigned = os.environ.get("KR_MODULE")
+    if explicit and assigned and explicit != assigned:
+        raise ValueError("Module selection differs from the current invocation.")
+    return explicit or assigned or None

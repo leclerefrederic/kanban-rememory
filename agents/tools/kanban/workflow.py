@@ -41,12 +41,12 @@ def check_workflow(workflow):
     return workflow
 
 
-def load_workflow():
-    path = PROJECT / "kanban/workflow.json"
+def load_workflow(project=PROJECT):
+    path = project / "kanban/workflow.json"
     if not path.is_file():
         raise ValueError("No workflow configured. Follow agents/setup/configure-workflow.md before using the board.")
     workflow = check_workflow(json.loads(path.read_text(encoding="utf-8")))
-    missing = [stage for stage in workflow["stages"] if not (PROJECT / "kanban" / stage).is_dir()]
+    missing = [stage for stage in workflow["stages"] if not (project / "kanban" / stage).is_dir()]
     if missing:
         raise ValueError(f"Missing stage folders: {', '.join(missing)}")
     return workflow
@@ -68,7 +68,7 @@ def starter_transitions(delivery, active):
     return transitions
 
 
-def initialize(args):
+def initialize(args, project=PROJECT, root=ROOT):
     if args.config:
         workflow = json.loads(args.config.read_text(encoding="utf-8"))
     else:
@@ -84,7 +84,7 @@ def initialize(args):
         }
     check_workflow(workflow)
 
-    board = PROJECT / "kanban"
+    board = project / "kanban"
     config = board / "workflow.json"
     if board.is_symlink() or config.is_symlink():
         raise ValueError("The board and workflow configuration must be local paths.")
@@ -103,7 +103,7 @@ def initialize(args):
     stages = [board / stage for stage in workflow["stages"]]
     for stage in stages:
         if stage.is_symlink() or (stage.exists() and not stage.is_dir()):
-            raise ValueError(f"Stage path is not a local directory: {stage.relative_to(ROOT)}")
+            raise ValueError(f"Stage path is not a local directory: {stage.relative_to(root)}")
     if board.exists():
         outside = [entry.name for entry in board.iterdir()
                    if entry.is_dir() and entry not in stages and any(entry.glob("*.md"))]
@@ -113,7 +113,7 @@ def initialize(args):
     print(json.dumps(workflow, indent=2))
     for stage in stages:
         if not stage.exists():
-            print(f"Create {stage.relative_to(ROOT)}/")
+            print(f"Create {stage.relative_to(root)}/")
     if not args.apply:
         print("Preview only. Run again with --apply after approval.")
         return 0
@@ -127,7 +127,7 @@ def initialize(args):
             json.dump(workflow, file, indent=2)
             file.write("\n")
     except FileExistsError:
-        if load_workflow() != workflow:
+        if load_workflow(project) != workflow:
             raise ValueError("A different workflow already exists. Use an explicit migration.") from None
     print("Workflow ready.")
     return 0

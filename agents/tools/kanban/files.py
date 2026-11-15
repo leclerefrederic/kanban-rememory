@@ -30,8 +30,8 @@ def card_order(path):
     return prefix, int(number), path.name
 
 
-def cards(stage):
-    paths = (PROJECT / "kanban" / stage).glob("*.md")
+def cards(stage, project=PROJECT):
+    paths = (project / "kanban" / stage).glob("*.md")
     return sorted((path for path in paths if CARD_ID.match(path.stem)), key=card_order)
 
 
@@ -78,15 +78,30 @@ def acceptance_checks(source):
             yield line.strip()
 
 
-def markdown_files():
+def markdown_files(scope=None, root=ROOT):
+    filespec = ["*.md"] if scope is None else [f":(literal){scope.relative_to(root).as_posix()}"]
     listed = subprocess.check_output(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.md"],
-        cwd=ROOT,
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", *filespec],
+        cwd=root,
     )
     for name in sorted(set(os.fsdecode(listed).split("\0")) - {""}):
-        path = ROOT / name
-        if path.is_file() and not path.is_symlink():
+        path = root / name
+        if path.suffix.lower() == ".md" and path.is_file() and not path.is_symlink():
             yield path
+
+
+
+def check_module_records(project):
+    """Refuse linked record paths before any module operation."""
+    for name in ("kanban", "specs", "batches", "lots", "Lots", "rememory"):
+        directory = project / name
+        if directory.is_symlink():
+            raise ValueError(f"Module record path is a symbolic link: {directory}.")
+        for current, dirs, files in os.walk(directory):
+            for entry in dirs + files:
+                path = Path(current) / entry
+                if path.is_symlink():
+                    raise ValueError(f"Module record path is a symbolic link: {path}.")
 
 
 def header_value(source, key, default=None):

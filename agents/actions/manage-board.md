@@ -2,6 +2,8 @@
 
 Prerequisites: approved action, [Kanban rules](../guidelines/kanban.md), Python 3.9+ and Git. Run from the project root. This CLI does not grant execution or publication authority.
 
+In multi-module mode select `--module MODULE` or use a qualified reference such as `billing/CARD-00000001` for commands taking an ID. Use stable qualified references for dependencies between modules. Active Card moves require the recorded `--owner-token` from [module coordination](coordinate-modules.md).
+
 ## Inspect and validate
 
 ```sh

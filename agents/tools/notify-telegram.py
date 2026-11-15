@@ -252,19 +252,21 @@ def main():
     project = args.project or root.name
     project_id = None
     if args.event != "test":
+        args.module = args.module or os.environ.get("KR_MODULE")
         manifest = root / "project.json"
-        if manifest.exists() or manifest.is_symlink():
-            from kanban.project import load_project
+        if manifest.exists() or manifest.is_symlink() or (root / ".git").is_file():
+            from kanban.project import invocation_module, load_project, primary_worktree
 
             try:
-                context = load_project(root)
-                args.module = context.select_module(args.module)
-            except (OSError, ValueError) as error:
+                primary = primary_worktree(root) if (root / ".git").is_file() else root
+                context = load_project(primary)
+                args.module = context.select_module(invocation_module(args.module))
+            except (OSError, ValueError, subprocess.CalledProcessError) as error:
                 parser.error(str(error))
-            project = args.project or context.name
+            project = args.project or (context.name if context.modules else root.name)
             if "\n" in project or "\r" in project:
                 parser.error("The project display name must be a single line.")
-            project_id = context.id
+            project_id = context.id if context.modules else None
         elif args.module is not None:
             parser.error("Module selection requires an active project.json.")
     if args.send_to is None:

@@ -29,14 +29,19 @@ def artifact_digest(path):
     return digest.hexdigest()
 
 
-def active_card(card):
-    path = Path("project/kanban/workflow.json")
+def active_card(card, module=None):
+    from kanban.files import ROOT
+    from kanban.project import control_workspace, invocation_module, load_project
+
+    _, workspace = control_workspace(load_project(ROOT), invocation_module(module))
+    board = workspace / "kanban"
+    path = board / "workflow.json"
     if not path.exists():
         raise ValueError("project/kanban/workflow.json is required.")
     stages = json.loads(path.read_text()).get("active")
     if not stages:
         raise ValueError("workflow.json must list its active stages.")
-    return any(any(Path("project/kanban", stage).glob(card.lower() + "-*.md")) for stage in stages)
+    return any(any((board / stage).glob(card.lower() + "-*.md")) for stage in stages)
 
 
 def verify_artifact(candidate):
@@ -51,6 +56,7 @@ def main():
     parser.add_argument("operation", choices=["change", "correct", "freeze", "verify", "publish"])
     parser.add_argument("record", type=Path)
     parser.add_argument("--card")
+    parser.add_argument("--module", help="Module ID from project.json")
     parser.add_argument("--artifact", type=Path)
     parser.add_argument("--blocking-test")
     parser.add_argument("--restart", action="store_true")
@@ -63,7 +69,7 @@ def main():
         if args.operation in {"change", "correct"}:
             if not re.fullmatch(r"[A-Z][A-Z0-9]*-[0-9]{8}", args.card or ""):
                 raise ValueError("An active Card ID is required.")
-            if args.card not in record["authorized_cards"] or not active_card(args.card):
+            if args.card not in record["authorized_cards"] or not active_card(args.card, args.module):
                 raise ValueError("Record out-of-scope work in Backlog and defer it.")
             if args.operation == "correct":
                 if not frozen or not args.blocking_test or record.get("correction"):

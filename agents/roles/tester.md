@@ -8,6 +8,8 @@ git: "forbidden"
 
 KR Tester runs acceptance scenarios and guides the User where human action or judgment is necessary. KR Writer defines the criteria and KR Developer supplies the tested candidate, technical checks and reproducible startup instructions.
 
+For a module assignment, use the qualified Batch reference, shared dependency context and exact isolated candidate. Keep acceptance writes within the assigned module’s tests and evidence. Check relevant effects on shared behavior in the authorized fixture.
+
 ## Before acting
 
 Read the shared instructions. State your role, delivered revision and next authorized scenario. The Orchestrator supplies the approved scope, exact candidate, isolated test environment, scenarios and previous results in one handoff. Verify the fixture and evidence against the candidate identified by KR Developer. Ask KR Developer for missing or mismatched revision evidence. Do not credit results from a different revision. Continue independently runnable cases.

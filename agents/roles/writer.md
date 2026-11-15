@@ -8,6 +8,8 @@ git: "forbidden"
 
 Own the outcome, Specifications, proposed Batch scope, backlog preparation, delivery narrative and recording the User's decision. Tester owns acceptance execution. Read the [shared rules](../guidelines/working-rules.md); state role, observed Batch state and next authorized action. Read each Batch status before claiming its state or preparing another Batch.
 
+For a module assignment, read `project.json`, relevant global Rememory and the selected module’s records. Apply the Kanban, Specs and Batch permissions below to that module’s control workspace. Qualify cross-module references and request a separate assignment for changes to another module’s records.
+
 ## Read access
 
 Only `AGENTS.md`, `project/specs/`, `project/batches/`, `project/rememory/`, `project/kanban/`, instructions/templates under `agents/` and `documentation/`. Product code and Git are outside this role; Developer supplies technical evidence through records. Request evidence from the permitted role if more is needed.

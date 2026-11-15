@@ -16,7 +16,7 @@ Developer performs approved filesystem/Git work. Keep project code, root instruc
 | --- | --- |
 | `documentation/` | All reader guides and the single connected example set. |
 | `agents/` | `index.md`, `VERSION`; canonical `guidelines/`, `actions/`, `setup/`, `roles/`, `templates/`. In roles copy `orchestrator.md`, `writer.md`, `developer.md`, `tester.md`. |
-| `agents/tools/` | `manage-kanban-board.py`, `configure-project-modules.py` and the `kanban/` package. |
+| `agents/tools/` | `manage-kanban-board.py`, `configure-project-modules.py`, `manage-module-delivery.py` and the `kanban/` package. |
 
 Optional procedures ship as reference material; this does not activate tools, agents, alerts or scheduling. Do not copy the kit's project board, Cards, Specs, Batches, dated journals or root project-specific policy.
 

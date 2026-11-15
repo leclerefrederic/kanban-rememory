@@ -34,8 +34,15 @@ def fiche_entries(source):
             yield [part.strip() for part in line.partition(":")[2].split("|")]
 
 
-def project_reference(path):
+def project_reference(path, project=PROJECT, root=ROOT):
     relative = Path(path)
+    if project != PROJECT:
+        root_relative = (root / relative).resolve()
+        if not root_relative.is_relative_to(project / "specs"):
+            raise ValueError("A Batch must pin a repository-relative Specification path in its own module.")
+        if relative.is_absolute() or ".." in relative.parts or root / relative != root_relative:
+            raise ValueError("A Batch Specification path must be local and cannot contain aliases.")
+        return root_relative
     if relative.parts and relative.parts[0] == "specs":
         relative = Path("project") / path.lower()
     if relative.parts[:3] == ("project", "specs", "frozen"):
@@ -44,30 +51,30 @@ def project_reference(path):
             migrated = migrated.with_name("spec-001-r1.md")
         if migrated.is_file():
             return migrated
-    return ROOT / relative
+    return root / relative
 
 
 def batch_slug(identifier):
     return re.sub(r"^lot-", "batch-", identifier.lower())
 
 
-def batch_descriptions():
-    for directory in PROJECT.iterdir() if PROJECT.exists() else ():
+def batch_descriptions(project=PROJECT):
+    for directory in project.iterdir() if project.exists() else ():
         if directory.name in ("batches", "lots", "Lots") and directory.is_dir():
             yield from sorted(p for p in directory.glob("*/*.md") if p.name.lower() == "description.md")
 
 
-def validate_lot_mapping(card_paths):
+def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
     findings = []
 
     def report(path, message):
-        findings.append(f"{path.relative_to(ROOT)}: {message}")
+        findings.append(f"{path.relative_to(root)}: {message}")
 
     fiches = set()
     approved = {}
     eligible = {}
     for state in ("ready", "approved", "frozen"):
-        for path in (PROJECT / "specs" / state).glob("*.md"):
+        for path in (project / "specs" / state).glob("*.md"):
             content = path.read_bytes()
             source = content.decode("utf-8")
             fiche_id = header_value(source, "id") or field(source, "Fiche ID")
@@ -75,12 +82,12 @@ def validate_lot_mapping(card_paths):
             if not fiche_id:
                 continue
             fiches.add(fiche_id)
-            eligible[path.relative_to(ROOT).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
+            eligible[path.relative_to(root).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
             if state != "ready":
-                approved[path.relative_to(ROOT).as_posix()] = eligible[path.relative_to(ROOT).as_posix()]
+                approved[path.relative_to(root).as_posix()] = eligible[path.relative_to(root).as_posix()]
 
     lots = {}
-    for path in batch_descriptions():
+    for path in batch_descriptions(project):
         lot_id = header_value(path.read_text(encoding="utf-8"), "id") or header_value(path.read_text(encoding="utf-8"), "lot") or path.parent.name
         if not isinstance(lot_id, str) or batch_slug(lot_id) != path.parent.name.lower() and lot_id.lower() != path.parent.name.lower():
             report(path, "Batch ID must match the directory name.")
@@ -125,7 +132,12 @@ def validate_lot_mapping(card_paths):
                         (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
                 report(path, "Specification entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
-            pinned = (eligible if draft else approved).get(project_reference(parts[2]).relative_to(ROOT).as_posix())
+            try:
+                reference = project_reference(parts[2], project, root).relative_to(root).as_posix()
+            except ValueError as error:
+                report(path, str(error))
+                continue
+            pinned = (eligible if draft else approved).get(reference)
             if not pinned or pinned[:2] != tuple(parts[:2]):
                 state = "ready or approved" if draft else "approved"
                 report(path, f"Specification entry must pin a matching {state} ID, revision, and path.")
@@ -165,9 +177,11 @@ def validate_lot_mapping(card_paths):
     return findings
 
 
-def is_closed_lot_report(document):
-    relative = document.relative_to(ROOT)
-    if len(relative.parts) != 4 or relative.parts[1] not in ("batches", "lots", "Lots") or document.name.lower() != "report.md":
+def is_closed_lot_report(document, project=PROJECT):
+    if not document.is_relative_to(project):
+        return False
+    relative = document.relative_to(project)
+    if len(relative.parts) != 3 or relative.parts[0] not in ("batches", "lots", "Lots") or document.name.lower() != "report.md":
         return False
     description = document.with_name("description.md")
     if not description.is_file():
@@ -182,32 +196,32 @@ def is_closed_lot_report(document):
                for line in front_matter)
 
 
-def verify_approval(lot_id, revision):
+def verify_approval(lot_id, revision, project=PROJECT, root=ROOT):
     if not re.fullmatch(r"(?:Batch|Lot)-[0-9]+", lot_id, re.IGNORECASE):
         raise ValueError("Expected a batch ID such as Batch-001.")
     prefix, number = lot_id.split("-", 1)
     lot_id = f"{prefix.title()}-{number}"
     if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", revision):
         raise ValueError("Supply the full trusted approval commit ID.")
-    kind = subprocess.run(["git", "cat-file", "-t", revision], cwd=ROOT, capture_output=True)
+    kind = subprocess.run(["git", "cat-file", "-t", revision], cwd=root, capture_output=True)
     if kind.returncode or kind.stdout.strip() != b"commit":
         raise ValueError("The trusted approval commit is unavailable.")
 
-    matches = [path for path in batch_descriptions() if path.parent.name.lower() in (lot_id.lower(), batch_slug(lot_id))]
+    matches = [path for path in batch_descriptions(project) if path.parent.name.lower() in (lot_id.lower(), batch_slug(lot_id))]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one description for {lot_id}.")
     description = matches[0]
 
     def approved_bytes(path):
-        relative = path.relative_to(ROOT).as_posix()
+        relative = path.relative_to(root).as_posix()
         recorded = subprocess.run(
-            ["git", "show", f"{revision}:{relative}"], cwd=ROOT, capture_output=True,
+            ["git", "show", f"{revision}:{relative}"], cwd=root, capture_output=True,
         )
-        if recorded.returncode and path == description:
+        if recorded.returncode and path == description and project == PROJECT:
             for directory in ("batches", "lots", "Lots"):
                 historical = f"{directory}/{lot_id}/Description.md"
                 recorded = subprocess.run(
-                    ["git", "show", f"{revision}:{historical}"], cwd=ROOT, capture_output=True,
+                    ["git", "show", f"{revision}:{historical}"], cwd=root, capture_output=True,
                 )
                 if not recorded.returncode:
                     break
@@ -226,8 +240,8 @@ def verify_approval(lot_id, revision):
             header = re.sub(r"(?m)^status:[^\n]*$", "status: ready", header, count=1)
             current = "---\n" + header + end + body
     if current != approved:
-        raise ValueError(f"Approval mismatch: {description.relative_to(ROOT)}")
-    findings = validate_lot_mapping(())
+        raise ValueError(f"Approval mismatch: {description.relative_to(root)}")
+    findings = validate_lot_mapping((), project, root)
     if findings:
         raise ValueError("\n".join(findings))
     def check_resources(fiche, source):
@@ -236,22 +250,22 @@ def verify_approval(lot_id, revision):
             if re.match(r"[a-z][a-z0-9+.-]*:", link, re.IGNORECASE):
                 continue
             target = (fiche.parent / link).resolve()
-            if not target.is_relative_to(PROJECT / "specs/resources"):
+            if not target.is_relative_to(project / "specs/resources"):
                 continue  # Other linked files are references to living documents, not frozen resources.
             recorded = approved_bytes(target)
-            active = PROJECT / "specs/resources/active"
+            active = project / "specs/resources/active"
             candidates = [target]
             if target.is_relative_to(active):
-                candidates.append(PROJECT / "specs/resources/archived" / target.relative_to(active))
+                candidates.append(project / "specs/resources/archived" / target.relative_to(active))
             if not any(path.is_file() and path.read_bytes() == recorded for path in candidates):
-                raise ValueError(f"Approval mismatch: {target.relative_to(ROOT)}")
+                raise ValueError(f"Approval mismatch: {target.relative_to(root)}")
 
     for entry in fiche_entries(approved):
-        fiche = project_reference(entry[2])
-        original = ROOT / entry[2]
+        fiche = project_reference(entry[2], project, root)
+        original = root / entry[2]
         recorded_fiche = approved_bytes(original)
         if fiche.read_bytes() != recorded_fiche:
-            raise ValueError(f"Approval mismatch: {fiche.relative_to(ROOT)}")
+            raise ValueError(f"Approval mismatch: {fiche.relative_to(root)}")
         check_resources(fiche, recorded_fiche.decode("utf-8"))
     print(f"Approval verified for {lot_id}.")
     return 0

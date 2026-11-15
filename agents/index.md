@@ -7,6 +7,7 @@ This is internal execution machinery. Human explanations live in `documentation/
 | Apply approval principles | [Operational lean rules](guidelines/lean-specifications.md) |
 | Coordinate the current chat | [Orchestrate](actions/orchestrate-work.md) |
 | Create or move Cards | [Kanban invariants](guidelines/kanban.md), [content](actions/write-card.md), [commands](actions/manage-board.md) |
+| Coordinate a module delivery | [Module coordination](actions/coordinate-modules.md) |
 | Record a milestone | [Rememory](actions/maintain-rememory.md) |
 | Prepare or execute a Batch | [Batch invariants](guidelines/batches.md); [develop](actions/develop-batch.md) or [close](actions/close-batch.md) for that phase |
 | Run acceptance | [Tester](roles/tester.md#run-and-guide-acceptance) |

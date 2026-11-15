@@ -12,9 +12,11 @@ To set aside a non-role rule, an agent allowed to write Rememory states the rule
 
 The root project instructions select the default role; explicit and delegated assignments take precedence. Roles own their access rules: [Orchestrator](../roles/orchestrator.md), [Writer](../roles/writer.md), [Developer](../roles/developer.md), [Tester](../roles/tester.md). The [User](../../documentation/user-responsibilities.md) decides scope and acceptance. The agent maintains records; never ask the User to write Cards.
 
-1. Check `project/kanban/workflow.json`. If absent, use [installation](../setup/install.md) and obtain the concrete setup approval before modifying the board.
+1. Read root `project.json` when present, then the common instructions and relevant global Rememory. Identify project, role, module and authorized mission before loading module records. Use an explicit assignment or qualified reference when multiple modules exist, and clarify ambiguous scope before writes or pickup. Check that module’s `kanban/workflow.json`; without a manifest, use `project/kanban/workflow.json`. If the workflow is absent, follow [installation](../setup/install.md).
 2. For an existing assignment, read its Card/Batch, owner and latest relevant journal entry, check dependencies and request role-permitted Git evidence. Follow [resumption](../actions/resume-work.md); report conflicting records before dependent work.
 3. Load only the next action's instructions from the [router](../index.md). The [Kanban rules](kanban.md) apply before creating or moving a Card; [Batch rules](batches.md), including debt, apply only to Batch work.
+
+For named Claude Code sessions using the optional role hook, set `KR_MODULE` in the invocation environment. One configured module can be inferred. Treat module instructions as advisory where no applicable host control has been verified.
 
 A standalone Card holds its outcome, scope, checks and authorization; Specs/Batches are optional. Approval alone is not execution or publication permission. Developer owns pickup, execution records and closure under project Git policy. New standalone work waits until an active Batch is delivered and preserves its candidate. Use one Card owner and the configured WIP limit.
 

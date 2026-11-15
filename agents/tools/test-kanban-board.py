@@ -1,4 +1,5 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 from hashlib import sha256
@@ -42,6 +43,7 @@ INSTALL_FILES = (
     'agents/guidelines/lean-specifications.md',
     'agents/guidelines/working-rules.md',
     'agents/actions/close-batch.md',
+    'agents/actions/coordinate-modules.md',
     'agents/actions/develop-batch.md',
     'agents/actions/maintain-rememory.md',
     'agents/actions/manage-board.md',
@@ -55,6 +57,7 @@ INSTALL_FILES = (
     'agents/setup/configure-workflow.md',
     'agents/setup/install.md',
     'agents/setup/project-layout.md',
+    'agents/setup/project-modules.md',
     'agents/setup/skills.md',
     'agents/setup/telegram.md',
     'agents/templates/batch-description.md',
@@ -68,6 +71,7 @@ INSTALL_FILES = (
     'agents/roles/developer.md',
     'agents/roles/tester.md',
     'agents/tools/manage-kanban-board.py',
+    'agents/tools/manage-module-delivery.py',
 )
 
 
@@ -89,13 +93,189 @@ class KanbanBoardTests(unittest.TestCase):
         )
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)
 
-    def run_board(self, *args, expected=0):
+    def run_board(self, *args, expected=0, cwd=None):
         result = subprocess.run(
             [sys.executable, "agents/tools/manage-kanban-board.py", *args],
-            cwd=self.root, capture_output=True, text=True,
+            cwd=cwd or self.root, capture_output=True, text=True,
         )
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result.stdout + result.stderr
+
+    def initialize_modules(self):
+        manifest = {
+            "schema_version": 1,
+            "project": {"id": "fixture", "name": "Fixture"},
+            "shared": {"memory": "project/rememory", "sources": []},
+            "modules": {
+                name: {"workspace": f"project/modules/{name}"} for name in ("a", "b")
+            },
+            "execution": {
+                "active_deliveries_per_module": 1,
+                "branch_required": True,
+                "worktree_required": True,
+                "concurrent_integrations": 1,
+            },
+        }
+        (self.root / "project.json").write_text(json.dumps(manifest), encoding="utf-8")
+        for name in manifest["modules"]:
+            self.run_board("init", "--template", "short", "--module", name, "--apply")
+        return tuple(self.root / "project/modules" / name for name in ("a", "b"))
+
+    def commit_fixture(self, message):
+        subprocess.run(["git", "add", "."], cwd=self.root, check=True)
+        subprocess.run(
+            ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+             "commit", "-qm", message], cwd=self.root, check=True,
+        )
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+
+    def module_worktree(self):
+        scratch = tempfile.TemporaryDirectory()
+        self.addCleanup(scratch.cleanup)
+        worktree = Path(scratch.name) / "candidate"
+        subprocess.run(["git", "worktree", "add", "-qb", "candidate", str(worktree)], cwd=self.root, check=True)
+        return worktree
+
+    def test_module_scoped_commands_and_qualified_ids(self):
+        a, b = self.initialize_modules()
+        self.assertIn("Choose a module explicitly", self.run_board("new", "Ambiguous", "--owner", "Test", "--apply", expected=1))
+        self.run_board("--module", "a", "new", "Twin", "--owner", "Owner A", "--apply")
+        self.run_board("new", "Twin", "--owner", "Owner B", "--apply", "--module", "b")
+        name = "card-00000001-twin.md"
+        card_a, card_b = (space / "kanban/backlog" / name for space in (a, b))
+        b_content = card_b.read_text()
+        self.assertIn("- Owner: Owner A", card_a.read_text())
+        self.assertIn("- Owner: Owner B", b_content)
+        self.assertIn("CARD-00000001", self.run_board("show", "--module", "a"))
+        self.assertIn("does not belong", self.run_board("--module", "b", "move", "a/CARD-00000001", "development", expected=2))
+        self.assertIn("--owner-token", self.run_board("move", "a/CARD-00000001", "development", expected=1))
+        revision = self.commit_fixture("Initialize module fixture")
+        worktree = self.module_worktree()
+        subprocess.run(
+            [sys.executable, "-c",
+             "import sys; sys.path.insert(0, 'agents/tools'); "
+             "from kanban.coordination import Coordination; "
+             "Coordination('.', 'a').claim('owner-a', 'CARD-00000001', sys.argv[1])", revision],
+            cwd=worktree, check=True,
+        )
+        self.assertIn("No matching ownership", self.run_board(
+            "move", "a/CARD-00000001", "development", "--owner-token", "wrong-owner", cwd=worktree, expected=1,
+        ))
+        self.run_board("move", "a/CARD-00000001", "development", "--owner-token", "owner-a", cwd=worktree)
+        self.assertFalse(card_a.exists())
+        self.assertTrue((a / "kanban/development" / name).is_file())
+        self.assertEqual(b_content, card_b.read_text())
+        for module in ("a", "b"):
+            self.run_board("validate", "--module", module)
+
+    def test_module_batch_pins_its_own_specification_revision(self):
+        a, b = self.initialize_modules()
+
+        def write_batch(space, revision):
+            spec = space / f"specs/approved/spec-001-r{revision}.md"
+            spec.parent.mkdir(parents=True)
+            spec.write_text(f'---\ntype: specification\nid: "SPEC-001"\nrevision: "{revision}"\n---\n')
+            record = space / "batches/batch-001"
+            record.mkdir(parents=True)
+            pins = [{"id": "SPEC-001", "revision": revision, "path": spec.relative_to(self.root).as_posix()}]
+            description = record / "description.md"
+            description.write_text(
+                f'---\ntype: batch\nid: "Batch-001"\nspecifications: {json.dumps(pins)}\nstatus: ready\n---\n'
+            )
+            for kind in ("tests", "report"):
+                (record / f"{kind}.md").write_text(
+                    f'---\ntype: {kind}\nid: "Batch-001-{kind.title()}"\nbatch: "Batch-001"\n---\n'
+                )
+            return description
+
+        write_batch(a, "1")
+        b_description = write_batch(b, "2")
+        revision = self.commit_fixture("Record both module approvals")
+        for module in ("a", "b"):
+            self.run_board("verify-approval", f"{module}/Batch-001", revision)
+        original = b_description.read_text()
+        b_description.write_text(original.replace("modules/b/specs", "modules/a/specs").replace("spec-001-r2", "spec-001-r1"))
+        self.assertIn("in its own module", self.run_board("validate", "--module", "b", expected=1))
+        self.run_board("validate", "--module", "a")
+
+    def test_module_board_rejects_linked_stage(self):
+        a, b = self.initialize_modules()
+        backlog = a / "kanban/backlog"
+        shutil.rmtree(backlog)
+        backlog.symlink_to(b / "kanban/backlog", target_is_directory=True)
+        self.assertIn("symbolic link", self.run_board("new", "Forbidden", "--owner", "Test", "--apply", "--module", "a", expected=1))
+        self.assertEqual([], list((b / "kanban/backlog").glob("*.md")))
+
+    def test_module_board_uses_primary_tracking_from_worktree(self):
+        a, _ = self.initialize_modules()
+        self.commit_fixture("Initialize module fixture")
+        worktree = self.module_worktree()
+        (worktree / "project.json").unlink()
+        self.run_board("new", "From branch", "--owner", "Test", "--apply", "--module", "a", cwd=worktree)
+        name = "kanban/backlog/card-00000001-from-branch.md"
+        self.assertTrue((a / name).is_file())
+        self.assertFalse((worktree / a.relative_to(self.root) / name).exists())
+        self.assertIn("From branch", self.run_board("show", "--module", "a"))
+
+    def test_module_claim_race_integration_and_journal(self):
+        a, b = self.initialize_modules()
+        for module in ("a", "b"):
+            self.run_board("new", "Delivery", "--owner", "Fixture", "--apply", "--module", module)
+        subprocess.run(["git", "branch", "-M", "main"], cwd=self.root, check=True)
+        revision = self.commit_fixture("Initialize module fixture")
+        scratch = tempfile.TemporaryDirectory()
+        self.addCleanup(scratch.cleanup)
+        worktrees = {name: Path(scratch.name) / name for name in ("a1", "a2", "b1")}
+        for owner, worktree in worktrees.items():
+            subprocess.run(["git", "worktree", "add", "-qb", owner, str(worktree)], cwd=self.root, check=True)
+
+        def operation(owner, *args, expected=None):
+            result = subprocess.run(
+                [sys.executable, "agents/tools/manage-module-delivery.py", "--module", owner[0], *args],
+                cwd=worktrees[owner], capture_output=True, text=True,
+            )
+            if expected is not None:
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+            return result
+
+        card = "CARD-00000001"
+        with ThreadPoolExecutor(max_workers=3) as concurrent:
+            attempts = {
+                owner: concurrent.submit(operation, owner, "claim", card, "--owner", owner, "--base", revision)
+                for owner in worktrees
+            }
+            results = {owner: job.result() for owner, job in attempts.items()}
+        winner, = (owner for owner in ("a1", "a2") if results[owner].returncode == 0)
+        self.assertEqual(results["b1"].returncode, 0, results["b1"].stderr)
+        args_a = (card, "--owner", winner)
+        args_b = (card, "--owner", "b1")
+        operation(winner, "integration", "begin", *args_a, expected=0)
+        self.assertIn("Integration is held", operation("b1", "integration", "begin", *args_b, expected=1).stderr)
+        advanced = subprocess.check_output(
+            ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+             "commit-tree", "HEAD^{tree}", "-p", revision, "-m", "main changed"], text=True, cwd=self.root,
+        ).strip()
+        subprocess.run(["git", "update-ref", "refs/heads/main", advanced, revision], cwd=self.root, check=True)
+        self.assertIn("Main advanced", operation(winner, "integration", "verify", *args_a, expected=1).stderr)
+        operation(winner, "integration", "release", *args_a, expected=0)
+        operation("b1", "integration", "begin", *args_b, expected=0)
+        operation("b1", "integration", "release", *args_b, expected=0)
+
+        def record_milestone(owner, space):
+            evidence = next((space / "kanban/backlog").glob("*.md")).relative_to(self.root)
+            operation(owner, "milestone", "verified", card, "--owner", owner,
+                      "--summary", f"Verification for {owner}", "--revision", revision,
+                      "--evidence", str(evidence), "--shared", expected=0)
+
+        with ThreadPoolExecutor(max_workers=2) as concurrent:
+            both = [concurrent.submit(record_milestone, winner, a), concurrent.submit(record_milestone, "b1", b)]
+            for entry in both:
+                entry.result()
+        record_milestone(winner, a)
+        journal = "".join(p.read_text() for p in (self.root / "project/rememory").glob("*.md"))
+        self.assertEqual(journal.count("<!-- kr-event:"), 2)
+        self.assertIn("a/CARD-00000001", journal)
+        self.assertIn("b/CARD-00000001", journal)
 
     def lifecycle(self, template, stages):
         options = ("init", "--template", template)

@@ -14,17 +14,17 @@ from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, cards, fiel
 from .validation import FROZEN_CARD_MOVE_LINKS
 
 
-def show_board(workflow, limit, today):
+def show_board(workflow, limit, today, project=PROJECT, root=ROOT):
     wip = 0
     for stage in workflow["stages"]:
         print(stage)
-        for path in cards(stage):
+        for path in cards(stage, project):
             source = path.read_text(encoding="utf-8")
             heading = next((line[2:] for line in markdown_lines(source)
                             if line.startswith("# ")), path.stem)
             task_id = CARD_ID.match(path.stem)[1].upper()
             title = heading.removeprefix(task_id).lstrip(" —-")
-            print(f"  {task_id} | {title} | {path.relative_to(ROOT)}")
+            print(f"  {task_id} | {title} | {path.relative_to(root)}")
             if stage in workflow["active"]:
                 wip += 1
                 try:
@@ -42,7 +42,7 @@ def show_board(workflow, limit, today):
     return 0
 
 
-def rewrite_card_links(source, document, card, target):
+def rewrite_card_links(source, document, card, target, root=ROOT):
     new_document = target if document == card else document
     lines = source.splitlines(keepends=True)
     for index, line in prose_lines(lines):
@@ -57,7 +57,7 @@ def rewrite_card_links(source, document, card, target):
                 return match[0]
             old_destination = (document.parent / unquote(url.path)).resolve()
             if old_destination == card:
-                if (document.relative_to(ROOT).as_posix(), href) in FROZEN_CARD_MOVE_LINKS:
+                if (document.relative_to(root).as_posix(), href) in FROZEN_CARD_MOVE_LINKS:
                     return match[0]
                 destination = target
             elif document == card:
@@ -77,20 +77,25 @@ def rewrite_card_links(source, document, card, target):
     return "".join(lines)
 
 
-def relocate_card(card, target, completed, transition):
+def relocate_card(card, target, completed, transition, project=PROJECT, root=ROOT):
     updates = {}
-    for document in set(markdown_files()) | {card}:
+    documents = markdown_files() if project == PROJECT else markdown_files(project, root)
+    for document in set(documents) | {card}:
         original = document.read_bytes()
         source = original.decode("utf-8")
-        updated = rewrite_card_links(source, document, card, target)
+        updated = rewrite_card_links(source, document, card, target, root)
         if document == card and header_value(source, "type") == "card":
             updated = updated.rstrip()
             if not re.search(r"^## History$", updated, re.MULTILINE):
                 updated += "\n\n## History"
             updated += f"\n\n- {transition}\n"
         if source != updated:
-            if (document.parent == completed and CARD_ID.match(document.stem)) or is_closed_lot_report(document):
-                raise ValueError(f"Move would rewrite immutable history: {document.relative_to(ROOT)}")
+            if project != PROJECT and not any(
+                document.is_relative_to(project / directory) for directory in ("kanban", "rememory")
+            ):
+                raise ValueError(f"Move would rewrite a protected record: {document.relative_to(root)}. Use a qualified Card reference.")
+            if (document.parent == completed and CARD_ID.match(document.stem)) or is_closed_lot_report(document, project):
+                raise ValueError(f"Move would rewrite immutable history: {document.relative_to(root)}")
             updates[target if document == card else document] = (original, updated.encode("utf-8"))
 
     card.rename(target)
@@ -107,8 +112,8 @@ def relocate_card(card, target, completed, transition):
         raise
 
 
-def move_card(workflow, task_id, destination):
-    matches = [(stage, card) for stage in workflow["stages"] for card in cards(stage)
+def move_card(workflow, task_id, destination, project=PROJECT, root=ROOT, authorize_active=None):
+    matches = [(stage, card) for stage in workflow["stages"] for card in cards(stage, project)
                if CARD_ID.match(card.stem)[1].upper() == task_id]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one card for {task_id}, found {len(matches)}.")
@@ -120,26 +125,30 @@ def move_card(workflow, task_id, destination):
     if destination not in workflow["transitions"].get(stage, []):
         raise ValueError(f"Transition from {stage} to {destination} is not allowed.")
     active = workflow["active"]
+    if authorize_active and (stage in active or destination in active):
+        source = card.read_text(encoding="utf-8")
+        delivery = header_value(source, "batch") or task_id
+        authorize_active(delivery)
     if destination in active and stage not in active:
-        if sum(len(cards(column)) for column in active) >= workflow["wip_limit"]:
+        if sum(len(cards(column, project)) for column in active) >= workflow["wip_limit"]:
             raise ValueError("WIP limit reached. Finish active work before starting another card.")
     if destination == workflow["completed"]:
         checks = list(acceptance_checks(card.read_text(encoding="utf-8")))
         if not checks or any(re.match(r"[-*+]\s+\[ \]", check) for check in checks):
             raise ValueError("Completion requires a nonempty acceptance checklist with every item checked.")
-    target = PROJECT / "kanban" / destination / card.name
+    target = project / "kanban" / destination / card.name
     if target.exists() or target.is_symlink():
-        raise ValueError(f"Destination already exists: {target.relative_to(ROOT)}")
+        raise ValueError(f"Destination already exists: {target.relative_to(root)}")
     timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
     transition = f"{timestamp} — Stage moved from `{stage}` to `{destination}`."
-    relocate_card(card, target, PROJECT / "kanban" / workflow["completed"], transition)
+    relocate_card(card, target, project / "kanban" / workflow["completed"], transition, project, root)
     print(f"Moved {task_id} from {stage} to {destination}.")
     return 0
 
 
 @contextmanager
-def board_write_lock():
-    lock = PROJECT / "kanban/.write-lock"
+def board_write_lock(project=PROJECT):
+    lock = project / "kanban/.write-lock"
     try:
         lock.mkdir()
     except FileExistsError:
@@ -150,7 +159,7 @@ def board_write_lock():
         lock.rmdir()
 
 
-def create_card(workflow, args):
+def create_card(workflow, args, project=PROJECT, root=ROOT):
     title, owner = args.title.strip(), args.owner.strip()
     if not title or not owner or len(title.splitlines()) != 1 or len(owner.splitlines()) != 1:
         raise ValueError("Title and owner must each be a nonempty single line.")
@@ -177,7 +186,7 @@ def create_card(workflow, args):
         highest = 0
         seen = set()
         for stage in workflow["stages"]:
-            for card in cards(stage):
+            for card in cards(stage, project):
                 task_id = CARD_ID.match(card.stem)[1].upper()
                 if task_id in seen:
                     raise ValueError(f"Duplicate {task_id}. Resolve the collision before creating a card.")
@@ -187,7 +196,7 @@ def create_card(workflow, args):
         if highest >= 99999999:
             raise ValueError("The eight-digit CARD range is exhausted.")
         task_id = f"CARD-{highest + 1:08d}"
-        target = PROJECT / "kanban" / entry / f"{task_id.lower()}-{slug}.md"
+        target = project / "kanban" / entry / f"{task_id.lower()}-{slug}.md"
         content = re.sub(r'^id: "(?:CARD|TASK)-NNNNNNNN"$', lambda _: f'id: "{task_id}"',
                          template, count=1, flags=re.MULTILINE)
         content = re.sub(r"^# (?:CARD|TASK)-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
@@ -198,13 +207,13 @@ def create_card(workflow, args):
 
     if not args.apply:
         target, content = prepare()
-        print(f"Preview {target.relative_to(ROOT)}:\n\n{content}")
+        print(f"Preview {target.relative_to(root)}:\n\n{content}")
         print("Run again with --apply once the project intake rules permit recording the backlog Card.")
         return 0
 
-    with board_write_lock():
+    with board_write_lock(project):
         target, content = prepare()
         with target.open("x", encoding="utf-8") as stream:
             stream.write(content)
-    print(f"Created {target.relative_to(ROOT)}.")
+    print(f"Created {target.relative_to(root)}.")
     return 0

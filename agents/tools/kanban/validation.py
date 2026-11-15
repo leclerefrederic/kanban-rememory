@@ -64,53 +64,52 @@ FROZEN_CARD_MOVE_LINKS = {
 BATCH_CARD_ID = re.compile(r"\b(?:CARD|TASK)-([0-9]{8})\b", re.IGNORECASE)
 
 
-def archived_specification_resource(source, target):
-    active = PROJECT / "specs/resources/active"
-    if source.parent != PROJECT / "specs/approved" or not target.is_relative_to(active):
+def archived_specification_resource(source, target, project=PROJECT, root=ROOT):
+    active = project / "specs/resources/active"
+    if source.parent != project / "specs/approved" or not target.is_relative_to(active):
         return False
-    archived = PROJECT / "specs/resources/archived" / target.relative_to(active)
+    archived = project / "specs/resources/archived" / target.relative_to(active)
     if not archived.is_file():
         return False
-    spec_path = source.relative_to(ROOT).as_posix()
-    resource_path = target.relative_to(ROOT).as_posix()
+    spec_path = source.relative_to(root).as_posix()
+    resource_path = target.relative_to(root).as_posix()
     history = subprocess.check_output(
-        ["git", "log", "--all", "--format=%H", "--", spec_path, resource_path], cwd=ROOT, text=True
+        ["git", "log", "--all", "--format=%H", "--", spec_path, resource_path], cwd=root, text=True
     )
     for commit in history.splitlines():
-        original = subprocess.run(["git", "show", f"{commit}:{spec_path}"], cwd=ROOT, capture_output=True)
+        original = subprocess.run(["git", "show", f"{commit}:{spec_path}"], cwd=root, capture_output=True)
         if original.returncode or original.stdout != source.read_bytes():
             continue
-        resource = subprocess.run(["git", "show", f"{commit}:{resource_path}"], cwd=ROOT, capture_output=True)
+        resource = subprocess.run(["git", "show", f"{commit}:{resource_path}"], cwd=root, capture_output=True)
         if resource.returncode == 0 and resource.stdout == archived.read_bytes():
             return True
     return False
 
 
-def validate(workflow):
+def validate(workflow, project=PROJECT, workspaces=(), root=ROOT):
     findings = []
     by_id = defaultdict(list)
     for stage in workflow["stages"]:
-        for path in sorted((PROJECT / "kanban" / stage).glob("*.md")):
+        for path in sorted((project / "kanban" / stage).glob("*.md")):
             match = CARD_ID.match(path.stem)
             if not match or match[1].endswith("-00000000"):
-                findings.append(f"{path.relative_to(ROOT)}: expected a card ID with eight digits from 00000001 to 99999999")
+                findings.append(f"{path.relative_to(root)}: expected a card ID with eight digits from 00000001 to 99999999")
                 continue
-            by_id[CARD_ID.match(path.stem)[1].upper()].append(path.relative_to(ROOT))
+            by_id[CARD_ID.match(path.stem)[1].upper()].append(path.relative_to(root))
             if stage == workflow["completed"]:
                 for check in acceptance_checks(path.read_text(encoding="utf-8")):
                     if re.match(r"[-*+]\s+\[ \]", check):
-                        findings.append(f"{path.relative_to(ROOT)}: unchecked acceptance criterion: {check}")
+                        findings.append(f"{path.relative_to(root)}: unchecked acceptance criterion: {check}")
     for task_id, paths in by_id.items():
         if len(paths) > 1:
             findings.append(f"duplicate {task_id}: {', '.join(map(str, paths))}")
 
-    findings.extend(validate_lot_mapping(ROOT / path for paths in by_id.values() for path in paths))
+    findings.extend(validate_lot_mapping((root / path for paths in by_id.values() for path in paths), project, root))
 
-    for path in markdown_files():
-        name = path.relative_to(ROOT)
-        batch_record = len(name.parts) >= 4 and name.parts[:2] in {
-            ("project", "batches"), ("project", "lots"), ("project", "Lots"),
-        }
+    board_paths = (root / "project/kanban", *(space / "kanban" for space in workspaces))
+    for path in markdown_files(None if project == PROJECT else project, root):
+        name = path.relative_to(root)
+        batch_record = any(path.is_relative_to(project / folder) for folder in ("batches", "lots", "Lots"))
         if batch_record:
             references = defaultdict(int)
             for match in BATCH_CARD_ID.finditer(path.read_text(encoding="utf-8")):
@@ -125,16 +124,15 @@ def validate(workflow):
                 url = urlsplit(href)
                 if batch_record and url.path:
                     link_path = unquote(url.path)
-                    board = ROOT / "project" / "kanban"
                     resolved = (path.parent / link_path).resolve()
-                    if resolved.is_relative_to(board) or re.search(r"(?:^|/)project/kanban(?:/|$)", link_path):
+                    if any(resolved.is_relative_to(board) for board in board_paths) or re.search(r"(?:^|/)project/kanban(?:/|$)", link_path):
                         findings.append(f"{name}: Batch records cannot link to Kanban paths: {href}")
                 if url.scheme or url.netloc:
                     continue
                 target = path.parent / unquote(url.path) if url.path else path
-                if not target.exists() and path.is_relative_to(PROJECT / "batches"):
+                if not target.exists() and path.is_relative_to(project / "batches"):
                     target = target.with_name(target.name.lower())
-                if not target.exists() and archived_specification_resource(path, target.resolve()):
+                if not target.exists() and archived_specification_resource(path, target.resolve(), project, root):
                     continue
                 reference = (name.as_posix(), href)
                 if not target.exists() and (reference in HISTORICAL_RETIRED_LINKS

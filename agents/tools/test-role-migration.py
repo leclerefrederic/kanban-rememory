@@ -276,6 +276,86 @@ class MigrationTests(unittest.TestCase):
             outputs.append(output)
         self.assertEqual(outputs[0], outputs[1])
 
+    def module_manifest(self, two=True):
+        modules = {"a": {"workspace": "tracking/a"}}
+        if two:
+            modules["b"] = {"workspace": "tracking/b"}
+        self.write("project.json", json.dumps({
+            "schema_version": 1, "project": {"id": "fixture", "name": "Fixture"},
+            "shared": {"memory": "tracking/global", "sources": ["src"]}, "modules": modules,
+            "execution": {"active_deliveries_per_module": 1, "branch_required": True,
+                          "worktree_required": True, "concurrent_integrations": 1},
+        }))
+
+    def test_scoped_role_paths_use_existing_permissions(self):
+        hook = self.role_hook()
+        self.module_manifest()
+        roles = hook.load_roles(self.root)
+        scope, chosen = hook.scoped_project(self.root, "a")
+
+        def allowed(role, verb, path):
+            return hook.decide(roles, role, self.root, verb, {"file_path": path},
+                               str(self.root), scope, chosen) is None
+
+        for role in ("writer", "tester", "developer"):
+            self.assertTrue(allowed(role, "Read", "project.json"))
+            self.assertTrue(allowed(role, "Read", "tracking/global/2026-11-15.md"))
+            self.assertFalse(allowed(role, "Write", "tracking/b/kanban/backlog/card-1.md"))
+            self.assertFalse(allowed(role, "Write", "project/kanban/backlog/card-1.md"))
+            self.assertFalse(allowed(role, "Write", "project.json"))
+        self.assertTrue(allowed("writer", "Write", "tracking/a/specs/draft/spec.md"))
+        self.assertTrue(allowed("writer", "Write", "tracking/a/kanban/backlog/card-1.md"))
+        self.assertFalse(allowed("writer", "Write", "tracking/a/kanban/development/card-1.md"))
+        self.assertFalse(allowed("writer", "Write", "src/shared.py"))
+        self.assertTrue(allowed("developer", "Write", "src/shared.py"))
+        self.assertTrue(allowed("developer", "Write", "tracking/global/2026-11-15.md"))
+        self.assertTrue(allowed("developer", "Read", "tracking/a/specs/approved/spec.md"))
+        self.assertFalse(allowed("developer", "Read", "tracking/a/specs/draft/spec.md"))
+        self.assertFalse(allowed("developer", "Write", "tracking/a/specs/approved/spec.md"))
+        self.assertTrue(allowed("tester", "Write", "tracking/a/batches/batch-001/tests.md"))
+        self.assertFalse(allowed("tester", "Write", "tracking/a/batches/batch-001/description.md"))
+        self.assertFalse(allowed("tester", "Read", "tracking/a/specs/ready/spec.md"))
+        self.assertIsNotNone(hook.decide(roles, "developer", self.root, "Bash",
+                                        {"command": "cat tracking/a/specs/draft/spec.md"},
+                                        str(self.root), scope, chosen))
+        self.assertIsNotNone(hook.decide(roles, "developer", self.root, "Grep", {"path": "tracking"},
+                                        str(self.root), scope, chosen))
+
+    def test_hook_checks_normal_module_invocation(self):
+        self.module_manifest()
+        event = {"agent_type": "writer", "cwd": str(self.root), "tool_name": "Write",
+                 "tool_input": {"file_path": "tracking/a/kanban/backlog/card-1.md"}}
+        environment = {**os.environ, "CLAUDE_PROJECT_DIR": str(self.root), "PYTHONDONTWRITEBYTECODE": "1"}
+        environment.pop("KR_MODULE", None)
+
+        def run(**overrides):
+            result = subprocess.run([sys.executable, str(self.root / "agents/tools/role-limit-hook.py")],
+                                    input=json.dumps(event), cwd=self.root, text=True, capture_output=True,
+                                    env={**environment, **overrides})
+            self.assertEqual(result.returncode, 0, result.stderr)
+            return result.stdout
+
+        self.assertIn("Choose a module explicitly", run())
+        self.assertIn("Unknown module", run(KR_MODULE="unknown"))
+        self.assertIn("permissionDecision", run(KR_MODULE="b"))
+        self.assertEqual(run(KR_MODULE="a"), "")
+        self.module_manifest(two=False)
+        self.assertEqual(run(), "")
+
+    def test_module_records_use_control_worktree(self):
+        hook = self.role_hook()
+        self.module_manifest()
+        roles = hook.load_roles(self.root)
+        project, chosen = hook.scoped_project(self.root, "a")
+        local = self.root.parent / "separate-candidate-worktree"
+        record = "tracking/a/kanban/backlog/card-1.md"
+        allowed = hook.decide(roles, "writer", local, "Write",
+                              {"file_path": str(self.root / record)}, str(local), project, chosen)
+        stale = hook.decide(roles, "writer", local, "Write",
+                            {"file_path": record}, str(local), project, chosen)
+        self.assertIsNone(allowed)
+        self.assertIsNotNone(stale)
+
     def test_legacy_only_upgrade_uses_aliases_and_canonical_policy_wins_when_present(self):
         hook = self.role_hook()
         writer = self.root / "agents/roles/writer.md"
