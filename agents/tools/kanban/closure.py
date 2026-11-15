@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import subprocess
 
+from .accepted_content import StaleAcceptance, verify_accepted_content
 from .coordination import exclusive, replace_json
 from .files import header_value
 
@@ -93,6 +94,16 @@ class Closure:
         lines = decision[1].splitlines() if decision else []
         if [line for line in lines if line.startswith("- Decision:")] != [expected]:
             raise ValueError("Missing exact User decision in the closing Batch report.")
+        if record["result"] == "accepted":
+            verify_accepted_content(self.coordination.root, candidate, closing)
+
+    def validate_for_publication(self, record):
+        try:
+            self.validate(record)
+        except StaleAcceptance as error:
+            # The caller holds both the integration update and module locks.
+            (self.coordination.directory / "integration.json").unlink()
+            raise StaleAcceptance(f"{error} Integration was released. This module remains occupied.") from error
 
     def prepare(self, closing, candidate, result):
         with self.while_integrating() as integration:
@@ -103,13 +114,18 @@ class Closure:
             }
             if integration.get("verified_revision") != closing:
                 raise ValueError("Verify the exact combined closing revision before preparing publication.")
-            self.validate(record)
+            self.validate_for_publication(record)
             if self.path.exists():
                 previous = json.loads(self.path.read_text(encoding="utf-8"))
                 if previous == record:
                     return record
                 if previous["main_revision"] == record["main_revision"]:
-                    raise ValueError("An interrupted closure already records different evidence.")
+                    try:
+                        self.validate(previous)
+                    except StaleAcceptance:
+                        pass
+                    else:
+                        raise ValueError("An interrupted closure already records different evidence.")
                 if any(self.remote_revision(ref) for ref in (self.recovery, self.tag, self.archive)):
                     raise ValueError("A prior attempt already published recovery or archive evidence. Reconcile its refs.")
                 attempt = self.path.with_name(f"{self.path.stem}-previous-{previous['closing']}.json")
@@ -132,7 +148,7 @@ class Closure:
             if not self.path.exists():
                 raise ValueError("Prepare exact closure evidence before publication.")
             record = json.loads(self.path.read_text(encoding="utf-8"))
-            self.validate(record)
+            self.validate_for_publication(record)
             remote_main = self.remote_revision("refs/heads/main")
             if not remote_main:
                 raise ValueError("Could not verify the remote main ref.")

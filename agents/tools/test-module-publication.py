@@ -1,5 +1,6 @@
 """Exercise the pre-push check against committed module records."""
 
+from hashlib import sha256
 import json
 from pathlib import Path
 import shutil
@@ -65,11 +66,11 @@ class ModulePublicationTests(unittest.TestCase):
             text=True, capture_output=True,
         )
 
-    def record_closure(self, module, closing, *, main=None):
+    def record_closure(self, module, closing, *, main=None, candidate=None):
         self.directory.mkdir(parents=True, exist_ok=True)
         (self.directory / f"closure-{module}-batch-001.json").write_text(json.dumps({
             "project": "fixture", "delivery": f"{module}/Batch-001", "owner": "developer",
-            "closing": closing, "candidate": self.previous, "result": "accepted",
+            "closing": closing, "candidate": candidate or self.previous, "result": "accepted",
             "main_revision": main or self.previous,
         }))
         (self.directory / "integration.json").write_text(json.dumps({
@@ -106,6 +107,40 @@ class ModulePublicationTests(unittest.TestCase):
         self.assertIn("a/batch-001 cannot be closed", result.stderr)
         self.assertIn("acceptance artifact", result.stderr)
 
+    def test_closing_product_must_match_the_accepted_candidate(self):
+        product = self.root / "README.md"
+        product.write_text("# Accepted product\n")
+        candidate = self.commit("Deliver initial product")
+
+        def check_closure(accepted):
+            self.write_status("a", "closed")
+            closing = self.commit("Close A\n\nBatch-Closure: a/Batch-001")
+            self.record_closure("a", closing, candidate=accepted)
+            return self.was_pushed(closing)
+
+        records_only = check_closure(candidate)
+        self.assertEqual(records_only.returncode, 0, records_only.stderr)
+
+        for change in ("contents", "mode", "deletion"):
+            with self.subTest(change=change):
+                self.git("checkout", "-q", "--detach", candidate)
+                if change == "contents":
+                    product.write_text("# Changed product\n")
+                elif change == "mode":
+                    self.git("update-index", "--chmod=+x", "README.md")
+                    product.chmod(0o755)
+                else:
+                    product.unlink()
+                refused = check_closure(candidate)
+                self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+                self.assertIn("README.md", refused.stderr)
+
+        self.git("checkout", "-q", "--detach", candidate)
+        product.write_text("# Changed product\n")
+        approved_replacement = self.commit("Deliver changed product for new acceptance")
+        published = check_closure(approved_replacement)
+        self.assertEqual(published.returncode, 0, published.stderr)
+
     def test_artifact_guard_uses_the_module_and_batch_of_active_card(self):
         name = "CARD-00000001"
         for module, batch in (("a", "Batch-001"), ("b", "Batch-002")):
@@ -139,6 +174,35 @@ class ModulePublicationTests(unittest.TestCase):
         refused = invoke("b", b_guard)
         self.assertEqual(refused.returncode, 1)
         self.assertIn("out-of-scope", refused.stderr)
+
+    def test_module_artifact_guard_rejects_new_product_with_unchanged_frozen_artifact(self):
+        artifact = self.root / ".git/fixture-artifact"
+        payload = b"accepted artifact"
+        artifact.write_bytes(payload)
+        guard = self.directory / "modules/a/batch-001/guard.json"
+        guard.parent.mkdir(parents=True)
+        digest = sha256(artifact.name.encode() + b"\0-" + payload).hexdigest()
+        guard.write_text(json.dumps({
+            "base_revision": self.previous,
+            "acceptance": {"path": str(artifact), "sha256": digest, "revision": self.previous},
+            "verification": {"revision": self.previous, "technical_checks": "passed"},
+            "decision": {"result": "accepted", "revision": self.previous},
+        }))
+
+        def verify(closing):
+            return subprocess.run(
+                [sys.executable, "agents/tools/guard-batch-work.py", "publish",
+                 str(guard), "--revision", closing], cwd=self.root, capture_output=True, text=True,
+            )
+
+        self.write_status("a", "closed")
+        records_only = self.commit("Close records")
+        unchanged = verify(records_only)
+        self.assertEqual(unchanged.returncode, 0, unchanged.stderr)
+        (self.root / "README.md").write_text("Combined product changed")
+        changed = verify(self.commit("Change product"))
+        self.assertEqual(changed.returncode, 1)
+        self.assertIn("The combined product differs", changed.stderr)
 
     def test_invalid_committed_manifest_does_not_fall_back_to_legacy(self):
         original = self.manifest.read_text()

@@ -77,6 +77,19 @@ def verify_artifact(candidate):
         raise ValueError("The acceptance artifact changed.")
 
 
+def verify_module_product(record, accepted, published):
+    from kanban.accepted_content import verify_accepted_content
+    from kanban.project import coordination_root
+
+    root = Path(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()).resolve()
+    relative = record.resolve()
+    common = coordination_root(root).resolve()
+    if relative.is_relative_to(common):
+        parts = relative.relative_to(common).parts
+        if len(parts) == 6 and parts[0] == "projects" and parts[2] == "modules" and parts[-1] == "guard.json":
+            verify_accepted_content(root, accepted, published)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("operation", choices=["change", "correct", "freeze", "verify", "publish"])
@@ -161,6 +174,7 @@ def main():
                     if decision != {"revision": frozen["revision"], "result": "accepted"}:
                         raise ValueError("Record the User's acceptance of the exact revision.")
                     subprocess.run(["git", "merge-base", "--is-ancestor", frozen["revision"], published], check=True)
+                    verify_module_product(args.record, frozen["revision"], published)
         if args.operation in {"correct", "freeze"}:
             args.record.write_text(json.dumps(record, indent=2) + "\n")
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:

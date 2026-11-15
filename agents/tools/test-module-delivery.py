@@ -253,6 +253,90 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.assertIn('"owner": "b"', self.control("b", "status"))
         self.control("a", "integration", "release", BATCH, "--owner", "a")
 
+    def test_changed_combined_product_requires_new_acceptance_before_closure(self):
+        _, paths = self.initialize_deliveries()
+        self.git(self.root, "config", "core.hooksPath", "agents/tools/git-hooks")
+        a, b = (self.base / module for module in ("a", "b"))
+        (a / "src/a.txt").write_text("A candidate")
+        initial = self.commit(a, "Accept original A")
+        (self.root / "src/intervening.txt").write_text("New shared inputs")
+        advanced = self.commit(self.root, "Advance main after original decision")
+        self.git(self.root, "push", "origin", "main")
+
+        def assemble(module, label, candidate_to_merge, decision=None):
+            checkout = self.base / label
+            self.git(self.root, "worktree", "add", "-q", "--detach", str(checkout), "main")
+            self.git(checkout, "merge", "--no-ff", "-m", f"Combine {module}", candidate_to_merge)
+            combined = self.git(checkout, "rev-parse", "HEAD")
+            accepted = combined if decision is None else decision
+            description = checkout / paths[module] / "description.md"
+            description.write_text(description.read_text().replace("status: ready", "status: closed"))
+            with (checkout / paths[module] / "report.md").open("a") as stream:
+                stream.write(f"\n## User decision\n\n- Decision: accepted `{accepted}`.\n")
+            closing = self.commit(checkout, f"Close {module}", "-m", f"Batch-Closure: {module}/{BATCH}")
+            return checkout, combined, accepted, closing
+
+        def check(module, checkout):
+            self.control(module, "run-check", BATCH, "--owner", module, "--integration-checkout", checkout,
+                         "--", sys.executable, "-B", "-c",
+                         f"from pathlib import Path; assert Path('src/intervening.txt').is_file(); "
+                         f"assert Path('src/{module}.txt').is_file()")
+
+        def prepare(module, closing, accepted, *, expected=0):
+            return self.control(module, "closure", "prepare", BATCH, "--owner", module, "--closing", closing,
+                                "--candidate", accepted, "--result", "accepted", expected=expected)
+
+        directory = self.root / ".git/kanban-rememory/projects/fixture"
+        pending = directory / "closure-a-batch-001.json"
+        self.control("a", "integration", "begin", BATCH, "--owner", "a")
+        old_checkout, old_combined, _, stale = assemble("a", "initial-merge", initial, initial)
+        self.assertNotEqual(old_combined, initial)
+        check("a", old_checkout)
+        refused = prepare("a", stale, initial, expected=1)
+        self.assertIn("The combined product differs", refused)
+        self.assertIn("Integration was released. This module remains occupied.", refused)
+        self.assertFalse(pending.exists())
+        self.assertIn('"owner": "a"', self.control("a", "status"))
+        self.assertNotEqual(self.git(self.root, "ls-remote", "origin", "refs/heads/main").split()[0], stale)
+
+        # An interrupted preparation from the earlier implementation cannot be published on retry.
+        pending.write_text(json.dumps({
+            "project": "fixture", "delivery": "a/Batch-001", "owner": "a", "closing": stale,
+            "candidate": initial, "result": "accepted", "main_revision": advanced,
+        }))
+        self.control("a", "integration", "begin", BATCH, "--owner", "a")
+        check("a", old_checkout)
+        refused = self.control("a", "closure", "publish", BATCH, "--owner", "a", expected=1)
+        self.assertIn("Integration was released. This module remains occupied.", refused)
+        self.assertEqual(self.git(self.root, "ls-remote", "origin", "refs/tags/fixture/a/batch-001"), "")
+
+        # B can publish while A retains its own claim and awaits its updated decision.
+        self.git(b, "merge", "--ff-only", advanced)
+        (b / "src/b.txt").write_text("B candidate")
+        b_revision = self.commit(b, "Independent B delivery")
+        self.control("b", "integration", "begin", BATCH, "--owner", "b")
+        b_checkout, _, b_accepted, b_closing = assemble("b", "publish-b", b_revision)
+        check("b", b_checkout)
+        prepare("b", b_closing, b_accepted)
+        self.control("b", "closure", "publish", BATCH, "--owner", "b")
+        self.control("b", "integration", "release", BATCH, "--owner", "b")
+        self.control("b", "finish", BATCH, "--owner", "b", "--revision", b_closing)
+        self.git(self.root, "merge", "--ff-only", b_closing)
+        self.assertIn(b_closing, self.control("a", "integration", "begin", BATCH, "--owner", "a"))
+
+        # Preserve the older decision/evidence, then accept and close the new product revision.
+        current, _, approved, closing = assemble("a", "accept-updated-a", initial)
+        check("a", current)
+        self.assertIn("src/b.txt", self.git(current, "diff", "--name-only", initial, approved))
+        prepare("a", closing, approved)
+        self.control("a", "closure", "publish", BATCH, "--owner", "a")
+        self.assertEqual(self.git(self.root, "ls-remote", "origin", "refs/heads/main").split()[0], closing)
+        self.assertEqual(self.git(self.root, "ls-remote", "origin", "refs/tags/fixture/a/batch-001").split()[0], approved)
+        self.assertTrue((directory / f"closure-a-batch-001-previous-{stale}.json").is_file())
+        self.control("a", "integration", "release", BATCH, "--owner", "a")
+        self.control("a", "finish", BATCH, "--owner", "a", "--revision", closing)
+        self.assertEqual(self.control("a", "status").strip(), "null")
+
     def test_interrupt_and_resume_accepted_and_rejected_publication(self):
         revision, paths = self.initialize_deliveries()
         self.git(self.root, "config", "core.hooksPath", "agents/tools/git-hooks")

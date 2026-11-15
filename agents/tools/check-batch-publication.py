@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 
+from kanban.accepted_content import verify_accepted_content
 from kanban.files import header_value
 from kanban.project import parse_manifest
 
@@ -101,7 +102,7 @@ def coordination_record(path):
     return record
 
 
-def verify_module_closure(common, local_sha, remote_sha, identity):
+def verify_module_closure(root, common, local_sha, remote_sha, identity):
     project_id, module, batch = identity
     delivery = f"Batch-{batch[6:]}"
     directory = common / "kanban-rememory" / "projects" / project_id
@@ -127,6 +128,8 @@ def verify_module_closure(common, local_sha, remote_sha, identity):
     expected = 0 if evidence["result"] == "accepted" else 1
     if ancestry.returncode != expected:
         raise ValueError(f"Candidate ancestry does not match the decision for {module}/{delivery}.")
+    if evidence["result"] == "accepted":
+        verify_accepted_content(root, candidate, local_sha)
 
 
 def guard_path(common, project_id, module, batch):
@@ -184,7 +187,7 @@ def main():
         for identity, status in statuses(local_tree, local_project).items():
             if status == "closed" and before.get(identity) != "closed":
                 if identity[1] is not None:
-                    verify_module_closure(common, local_sha, remote_sha, identity)
+                    verify_module_closure(root, common, local_sha, remote_sha, identity)
                 verify_artifact_guard(common, root, guard, local_sha, identity)
 
 
