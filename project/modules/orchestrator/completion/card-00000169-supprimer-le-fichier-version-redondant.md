@@ -23,7 +23,7 @@ Constat du 2026-11-15 : aucun outil ne lit `orchestrator/VERSION`, seul `orchest
 
 ## Execution and evidence
 
-- State:
+- State: done
 - Blocker:
 
 ## History
@@ -32,3 +32,8 @@ Constat du 2026-11-15 : aucun outil ne lit `orchestrator/VERSION`, seul `orchest
 
 - 2026-11-15T23:31:41+01:00 — Stage moved from `backlog` to `development`.
 - 2026-11-15 — `orchestrator/VERSION` supprimé ; `install.md` repère la version installée par `schema_version`. Seule de la documentation change : `validate` suffit.
+
+- 2026-11-15T23:32:44+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-15T23:32:44+01:00 — Merge approved for the verified candidate `6026b8d08b0244e083836a1009499b3bcf592a8b`: “Oui, fusionne”.
+- 2026-11-15 — Alerte Remy `merge-6026b8d08b0244e083836a1009499b3bcf592a8b` envoyée avant l’accord : livraison confirmée par Telegram.
