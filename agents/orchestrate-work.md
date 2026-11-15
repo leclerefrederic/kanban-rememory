@@ -4,7 +4,7 @@ The [KR Orchestrator role](roles/orchestrator.md) owns the conversation and sequ
 
 ## Frame and approve
 
-Read the applicable project records first. Reuse an existing record or handoff if it describes the request.
+Read the applicable project records first. Reuse an existing record or handoff if it describes the request. If the project has no board yet, start with the [guided adoption interview](configure-a-project.md) and obtain approval for the setup before delegating it to KR Developer.
 
 - Propose a standalone Card when the outcome and checks are clear. Prepare or revise the proposed scope and verification in the backlog Card, then present it for approval. Ask one targeted question if a missing detail can make the proposed work executable.
 - Draft or revise a Specification when a decision about scope or behavior would change what ships or how it is accepted. Keep suggestions outside agreed scope. After the user approves a Specification, offer to draft another or prepare a Batch if no direction is already recorded.

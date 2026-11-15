@@ -9,9 +9,15 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = {"claude": ".claude/skills", "codex": ".agents/skills"}
 
-# Only remove byte-identical shipped copies from before the rename. Customized or
+# Only remove byte-identical shipped copies from before a rename or retirement. Customized or
 # augmented directories may belong to the project and need a manual migration.
 LEGACY_SKILLS = {
+    "kanban-rememory-standalone": (None, {
+        "10d63b3701dadec02c3554d7873a864f835727e31aaf912e9e22f8e0a9016da4",
+        "79ce96491439cdd8e360a5a722a4f8bb766c34ab594462be18cabbf8ff294293",
+        "aaa9904f3a3629eed9278331cb0aa5e68f1cf13b06ba080fd76b699e02bdec6d",
+        "b191a6c2d6cac951fd68e8dff683c8abfdfd55eed2b616ff0d0a527207fe21db",
+    }),
     "kanban-rememory-development-agent": ("kr-developer", {
         "57335865f11f12c6744fcaf83a47eb8217fb79237132cd41e68e5dc1a34225cb",
         "d2d8a595fecdcedb19cd8aebd9e0889dde193b887d2f70fa1921612617d9a948",
@@ -51,7 +57,14 @@ def main():
     parser.add_argument("--target", choices=["claude", "codex", "both"], default="both")
     parser.add_argument("--check", action="store_true", help="Report differences without writing.")
     args = parser.parse_args()
-    sources = sorted(path for path in (ROOT / "agents/skills").iterdir() if (path / "SKILL.md").is_file())
+    sources = []
+    for source in sorted((ROOT / "agents/skills").iterdir()):
+        if not (source / "SKILL.md").is_file():
+            continue
+        migration = LEGACY_SKILLS.get(source.name)
+        if migration is not None and migration[0] is None and is_shipped_legacy_copy(source, migration[1]):
+            continue  # A file-copy upgrade may leave a bundled retired source behind.
+        sources.append(source)
     if not sources:
         sys.exit("No skill found in agents/skills/.")
     differences = []
@@ -67,7 +80,7 @@ def main():
                     shutil.rmtree(destination, ignore_errors=True)
                     shutil.copytree(source, destination)
         for old_name, (new_name, digests) in LEGACY_SKILLS.items():
-            if new_name not in source_names:
+            if new_name is not None and new_name not in source_names:
                 continue
             old = ROOT / relative / old_name
             if not old.exists() and not old.is_symlink():

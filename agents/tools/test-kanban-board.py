@@ -1,6 +1,8 @@
 import argparse
+from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 from hashlib import sha256
+from io import StringIO
 import json
 import os
 from pathlib import Path
@@ -10,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 KIT = Path(__file__).resolve().parents[2]
@@ -598,7 +601,7 @@ class KanbanBoardTests(unittest.TestCase):
         skills = sorted((KIT / "agents/skills").glob("*/SKILL.md"))
         expected = {
             "kr-developer", "kr-orchestrator",
-            "kr-writer", "kanban-rememory-standalone", "kr-tester",
+            "kr-writer", "kr-tester",
         }
         self.assertEqual({skill.parent.name for skill in skills}, expected)
         orchestrator = KIT / "agents/skills/kr-orchestrator/SKILL.md"
@@ -629,7 +632,7 @@ class KanbanBoardTests(unittest.TestCase):
             return result.stdout + result.stderr
 
         self.assertIn("Out of date", sync("--check", expected=1))
-        self.assertIn("updated 10 skill folder(s)", sync())
+        self.assertIn("updated 8 skill folder(s)", sync())
         for target in (".claude/skills", ".agents/skills"):
             for skill in (self.root / "agents/skills").iterdir():
                 if not (skill / "SKILL.md").is_file():
@@ -637,8 +640,8 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertEqual((self.root / target / skill.name / "SKILL.md").read_text(),
                                  (skill / "SKILL.md").read_text())
         self.assertIn("match kit", sync("--check"))
-        (self.root / ".agents/skills/kanban-rememory-standalone/SKILL.md").write_text("edited\n")
-        self.assertIn(".agents/skills/kanban-rememory-standalone", sync("--check", expected=1))
+        (self.root / ".agents/skills/kr-developer/SKILL.md").write_text("edited\n")
+        self.assertIn(".agents/skills/kr-developer", sync("--check", expected=1))
         self.assertIn("updated 1 skill folder(s)", sync("--target", "codex"))
         self.assertEqual((own / "SKILL.md").read_text(), "mine\n")
 
@@ -668,6 +671,41 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertTrue(all((target / name / "SKILL.md").is_file() for name in old_names.values()))
         self.assertIn("Kept customized legacy skill", sync("--check"))
         self.assertEqual((customized / "SKILL.md").read_text(), "project-specific tester\n")
+
+    def test_sync_retires_standalone_without_replacement_and_keeps_custom_copy(self):
+        shutil.copytree(KIT / "agents/skills", self.root / "agents/skills")
+        shutil.copy(KIT / "agents/VERSION", self.root / "agents")
+        module_spec = importlib.util.spec_from_file_location(
+            "sync_skills", KIT / "agents/tools/sync-skills.py"
+        )
+        module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
+        module.ROOT = self.root
+        name = "kanban-rememory-standalone"
+        replacement, _ = module.LEGACY_SKILLS[name]
+        self.assertIsNone(replacement)
+        stock = b"fixture for a shipped standalone skill"
+        module.LEGACY_SKILLS[name] = (replacement, {sha256(stock).hexdigest()})
+
+        with patch.object(sys, "argv", ["sync-skills.py"]), redirect_stdout(StringIO()):
+            module.main()
+        old_codex = self.root / ".agents/skills" / name / "SKILL.md"
+        old_claude = self.root / ".claude/skills" / name / "SKILL.md"
+        stale_source = self.root / "agents/skills" / name / "SKILL.md"
+        for skill, content in ((old_codex, stock), (old_claude, b"custom project skill"), (stale_source, stock)):
+            skill.parent.mkdir()
+            skill.write_bytes(content)
+
+        with patch.object(sys, "argv", ["sync-skills.py", "--check"]), redirect_stderr(StringIO()):
+            with self.assertRaisesRegex(SystemExit, "retire legacy copy"):
+                module.main()
+        self.assertEqual(old_codex.read_bytes(), stock)
+        with patch.object(sys, "argv", ["sync-skills.py"]), redirect_stdout(StringIO()), redirect_stderr(StringIO()):
+            module.main()
+        self.assertFalse(old_codex.parent.exists())
+        self.assertEqual(old_claude.read_bytes(), b"custom project skill")
+        self.assertEqual(stale_source.read_bytes(), stock)
+        self.assertFalse((self.root / ".agents/skills/kr-standalone").exists())
 
     def test_installed_skills_match_the_kit(self):
         result = subprocess.run([sys.executable, str(KIT / "agents/tools/sync-skills.py"), "--check"],

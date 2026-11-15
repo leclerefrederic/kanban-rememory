@@ -9,7 +9,7 @@ Start with [shared working instructions](work-in-a-project.md) and the applicabl
 | Operation | Reference |
 | --- | --- |
 | Apply the shared lean principles | [Agent rules](lean-specifications.md) |
-| Start a session in the right work mode | [Skills](skills/): standalone, `kr-writer`, `kr-developer`, `kr-tester`, or `kr-orchestrator`; copy them for Claude Code and Codex with `agents/tools/sync-skills.py` |
+| Start a session in the right work mode | [Skills](skills/): `kr-writer`, `kr-developer`, `kr-tester`, or `kr-orchestrator`; copy them for Claude Code and Codex with `agents/tools/sync-skills.py` |
 | Install in another repository | [Installation procedure](install-in-a-project.md) |
 | Agree on workflow configuration | [Adoption interview](configure-a-project.md) |
 | Coordinate approved work in the current chat | [Orchestrator role](roles/orchestrator.md), [procedure](orchestrate-work.md) |

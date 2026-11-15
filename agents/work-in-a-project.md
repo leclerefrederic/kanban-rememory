@@ -16,7 +16,7 @@ Follow the applicable role file. KR Writer uses board intake for backlog prepara
 
 ## First access
 
-Check for `project/kanban/workflow.json` before resuming or creating cards. If it is missing, follow the [guided adoption interview](configure-a-project.md). Offer express setup with a short, standard, or long software template or custom setup with a guided interview. Present the resulting stage folders and policies and wait for approval before wiring the board. Resume normal work once the approved configuration and folders pass validation.
+Check for `project/kanban/workflow.json` before resuming or creating cards. If it is missing, follow the [guided adoption interview](configure-a-project.md). Offer express setup with a short, standard, or long software template or custom setup with a guided interview. Present the resulting stage folders and policies and wait for approval before wiring the board. Resume normal work once the approved configuration and folders pass validation. For a software delivery workflow, apply the [software workflow profile](kanban/software-development-workflow.md).
 
 ## Resume work
 
