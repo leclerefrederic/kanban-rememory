@@ -17,9 +17,9 @@ Décision de l’utilisateur du 2026-11-15 (« Oui, 2 à 4 »), point 3 présent
 
 ## Acceptance criteria
 
-- [ ] `workflow.md` décrit l’accord donné dans la demande et les cas où il faut redemander ; `AGENTS.md` y renvoie sans le répéter.
-- [ ] `guide.md` l’explique à l’utilisateur.
-- [ ] `validate` passe.
+- [x] `workflow.md` décrit l’accord donné dans la demande et les cas où il faut redemander ; `AGENTS.md` y renvoie sans le répéter.
+- [x] `guide.md` l’explique à l’utilisateur.
+- [x] `validate` passe.
 
 ## Execution and evidence
 
@@ -29,3 +29,7 @@ Décision de l’utilisateur du 2026-11-15 (« Oui, 2 à 4 »), point 3 présent
 ## History
 
 - 2026-11-15 — Créée à la demande de l’utilisateur.
+
+- 2026-11-15T23:54:46+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-15T23:55:03+01:00 — Stage moved from `development` to `completion`.
