@@ -16,7 +16,7 @@ Developer performs approved filesystem/Git work. Keep project code, root instruc
 | --- | --- |
 | `documentation/` | All reader guides and the single connected example set. |
 | `agents/` | `index.md`, `VERSION`; canonical `guidelines/`, `actions/`, `setup/`, `roles/`, `templates/`. In roles copy `orchestrator.md`, `writer.md`, `developer.md`, `tester.md`. |
-| `agents/tools/` | `manage-kanban-board.py` and the `kanban/` package. |
+| `agents/tools/` | `manage-kanban-board.py`, `configure-project-modules.py` and the `kanban/` package. |
 
 Optional procedures ship as reference material; this does not activate tools, agents, alerts or scheduling. Do not copy the kit's project board, Cards, Specs, Batches, dated journals or root project-specific policy.
 
@@ -28,7 +28,7 @@ In a normal primary project session, act as [KR Orchestrator](agents/roles/orche
 
 Record the approved project ownership, journal conventions and Git permissions there. For Claude Code merge `@AGENTS.md` into root `CLAUDE.md`; Codex reads `AGENTS.md`. [Layout](project-layout.md) describes the resulting structure.
 
-Now run the single [workflow preview/application](configure-workflow.md#apply-and-verify) in the target. If the preview matches the approved proposal, apply it without another approval. Stop on a discrepancy or changed scope. Record configuration and actual validation results in Rememory.
+For optional multi-module setup, use [module activation](project-modules.md). Otherwise run the [workflow preview/application](configure-workflow.md#apply-and-verify) in the target. If the preview matches the approved proposal, apply it without another approval. Stop on a discrepancy or changed scope. Record configuration and actual validation results in Rememory.
 
 ## Add selected options
 

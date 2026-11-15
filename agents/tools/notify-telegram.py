@@ -90,19 +90,25 @@ def render(args, project):
         action += f" — {args.chat_name}"
     if args.link:
         action += f"\n{args.link}"
+    reference = args.batch or args.reference
+    module = getattr(args, "module", None)
+    if module is not None:
+        reference = f"{module} / {reference}"
     return (f"{icon} {label}\n\n"
             f"{labels['project']}: {project}\n"
-            f"{labels['reference']}: {args.batch or args.reference}\n"
+            f"{labels['reference']}: {reference}\n"
             f"{labels['summary']}: {text}\n\n"
             f"{labels['next_action']}: {action}")
 
 
-def receipt_ident(task, ident):
+def receipt_ident(task, ident, module=None, reference=None):
     # JSON avoids delimiter collisions; text, language and chat name are deliberately absent.
-    return "v2:" + json.dumps([task, ident], ensure_ascii=False, separators=(",", ":"))
+    if module is None:
+        return "v2:" + json.dumps([task, ident], ensure_ascii=False, separators=(",", ":"))
+    return "v3:" + json.dumps([module, reference, task, ident], ensure_ascii=False, separators=(",", ":"))
 
 
-def notify(args, token, chat, ledger, sender=send_message, project="project"):
+def notify(args, token, chat, ledger, sender=send_message, project="project", project_id=None):
     """Send once per alert. Return 'sent', 'duplicate', 'unconfirmed' (resend blocked) or 'failed'."""
     if args.event == "test":
         sender(token, chat, "Kanban Rememory notification test.")
@@ -110,9 +116,10 @@ def notify(args, token, chat, ledger, sender=send_message, project="project"):
 
     kind, task, ident, label, text = describe(args)
     declared_ident = ident
-    ident = receipt_ident(task, declared_ident)
+    module = getattr(args, "module", None)
+    ident = receipt_ident(task, declared_ident, module, args.batch or args.reference)
     message = render(args, project)
-    key = (chat, project, kind, ident)
+    key = (chat, project_id if project_id is not None else project, kind, ident)
     with sqlite3.connect(ledger, timeout=20) as connection:
         connection.execute(
             "CREATE TABLE IF NOT EXISTS alerts (chat TEXT, project TEXT, kind TEXT, ident TEXT, state TEXT,"
@@ -121,7 +128,7 @@ def notify(args, token, chat, ledger, sender=send_message, project="project"):
         connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
             "SELECT state FROM alerts WHERE (chat,project,kind,ident) = (?,?,?,?)", key).fetchone()
-        if row is None:
+        if row is None and module is None:
             # Earlier receipts kept only a truncated hash of task + text, not the originals.
             # Prove a match with the original text; never suppress an ambiguous new request.
             legacy_ident = declared_ident
@@ -179,7 +186,8 @@ def main():
     parser.add_argument("--label", help="translated hook text without the emoji; defaults to the selected language")
     parser.add_argument("--chat-name", help="title of the conversation to resume, with the application")
     parser.add_argument("--link", help="direct link to the conversation, only if the environment provides one")
-    parser.add_argument("--project", help="project name; defaults to the repository folder name")
+    parser.add_argument("--project", help="display name; defaults to the configured project name or repository folder name")
+    parser.add_argument("--module", help="module ID from project.json; may be omitted if there is only one module")
     parser.add_argument("--batch")
     parser.add_argument("--blocker-id")
     parser.add_argument("--revision", help="full tested commit, required for delivered")
@@ -187,6 +195,8 @@ def main():
     parser.add_argument("--confirm-retry", action="store_true",
                         help="send again after checking the destination of an unconfirmed alert")
     args = parser.parse_args()
+    if args.event == "test" and args.module is not None:
+        parser.error("--module is only for work alerts.")
     if args.event in ("attention", "completed"):
         if not all((args.task, args.text, args.chat_name)) or not re.fullmatch(r"[A-Za-z0-9@:._-]{1,80}", args.id or ""):
             parser.error("Provide --task, --id (letters, digits and @:._-), --text and --chat-name.")
@@ -238,10 +248,29 @@ def main():
         return 0
     if not re.fullmatch(r"-?[0-9]+", chat):
         parser.error("Set TELEGRAM_CHAT_ID to the numeric destination. Nothing was sent.")
+    root = Path(__file__).resolve().parents[2]
+    project = args.project or root.name
+    project_id = None
+    if args.event != "test":
+        manifest = root / "project.json"
+        if manifest.exists() or manifest.is_symlink():
+            from kanban.project import load_project
+
+            try:
+                context = load_project(root)
+                args.module = context.select_module(args.module)
+            except (OSError, ValueError) as error:
+                parser.error(str(error))
+            project = args.project or context.name
+            if "\n" in project or "\r" in project:
+                parser.error("The project display name must be a single line.")
+            project_id = context.id
+        elif args.module is not None:
+            parser.error("Module selection requires an active project.json.")
     if args.send_to is None:
         print(f"Preview: {args.event} notification to chat {chat}. Confirm with --send-to {chat}.")
         if args.event != "test":
-            print(render(args, args.project or Path(__file__).resolve().parents[2].name))
+            print(render(args, project))
         return 0
     if args.send_to != chat:
         parser.error("Confirmed destination does not match TELEGRAM_CHAT_ID.")
@@ -249,13 +278,14 @@ def main():
     if not re.fullmatch(r"[0-9]+:[A-Za-z0-9_-]+", token):
         parser.error("Set TELEGRAM_BOT_TOKEN in the execution environment. Nothing was sent.")
     try:
-        root = Path(__file__).resolve().parents[2]
         git_dir = subprocess.check_output(
             ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
             cwd=root, text=True,
         ).strip()
-        project = args.project or root.name
-        outcome = notify(args, token, chat, Path(git_dir) / "telegram-notifications.sqlite3", project=project)
+        outcome = notify(
+            args, token, chat, Path(git_dir) / "telegram-notifications.sqlite3",
+            project=project, project_id=project_id,
+        )
     except (OSError, ValueError, sqlite3.Error, subprocess.CalledProcessError, SendFailed):
         # Network exceptions can contain the request URL and token.
         print("Telegram: delivery could not be confirmed. Check the token, chat access, and network.", file=sys.stderr)

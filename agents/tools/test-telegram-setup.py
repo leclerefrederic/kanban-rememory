@@ -1,6 +1,7 @@
 """Run with Python 3.9+: isolated setup, persistence, CLI and sender integration tests."""
 
 import contextlib
+import functools
 import importlib.util
 import io
 import json
@@ -256,6 +257,59 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn(b'interactive terminal', result.stderr)
         self.assertNotIn(b'Traceback', result.stderr)
+
+    def test_module_alerts_use_shared_receipts_without_colliding(self):
+        spec = importlib.util.spec_from_file_location('notify_telegram', SCRIPT.with_name('notify-telegram.py'))
+        notifier = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(notifier)
+        root = Path(self.directory.name)
+        git_dir = root / 'git-common'
+        git_dir.mkdir()
+        manifest = {
+            'schema_version': 1,
+            'project': {'id': 'example', 'name': 'Example solution'},
+            'shared': {'memory': 'project/rememory', 'sources': ['src']},
+            'modules': {
+                'a': {'workspace': 'project/modules/a'},
+                'b': {'workspace': 'project/modules/b'},
+            },
+            'execution': {
+                'active_deliveries_per_module': 1, 'branch_required': True,
+                'worktree_required': True, 'concurrent_integrations': 1,
+            },
+        }
+        (root / 'project.json').write_text(json.dumps(manifest))
+        sent = []
+
+        def fake_sender(token, chat, text):
+            self.assertEqual((token, chat), (TOKEN, '42'))
+            sent.append(text)
+
+        args = ['notify-telegram.py', 'completed', '--task', 'Export', '--id', 'export',
+                '--reference', 'CARD-00000001', '--text', 'Export vérifié.',
+                '--next-action', 'Aucune action requise.', '--language', 'fr',
+                '--chat-name', 'Codex · Export', '--send-to', '42']
+        with patch.object(notifier, '__file__', str(root / 'agents/tools/notify-telegram.py')), \
+                patch.object(notifier.subprocess, 'check_output', return_value=str(git_dir)), \
+                patch.object(notifier, 'notify', functools.partial(notifier.notify, sender=fake_sender)), \
+                patch.dict(os.environ, {'TELEGRAM_CHAT_ID': '42', 'TELEGRAM_BOT_TOKEN': TOKEN,
+                                        'TELEGRAM_EVENTS': 'completed'}), \
+                contextlib.redirect_stdout(io.StringIO()):
+            errors = io.StringIO()
+            with patch.object(sys, 'argv', args), contextlib.redirect_stderr(errors), self.assertRaises(SystemExit) as exit:
+                notifier.main()
+            self.assertEqual(exit.exception.code, 2)
+            self.assertIn('Choose a module explicitly', errors.getvalue())
+            self.assertFalse(sent)
+            for module_args in (['--module', 'a'], ['--module', 'b'],
+                                ['--module', 'a', '--project', 'Renamed solution']):
+                with patch.object(sys, 'argv', [*args, *module_args]):
+                    self.assertEqual(notifier.main(), 0)
+        self.assertEqual(len(sent), 2)
+        for module, message in zip(('a', 'b'), sent):
+            self.assertIn('Projet: Example solution', message)
+            self.assertIn(f'Référence: {module} / CARD-00000001', message)
+            self.assertIn('Prochaine action: Aucune action requise.', message)
 
     @unittest.skipIf(sys.platform == 'win32', 'Real POSIX terminal; Windows needs live acceptance')
     def test_real_terminal_accepts_all_answers_without_echoing_token(self):
