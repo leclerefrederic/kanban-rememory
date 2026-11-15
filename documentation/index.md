@@ -2,7 +2,7 @@
 
 These guides explain how Kanban Rememory supports your project, what the records mean, and which decisions belong to you. Agents write and maintain those records. You can read them without learning the commands or document formats used to operate the framework.
 
-Start with [Understand the framework](understand-the-framework.md) for the roles and connected records, and [Lean specifications](lean-specifications.md) for the shared principles.
+Start with [Understand the framework](understand-the-framework.md) for the project records and workflow, and [Lean specifications](lean-specifications.md) for the shared principles.
 
 ## Choose what you want to do
 
@@ -10,8 +10,6 @@ Start with [Understand the framework](understand-the-framework.md) for the roles
 | --- | --- |
 | Set up Kanban Rememory in a repository | [Start a project](start-a-project.md) |
 | Give the agent work and agree on its priority | [Assign a task](assign-a-task.md) |
-| Approve scope and follow a delivery | [Deliver a Batch](deliver-a-batch.md) |
-| Try the candidate and decide on acceptance | [Test and accept a Batch](test-and-accept-a-batch.md) |
 | Recover an interrupted session or handoff | [Resume work](resume-work.md) |
 | Describe a problem and track its resolution | [Report a defect](report-a-defect.md) |
 | Use ChatGPT, Claude or both on one project | [Use with ChatGPT and Claude](use-with-chatgpt-and-claude.md) |
@@ -22,7 +20,7 @@ The principles are shared by people and agents. These guides explain their meani
 
 ## A complete example
 
-Follow one fictional delivery: preserve customer names in a booking CSV export. These five filled records show the agreed scope, implementation work, a failed test, its correction and accepted closure. They are reading examples, not live project records or claims that this demo application exists. Agents write all of them; the User supplies decisions and test verdicts.
+This historical Batch example follows one fictional delivery: preserve customer names in a booking CSV export. These five filled records show the agreed scope, implementation work, a failed test, its correction and accepted closure. They are reading examples, not live project records or claims that this demo application exists. Agents write all of them; the User supplies decisions and test verdicts.
 
 | Read | What it demonstrates |
 | --- | --- |

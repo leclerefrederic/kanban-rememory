@@ -1,6 +1,6 @@
 # Assign a task
 
-Tell your agent what you want to achieve in the project. You do not create a Card or choose its filename: KR Orchestrator coordinates the request. KR Writer prepares the backlog Card and KR Developer maintains its progress.
+Tell your agent what you want to achieve in the project. The agent creates the Card in the owning module's Kanban and follows it through delivery.
 
 ## Describe the result
 
@@ -25,18 +25,10 @@ These are examples, not required wording. Existing authorization remains valid. 
 
 ## How the agent organizes it
 
-The agent checks for existing work before creating another record. A bounded standalone task can use a Card containing its outcome, scope and checks. If the request needs the project's Specification and Batch workflow, the Orchestrator prepares that scope with you through its KR Writer duties in the current chat before delegating development. An explicitly selected role keeps its own responsibilities. See [deliver a Batch](deliver-a-batch.md).
-
-KR Writer can draft and revise backlog Cards. KR Developer picks them up, moves them through the board and closes them. A Card can reference a Specification or Batch, but it remains independent. You can inspect the [Card example](examples/card.md) without maintaining one yourself.
-
-Priority does not remove dependencies or the work-in-progress limit. If another Batch is active, a new request does not silently join its approved scope. The agent records it for later; standalone work waits until that Batch is delivered and must preserve its acceptance candidate.
+The agent looks for an existing Card, checks dependencies and records the agreed scope. Work that has no natural module owner belongs in `misc`. A Card can include repository attachments and link to related Cards.
 
 ## Follow progress and completion
 
-KR Orchestrator shows short progress lines in the original chat as work starts, changes stage or takes time. If you need to make a decision, the agent explains what it needs and why. At completion, it gives the outcome and keeps the technical details in the work records.
-
-Ask what has been verified, what is blocked and what comes next. A status request alone does not change scope or priorities. If work needs your decision, the agent explains the specific question and keeps the affected task visible.
-
-At completion, expect the outcome, any limitation that matters to you and the publication status when relevant. The work records contain the checks that ran. A completed standalone Card follows the project's agreed delivery rules. For Batch work, technical completion leads to [your acceptance tests and decision](test-and-accept-a-batch.md).
+The same agent updates the Card, carries out the work, runs the applicable automated checks and publishes when authorized. It updates the chat at meaningful checkpoints, blockers and delivery. The project's Rememory links published milestones to the relevant Cards.
 
 If a session ends before completion, use [resume work](resume-work.md). If you discover a problem with delivered behavior, use [report a defect](report-a-defect.md).

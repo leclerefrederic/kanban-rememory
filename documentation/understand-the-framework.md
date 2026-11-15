@@ -4,33 +4,19 @@ Kanban Rememory gives AI agents a shared working method and a project memory kep
 
 ## Who does what
 
-| Participant | Responsibility |
-| --- | --- |
-| You | Explain needs and priorities, agree on scope, authorize work, try the delivered result, and decide whether to accept it. |
-| KR Orchestrator | Keep work and decisions in the same chat, delegate approved implementation and coordinate acceptance. |
-| KR Writer | Clarify the need, write Specifications and backlog Cards, and prepare Batches and acceptance criteria. |
-| KR Developer | Implement authorized work, maintain Card execution records, run technical checks and perform authorized Git operations. |
-| KR Tester | Run and guide acceptance for the exact delivered candidate and return the evidence for your verdict. |
-
-These are responsibilities, independent of the AI vendor. Roles apply independently to the primary session and its assigned agents. The distinction keeps the expected behavior, implementation and acceptance decision clear.
-
-Each agent reads and writes only what its role needs. KR Writer prepares backlog Cards. KR Developer owns stage changes, implementation, Rememory and Git. KR Tester owns acceptance evidence, including the case answers you give it. You retain the final delivery decision. You can inspect the board, ask about a task, or change its priority through conversation. The agent records your request and checks its effect on current work.
+You explain the need, decide scope and acceptance, and authorize work. One agent carries the Card through implementation, automated checks and authorized publication.
 
 ## What the records mean
 
-A **Specification** describes an outcome, the agreed behavior and how to check it. It can refer to a mockup or another resource. Each Specification serves one Batch. A draft is still being prepared. The ready Specification is selected for scope review. Approval fixes its contents through development and correction. Batch closure retires it. Later scope gets a new Specification ID.
+A **Card** holds the outcome, decisions, dependencies and delivery evidence. Its module's Kanban shows its state. Cards without a natural owner go to `misc`. A Card can link to attachments and existing repository files.
 
-A **Batch** is a delivery agreement covering one or more approved Specifications. It records priorities, tests and a report. Its approved scope stays fixed during execution. A new idea can be recorded for later work without expanding the active delivery.
+**Rememory** is the project journal for shared decisions and verified milestones. It links to Cards for delivery details.
 
-A **Card** records an executable task and its completion evidence. Cards can refer to a Specification or Batch, but remain independent: a Batch groups Specifications, not Cards. A standalone task can have a Card without a Batch.
-
-**Tests and reports** distinguish what was expected, what was observed, which revision was tested and what you decided. They also preserve defects, screenshots and tests still owed. Automated tests stay with the product code; acceptance records explain the delivery you reviewed.
-
-**Rememory** is the concise project journal: decisions, verified milestones and the next action. Git preserves file history. Together, they allow another agent session to recover both the current state and the reasons behind it.
+**Specifications and Batches** are historical records of earlier deliveries. Their resources and approval evidence stay at their recorded locations.
 
 ## Telegram alerts
 
-If you enable Telegram, the KR Developer alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to. Confirmed alerts are tracked to avoid duplicate sends. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a message was certainly not sent, the agent says so in the chat. If delivery is uncertain, it reports that uncertainty and checks before any retry.
+If you enable Telegram, the agent alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to. Confirmed alerts are tracked to avoid duplicate sends. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a message was certainly not sent, the agent says so in the chat. If delivery is uncertain, it reports that uncertainty and checks before any retry.
 
 ## Reading progress
 
@@ -42,6 +28,6 @@ The work-in-progress limit keeps the agent from starting more work than the proj
 
 Agents can organize and execute authorized work. They ask when the expected behavior is ambiguous, a scope change is needed, or a decision belongs to you. The affected task waits while independent authorized work can continue within the capacity limit.
 
-The repository provides instructions, memory and tools. An agent session performs the work. Automatic dispatch of Batches still needs implementation; having these files in a repository does not itself start a background development service.
+The repository provides instructions, memory and tools. An agent session performs the work. Adding the framework to a repository starts no background service.
 
 Next: [start a project](start-a-project.md), or read the [guiding principles](lean-specifications.md).

@@ -33,6 +33,15 @@ def board_context():
 
 def historical_path(project, reference, requested_scope):
     qualified, sep, identifier = reference.partition("/")
+    if project.flat_board:
+        workflow = project.workflow
+        stage, path = find_card(workflow, (identifier if sep else qualified).upper(), project.board, project)
+        expected = qualified if sep else requested_scope
+        if (expected and project.card_scope(path) != expected
+                or stage not in {workflow["completed"], "cancellation"}):
+            raise ValueError(f"{reference} is not a closed Card in that module.")
+        print(path.relative_to(project.root))
+        return 0
     scope = qualified if sep else PROJECT_SCOPE
     task_id = (identifier if sep else qualified).upper()
     if not (match := CARD_ID.fullmatch(task_id)) or match[1] != task_id:
@@ -53,7 +62,7 @@ def historical_path(project, reference, requested_scope):
 def stage_is_archive(project, scope, path):
     if scope != PROJECT_SCOPE:
         return path.parent.name in project.archived_stages(project.scope_workspace(scope))
-    return project.card_scope(path, allow_legacy=True) is None and path.parent.name in {
+    return (project.module_boards or project.card_scope(path, allow_legacy=True) is None) and path.parent.name in {
         load_workflow(project.board)["completed"], "cancellation",
     }
 
@@ -77,9 +86,9 @@ def main():
     move.add_argument("task_id")
     move.add_argument("destination")
     move.add_argument("--owner-token", help="Recorded delivery owner for active module moves")
-    reassign = commands.add_parser("reassign", help="Change the approved scope of a shared backlog Card")
+    reassign = commands.add_parser("reassign", help="Change the approved scope of a backlog Card")
     reassign.add_argument("task_id")
-    reassign.add_argument("--to-scope", required=True)
+    reassign.add_argument("--to-scope", "--to-module", required=True)
     init = commands.add_parser("init")
     source = init.add_mutually_exclusive_group(required=True)
     source.add_argument("--template", choices=TEMPLATES)
@@ -93,7 +102,9 @@ def main():
     board.add_argument("--timezone", help="IANA time zone for age")
     history = commands.add_parser("history", help="Find a frozen Card by its historical reference")
     history.add_argument("reference")
-    for command in (validation, approval, retirement, new, move, reassign, init, board, history):
+    locate = commands.add_parser("path", help="Resolve a stable Card ID to its current path")
+    locate.add_argument("task_id")
+    for command in (validation, approval, retirement, new, move, reassign, init, board, history, locate):
         command.add_argument("--scope", "--module", dest="scope", help="Module ID or @project")
     args = parser.parse_args()
     if args.scope and args.global_scope and args.scope != args.global_scope:
@@ -130,12 +141,20 @@ def main():
         if args.command in {"init", "new", "move", "reassign"}:
             specification_root(workspace if scope is None else project.scope_workspace(scope))
         if args.command == "init":
+            if context and context.flat_board:
+                raise ValueError("The workflow is defined in project/settings.json.")
             if scope is not None and scope != PROJECT_SCOPE:
                 raise ValueError("The workflow is shared. Configure it in project scope.")
             if context and args.with_batches:
                 raise ValueError("Set up Specifications and Batches in each selected module workspace.")
             return initialize(args, workspace, root)
-        workflow = load_workflow(workspace)
+        workflow = load_workflow(workspace, context=context)
+        if args.command == "path":
+            _, path = find_card(workflow, args.task_id.upper(), workspace, context)
+            if scope is not None and context and context.card_scope(path) != scope:
+                raise ValueError(f"{args.task_id} does not belong to {scope}.")
+            print(path.relative_to(root))
+            return 0
         if args.command == "retire-specifications":
             if context:
                 raise ValueError("Use qualified closure retire for a module Batch.")
@@ -155,16 +174,23 @@ def main():
                 check_module_records(records)
             return verify_approval(args.batch_id, args.revision, records, root)
         if args.command == "new":
+            if context and context.module_boards and scope in (None, PROJECT_SCOPE):
+                scope = context.misc_module
             if context and scope is None:
                 raise ValueError("Choose a module scope or @project explicitly before creating a Card.")
+            if context and context.module_boards:
+                check_module_records(project.card_workspace(scope))
             lock = exclusive(coordination_root(root) / "projects" / project.id, "board-write") if context else None
-            return create_card(workflow, args, workspace, root, scope=scope if context else None, write_lock=lock)
+            return create_card(workflow, args, workspace, root, scope=scope if context else None,
+                               write_lock=lock, context=context)
         if args.command == "reassign":
             if not context or scope != PROJECT_SCOPE:
-                raise ValueError("Reassignment requires explicit @project scope on the shared board.")
+                raise ValueError("Reassignment requires explicit @project scope.")
             task_id = args.task_id.upper()
             target_scope = project.validate_scope(args.to_scope)
-            specification_root(project.scope_workspace(target_scope))
+            if project.module_boards and target_scope == PROJECT_SCOPE:
+                target_scope = project.misc_module
+            check_module_records(project.scope_workspace(target_scope))
             directory = coordination_root(root) / "projects" / project.id
 
             def is_claimed(current_scope):
@@ -178,6 +204,8 @@ def main():
             if context:
                 _, path = find_card(workflow, task_id, workspace, context)
                 actual_scope = context.card_scope(path)
+                if context.module_boards and path.is_relative_to(workspace / "kanban"):
+                    raise ValueError("The project Kanban is historical. Move Cards on a module board.")
                 if scope is not None and scope != actual_scope:
                     raise ValueError(f"{task_id} belongs to scope {actual_scope}, not {scope}.")
                 scope = actual_scope

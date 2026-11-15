@@ -223,6 +223,8 @@ def checkpoint_path(root, project_id):
 
 def migrate(root, apply=False):
     project = load_project(root)
+    if project.flat_board:
+        raise ValueError("Project settings already use one flat Rememory journal directory.")
     root = project.root
     checkpoint = checkpoint_path(root, project.id)
 

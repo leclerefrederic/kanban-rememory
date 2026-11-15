@@ -4,8 +4,9 @@ from hashlib import sha256
 from pathlib import Path
 import re
 import subprocess
+from urllib.parse import unquote, urlsplit
 
-from .files import CARD_ID, PROJECT, ROOT, field, header_value, markdown_lines
+from .files import CARD_ID, PROJECT, ROOT, field, header_value, markdown_lines, resource_links
 from .specifications import SPECIFICATION_NAMES, specification_root
 
 
@@ -73,7 +74,7 @@ def batch_descriptions(project=PROJECT):
             yield from sorted(p for p in directory.glob("*/*.md") if p.name.lower() == "description.md")
 
 
-def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
+def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT, *, standalone=False):
     findings = []
 
     def report(path, message):
@@ -203,6 +204,10 @@ def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
                 report(path, "Card ID must match the filename.")
             lot_id = relationship(source, "batch")
             fiche_ids = relationship(source, "specifications")
+            if standalone:
+                if lot_id is not None or fiche_ids not in (None, []):
+                    report(path, "Module Cards do not use Batch or Specification fields.")
+                continue
             if ((lot_id is not None and not isinstance(lot_id, str))
                     or not isinstance(fiche_ids, list)
                     or any(not isinstance(item, str) or not item for item in fiche_ids)):
@@ -293,11 +298,11 @@ def verify_approval(lot_id, revision, project=PROJECT, root=ROOT):
     resources = specification_root(project) / "resources"
 
     def check_resources(fiche, source):
-        section = re.search(r"(?ms)^## Resources[ \t]*$(.*?)(?=^## |\Z)", source)
-        for link in re.findall(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", section.group(1) if section else ""):
-            if re.match(r"[a-z][a-z0-9+.-]*:", link, re.IGNORECASE):
+        for link in resource_links(source):
+            url = urlsplit(link)
+            if url.scheme or url.netloc or not url.path:
                 continue
-            target = (fiche.parent / link).resolve()
+            target = (fiche.parent / unquote(url.path)).resolve()
             if not target.is_relative_to(resources):
                 continue  # Other linked files are references to living documents, not frozen resources.
             recorded = approved_bytes(target)

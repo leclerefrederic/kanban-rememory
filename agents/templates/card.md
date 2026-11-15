@@ -18,6 +18,8 @@ Record the approved boundary and permission to execute.
 
 ## Acceptance criteria
 
+## Resources
+
 ## Execution and evidence
 
 - State:

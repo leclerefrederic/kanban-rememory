@@ -8,7 +8,7 @@ import sys
 
 from kanban.accepted_content import verify_accepted_content
 from kanban.files import header_value
-from kanban.project import parse_manifest
+from kanban.project import SETTINGS, parse_manifest
 from kanban.specification_retirement import verify_retirement
 
 
@@ -43,7 +43,8 @@ def regular_object(tree, path):
 
 
 def committed_project(root, tree):
-    path = PurePosixPath("project.json")
+    settings = PurePosixPath(SETTINGS.as_posix())
+    path = settings if settings in tree else PurePosixPath("project.json")
     if path not in tree:
         return None
     project = parse_manifest(root, regular_object(tree, path), resolve_paths=False)

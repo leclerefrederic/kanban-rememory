@@ -13,7 +13,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from .batches import batch_descriptions, verify_approval
-from .files import CARD_ID, cards, check_module_records, header_value
+from .files import CARD_ID, board_cards, check_module_records, header_value
 from .workflow import load_workflow
 from .project import PROJECT_SCOPE, coordination_root, load_project, primary_worktree
 
@@ -101,7 +101,7 @@ class Coordination:
         self.primary = primary_worktree(self.root)
         self.project = load_project(self.primary)
         if not self.project.modules:
-            raise ValueError("Module delivery coordination requires an active project.json.")
+            raise ValueError("Module delivery coordination requires project settings.")
         self.module = (self.project.validate_scope(module) if module is not None
                        else self.project.select_module())
         self.directory = coordination_root(self.root) / "projects" / self.project.id
@@ -146,7 +146,7 @@ class Coordination:
         check_module_records(self.workspace)
         check_module_records(self.project.board)
         self.project.check_legacy_boards()
-        workflow = load_workflow(self.project.board)
+        workflow = load_workflow(self.project.board, context=self.project)
         if any(self.scope_cards(stage) for stage in workflow["active"]):
             raise ValueError("Reconcile active Cards before claiming a new delivery.")
         open_batches = [path for path in batch_descriptions(self.workspace)
@@ -167,7 +167,7 @@ class Coordination:
                    for p in open_batches):
                 raise ValueError("Reconcile the active Batch before claiming a Card.")
             intake = workflow.get("intake", workflow["stages"][0])
-            matches = [path for stage in workflow["stages"] for path in cards(stage, self.project.board)
+            matches = [path for stage in workflow["stages"] for path in self.scope_cards(stage)
                        if CARD_ID.match(path.stem)[1].upper() == delivery]
             if (len(matches) != 1 or matches[0].parent.name != intake
                     or self.project.card_scope(matches[0]) != self.module
@@ -175,9 +175,10 @@ class Coordination:
                 raise ValueError("Claim a standalone Card in intake or its approved Batch.")
 
     def scope_cards(self, stage):
-        workflow = load_workflow(self.project.board)
+        workflow = load_workflow(self.project.board, context=self.project)
         archived = stage in {workflow["completed"], "cancellation"}
-        return [path for path in cards(stage, self.project.board)
+        directory = self.project.card_directory(self.project.card_workspace(self.module))
+        return [path for path in board_cards(stage, directory)
                 if self.project.card_scope(path, allow_legacy=archived) == self.module]
 
     def claim(self, owner, delivery, base, approval=None):
@@ -349,14 +350,15 @@ class Coordination:
             if header_value(published, "id") != delivery:
                 raise ValueError("Published closure belongs to another Batch.")
         else:
-            completed = load_workflow(self.project.board)["completed"]
+            completed = load_workflow(self.project.board, context=self.project)["completed"]
             matches = [path for path in self.scope_cards(completed)
                        if CARD_ID.match(path.stem)[1].upper() == delivery]
             if len(matches) != 1:
                 raise ValueError("Complete the matching Card before releasing capacity.")
             relative = matches[0].relative_to(self.primary)
             published = self.git("show", f"{revision}:{relative}")
-            if header_value(published, "scope") != self.module or header_value(published, "id") != delivery:
+            if (header_value(published, self.project.card_module_field) != self.module
+                    or header_value(published, "id") != delivery):
                 raise ValueError("Published Card closure belongs to another scope or Card.")
             checks = list(acceptance_checks(published))
             if not checks or any("[ ]" in check for check in checks):
@@ -376,7 +378,8 @@ class Coordination:
         check_module_records(self.workspace)
         if self.git("rev-parse", "--verify", f"{revision}^{{commit}}") != revision:
             raise ValueError("Supply the full milestone commit.")
-        timezone = load_workflow(self.project.board)["timezone"]
+        workflow = load_workflow(self.project.board, context=self.project)
+        timezone = workflow["timezone"]
         day = datetime.now(ZoneInfo(timezone)).date()
         event_identity = f"{self.project.id}/{self.module}/{delivery}/{event}"
         reference = f"{self.module}/{delivery}"
@@ -398,7 +401,8 @@ class Coordination:
                 if not evidence:
                     raise ValueError("Link to existing evidence for a work note.")
                 target = (self.primary / evidence).resolve()
-                in_board = target.is_relative_to(self.project.board / "kanban")
+                in_board = any(target.is_relative_to(self.project.card_directory(workspace) / stage)
+                               for workspace in self.project.card_workspaces() for stage in workflow["stages"])
                 same_scope = (in_board and target.is_file()
                               and self.project.card_scope(target, allow_legacy=True) == self.module)
                 journal_scope = self.module
@@ -406,7 +410,7 @@ class Coordination:
                 from .memory_migration import checkpoint_path
 
                 checkpoint = checkpoint_path(self.primary, self.project.id)
-                if checkpoint.exists() or checkpoint.is_symlink():
+                if not self.project.flat_board and (checkpoint.exists() or checkpoint.is_symlink()):
                     raise ValueError("Resume the pending Rememory migration before recording a milestone.")
                 directory = self.project.scope_memory(journal_scope)
                 if not published:

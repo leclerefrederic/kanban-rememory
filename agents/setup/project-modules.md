@@ -1,31 +1,11 @@
 # Configure project modules
 
-For multi-module adoption only. Keep shared sources in the repository. Describe the solution and its module workspaces in a proposed `project.json`. Set schema version 1 and the four execution values below. Use distinct lowercase module IDs and local paths.
+Use `project/settings.json` for the project identity, module workspace paths, execution policy and embedded `workflow`. Use lowercase module IDs and include `misc` for work without a natural owner. Each module has its stage directories and `resources/` directly in its workspace. The project journal is flat under `project/rememory/`.
 
-```json
-{
-  "schema_version": 1,
-  "project": {"id": "sample", "name": "Sample solution"},
-  "shared": {"memory": "project/rememory", "sources": ["src"]},
-  "modules": {
-    "a": {"workspace": "project/modules/a"},
-    "b": {"workspace": "project/modules/b"}
-  },
-  "execution": {
-    "active_deliveries_per_module": 1,
-    "branch_required": true,
-    "worktree_required": true,
-    "concurrent_integrations": 1
-  }
-}
-```
+Keep the workflow aligned with the stage directories. Set `last_card_id` to zero for a new project, or to the last previously assigned number if old Cards were removed during a reset. The allocator also checks IDs on the current boards.
 
-From the principal worktree, preview the proposed layout with an approved workflow file:
+Verify the board with `python3 agents/tools/manage-kanban-board.py validate` and inspect it with `python3 agents/tools/manage-kanban-board.py show --scope misc`.
 
-```sh
-python3 agents/tools/configure-project-modules.py /path/to/proposed-project.json --workflow /path/to/workflow.json
-```
+For a fresh target, preview from its primary checkout with `python3 agents/tools/configure-project-modules.py /path/to/proposed-settings.json`. Repeat with `--apply` after approval. Keep earlier project records in Git or an archive if they are needed after a reset.
 
-Include `--with-batches` in both commands if the approved setup includes [Specifications and Batches](batches.md) in each module. Review the shared Kanban, project journal under `project/rememory/project/`, module journals under `project/rememory/modules/<module-id>/`, module workspaces and workflow with the User. Finish active work and account for unfinished backlog in an approved plan before activation. With authorization for the displayed setup, repeat with `--apply`. Keep frozen paths, IDs and bytes. An existing setup with old per-module boards requires a separate approved cutover plan. A fresh session uses the manifest and assignment to resolve its scope, then uses the project board and the corresponding journal and optional Batch records.
-
-Work concurrently only in worktrees of the same clone. Coordinate separate clones before attempting concurrent execution. For projects without a root manifest, use the [single-project setup](configure-workflow.md).
+The separate `--workflow` file is supported for legacy manifests.

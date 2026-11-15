@@ -42,7 +42,9 @@ def check_workflow(workflow):
     return workflow
 
 
-def load_workflow(project=PROJECT):
+def load_workflow(project=PROJECT, *, context=None):
+    if context and context.flat_board:
+        return context.workflow
     path = project / "kanban/workflow.json"
     if not path.is_file():
         raise ValueError("No workflow configured. Follow agents/setup/configure-workflow.md before using the board.")

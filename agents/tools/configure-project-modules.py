@@ -10,7 +10,7 @@ import tempfile
 
 from kanban.batches import batch_descriptions
 from kanban.files import ROOT, cards, header_value
-from kanban.project import primary_worktree, read_manifest
+from kanban.project import SETTINGS, primary_worktree, read_manifest
 from kanban.specifications import specification_directories, specification_root
 from kanban.workflow import check_workflow
 
@@ -53,8 +53,14 @@ def check_legacy_work():
 def plan(manifest, workflow, with_batches=False):
     manifest.check_legacy_boards()
     board = manifest.board / "kanban"
-    paths = [*manifest.setup_memory(), board, *(board / stage for stage in workflow["stages"])]
+    paths = list(manifest.setup_memory())
+    if not manifest.flat_board:
+        paths.extend([board, *(board / stage for stage in workflow["stages"])])
     for workspace in manifest.modules.values():
+        if manifest.module_boards:
+            paths.extend(manifest.card_directory(workspace) / stage for stage in workflow["stages"])
+        if manifest.flat_board:
+            paths.append(workspace / "resources")
         if with_batches:
             paths.extend(specification_directories(workspace))
         else:
@@ -78,15 +84,21 @@ def plan(manifest, workflow, with_batches=False):
 def configure(args):
     if primary_worktree(ROOT) != ROOT:
         raise ValueError("Activate modules from the primary worktree.")
-    target = ROOT / "project.json"
-    if target.exists() or target.is_symlink():
+    legacy, settings = ROOT / "project.json", ROOT / SETTINGS
+    if any(path.exists() or path.is_symlink() for path in (legacy, settings)):
         raise ValueError("A manifest already exists. Use an explicit migration to change it.")
     with tempfile.TemporaryDirectory() as temporary:
         # Validate and publish the same bytes, even if the proposal changes later.
         snapshot = Path(temporary) / "project.json"
         snapshot.write_bytes(args.manifest.read_bytes())
         manifest = read_manifest(ROOT, snapshot)
-        workflow = check_workflow(json.loads(args.workflow.read_text(encoding="utf-8")))
+        target = settings if manifest.flat_board else legacy
+        supplied = check_workflow(json.loads(args.workflow.read_text(encoding="utf-8"))) if args.workflow else None
+        workflow = manifest.workflow or supplied
+        if workflow is None:
+            raise ValueError("Supply --workflow for a legacy manifest without an embedded workflow.")
+        if supplied is not None and supplied != workflow:
+            raise ValueError("The supplied workflow differs from the embedded workflow.")
         check_legacy_work()
         paths = plan(manifest, workflow, args.with_batches)
         print(f"{manifest.name}: {', '.join(manifest.modules)}")
@@ -97,7 +109,7 @@ def configure(args):
             print("Preview only. Run again with --apply after approval.")
             return
         with activation_lock():
-            if target.exists() or target.is_symlink():
+            if any(path.exists() or path.is_symlink() for path in (legacy, settings)):
                 raise ValueError("A project manifest appeared after preview.")
             check_legacy_work()
             if plan(manifest, workflow, args.with_batches) != paths:
@@ -107,11 +119,12 @@ def configure(args):
                 if not any(path.iterdir()):
                     (path / ".gitkeep").touch(exist_ok=True)
             config = manifest.board / "kanban/workflow.json"
-            if not config.exists():
+            if not manifest.flat_board and not config.exists():
                 with config.open("x", encoding="utf-8") as stream:
                     json.dump(workflow, stream, indent=2)
                     stream.write("\n")
-            with tempfile.NamedTemporaryFile(dir=ROOT, prefix=".project-", delete=False) as pending:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=target.parent, prefix=".project-", delete=False) as pending:
                 staged = Path(pending.name)
                 pending.write(snapshot.read_bytes())
             try:
@@ -124,7 +137,7 @@ def configure(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path, help="Proposed manifest")
-    parser.add_argument("--workflow", type=Path, required=True, help="Approved workflow JSON")
+    parser.add_argument("--workflow", type=Path, help="Approved workflow JSON for legacy manifests")
     parser.add_argument("--with-batches", action="store_true", help="Set up Specifications and Batches in each module")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()

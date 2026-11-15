@@ -2,16 +2,9 @@
 
 Begin by telling your agent which repository you want to use and that you want to adopt Kanban Rememory. The agent handles the installation and configuration. Your part is to describe how you want work to move and agree on the resulting setup.
 
-## Choose a project mode
+## Choose the modules
 
-On a new installation the agent asks which layout you want, whether you choose express or custom setup.
-
-Both choices use one project Kanban and a project journal in `project/rememory/project/`.
-
-- **Single project** tracks everything directly under the project.
-- **Multi-module** adds workspaces for the named modules. Filter the project Kanban by scope. Module journals live in `project/rememory/modules/<module-id>/`. Modules can use their own Specifications and Batches. The agent previews the layout before creating `project.json` and configuring the workspaces.
-
-If you already specified a mode, the agent uses that choice. Upgrades keep the installed mode. To centralize existing journals, ask your agent to preview the [journal migration](../agents/setup/project-layout.md#migrate-existing-journals).
+Name the modules you want to track. Each has a Kanban. The `misc` module holds Cards without a natural owner and can be enough for a small project. Project settings and the shared workflow live in `project/settings.json`. The journal lives in `project/rememory/`.
 
 ## Agree on the workflow
 
@@ -21,17 +14,9 @@ Agree on the work-in-progress limit, who authorizes execution, how priorities an
 
 The agent presents the setup for approval, applies it and checks that it is consistent. You do not need to create stage directories or write Cards yourself.
 
-## Choose the amount of structure you need
-
-Cards and Rememory are the basic workflow. They give an agent a task record, evidence and a handoff for standalone work.
-
-The optional Specification and Batch workflow adds an explicit agreement about a delivery and its acceptance. Use it when you want to review the intended behavior before development and decide on a complete delivery afterward. When selected, setup previews the `specifications/` and `batches/` directories before creating them. Upgrades preserve an existing `specs/` directory.
-
 ## Give the first request
 
-Describe who needs to achieve what and what gets in the way today. Relevant examples, screenshots or mockups help explain the outcome. Your agent clarifies the request and uses the agreed standalone or Batch workflow. When a Specification is needed, KR Writer records attachments with their purpose; for a mockup, agree which aspects must be reproduced.
-
-You review the proposed behavior and acceptance criteria. Suggestions remain suggestions until agreed. KR Writer can prepare the backlog Card for your review. KR Developer picks it up when you authorize execution.
+Describe who needs to achieve what and what gets in the way today. Relevant examples, screenshots or mockups help explain the outcome. Your agent clarifies the request, links useful resources from the Card and carries the agreed work through delivery. You review scope and acceptance criteria and authorize execution.
 
 Before work starts, you should be able to explain the expected result, the agreed scope, how it will be checked and what the agent is authorized to do. The agent should be able to recover those decisions from the project records. [Assign a task](assign-a-task.md) shows how to phrase the request and follow its progress.
 
@@ -39,4 +24,4 @@ Before work starts, you should be able to explain the expected result, the agree
 
 If the repository already uses Kanban Rememory, follow [Resume work](resume-work.md). The agent recovers the existing records and next authorized action instead of repeating setup.
 
-Next: [assign a task](assign-a-task.md), or [deliver a Batch](deliver-a-batch.md) when you need an agreed delivery scope.
+Next, [assign a task](assign-a-task.md).

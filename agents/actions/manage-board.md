@@ -2,7 +2,7 @@
 
 Prerequisites: approved action, [Kanban rules](../guidelines/kanban.md), Python 3.9+ and Git. Run from the project root. This CLI does not grant execution or publication authority.
 
-In multi-module projects use the shared board. Select `--scope MODULE` or `--scope @project` when creating a Card. `--module` is an alias. Card IDs are project-wide. Module Spec and Batch references stay qualified. Active Card moves require the recorded `--owner-token` from [delivery coordination](coordinate-modules.md).
+With `project/settings.json`, select `--scope MODULE` to create a Card in that module's Kanban. Use `--scope misc` for work without a natural owner. Card IDs are project-wide. In legacy shared-board projects, `--scope @project` still selects project-wide work. Active Card moves require the recorded `--owner-token` from [delivery coordination](coordinate-modules.md).
 
 ## Inspect and validate
 
@@ -13,17 +13,17 @@ python3 agents/tools/manage-kanban-board.py validate
 
 `show` uses configured stage order, active/WIP settings, dates and blockers. `--wip-limit` or `--timezone` overrides one display run, not the approved policy. `validate` is read-only: invalid filenames, duplicate numeric IDs, missing inline relative Markdown targets/ATX anchors and unchecked completed acceptance criteria return exit 1. Historical Cards without checklists remain accepted. External URLs, reference-style links and HTML anchors are not checked.
 
-Use `show --scope MODULE` for the module view or an unassigned project session for the complete view. Use `history MODULE/CARD-ID` to locate a frozen Card from a previous module board. After an approved scope reassignment, a project-scoped Writer can use `reassign CARD-ID --to-scope MODULE --scope @project` on an unclaimed backlog Card whose Batch/Spec references have been resolved. Scope stays fixed after pickup.
+Use `show --scope MODULE` for the module view or an unassigned project session for the complete view. Use `path CARD-ID` to resolve a stable ID to its current path in a module-board project. Use `history MODULE/CARD-ID` to locate a frozen Card from a previous module board. After an approved scope reassignment, a project-scoped Writer can use `reassign CARD-ID --to-scope MODULE --scope @project` on an unclaimed backlog Card whose Batch/Spec references have been resolved. Scope stays fixed after pickup.
 
 ## Create
 
 ```sh
-python3 agents/tools/manage-kanban-board.py new "Verify retries" --owner "Billing team"
+python3 agents/tools/manage-kanban-board.py new "Verify retries" --scope misc --owner "KR Agent"
 ```
 
 Preview first; add `--apply` when project intake permits creating the proposed backlog record. This is not permission to execute. Complete the [Card content](write-card.md) before pickup.
 
-The next numeric ID follows the highest CARD or legacy TASK number across every stage, including Cancellation. Use eight digits (`CARD-00000001` through `CARD-99999999`); never reuse a retired number. Recheck before integrating concurrent contributions: the preview ID can change. Agree a migration before exhausting the range. The first stage is intake unless `intake` selects another non-active, non-completed stage.
+The next numeric ID follows the highest Card number across all module stages and the `last_card_id` floor in project settings. Use eight digits (`CARD-00000001` through `CARD-99999999`); never reuse a retired number. Recheck before integrating concurrent contributions: the preview ID can change. Agree a migration before exhausting the range. The first stage is intake unless `intake` selects another non-active, non-completed stage.
 
 ## Move
 

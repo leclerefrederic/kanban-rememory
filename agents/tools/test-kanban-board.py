@@ -44,6 +44,7 @@ INSTALL_FILES = (
     'agents/guidelines/working-rules.md',
     'agents/actions/close-batch.md',
     'agents/actions/coordinate-modules.md',
+    'agents/actions/deliver-card.md',
     'agents/actions/develop-batch.md',
     'agents/actions/maintain-rememory.md',
     'agents/actions/manage-board.md',

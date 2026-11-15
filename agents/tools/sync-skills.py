@@ -41,10 +41,10 @@ LEGACY_SKILLS = {
 # Exact kr-* copies shipped before the documentation migration (fa2f2ba).
 # Keep earlier distributed digests when changing a skill, so upgrades can distinguish edits.
 SHIPPED_SKILLS = {
-    "kr-developer": {"16ba9f093446f3a74affaa1bc8f46a4619e5d85720207a8e1a6d764fb54d4364"},
-    "kr-writer": {"bc34cd619f7c0158729e02458ca3e4ff334b009be61089ce3f0d9693e7c33f03"},
-    "kr-orchestrator": {"6e7fb6466ac4e17da4bb6f55e25dd740988d9a6d53a06fee68c32bc93736b3c5"},
-    "kr-tester": {"897d12fe541bc88b79aaa04f595402ebd580530632723a490a767f949b8cd281"},
+    "kr-developer": {"68e11dbf8a50dada644c60baf473fd1390193b10c39ecba601474158ac775f09", "16ba9f093446f3a74affaa1bc8f46a4619e5d85720207a8e1a6d764fb54d4364"},
+    "kr-writer": {"a74f109638e0e7bd37b087a4b7d1f2eb4eda13196d67ca92e6be404f72a6511f", "bc34cd619f7c0158729e02458ca3e4ff334b009be61089ce3f0d9693e7c33f03"},
+    "kr-orchestrator": {"194988ee15067b2880eb4a9708ea2bf779bf47d2ffd5ed8eeb6a5ee5c1342615", "6e7fb6466ac4e17da4bb6f55e25dd740988d9a6d53a06fee68c32bc93736b3c5"},
+    "kr-tester": {"8b4b3f77c021d84a076ff00b4efbf958029b76b491ac77dd883f9e91d4812dfd", "897d12fe541bc88b79aaa04f595402ebd580530632723a490a767f949b8cd281"},
 }
 
 

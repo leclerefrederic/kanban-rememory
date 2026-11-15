@@ -13,7 +13,7 @@ import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-from kanban.project import PROJECT_SCOPE
+from kanban.project import PROJECT_SCOPE, SETTINGS
 
 ICONS = {"attention": "🔔", "completed": "✅"}
 LABELS = {
@@ -256,7 +256,9 @@ def main():
     if args.event != "test":
         args.module = args.module or os.environ.get("KR_MODULE")
         manifest = root / "project.json"
-        if manifest.exists() or manifest.is_symlink() or (root / ".git").is_file():
+        settings = root / SETTINGS
+        if (manifest.exists() or manifest.is_symlink() or settings.exists() or settings.is_symlink()
+                or (root / ".git").is_file()):
             from kanban.project import invocation_module, load_project, primary_worktree
 
             try:

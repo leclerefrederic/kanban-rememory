@@ -33,7 +33,11 @@ def card_order(path):
 
 
 def cards(stage, project=PROJECT):
-    paths = (project / "kanban" / stage).glob("*.md")
+    return board_cards(stage, project / "kanban")
+
+
+def board_cards(stage, board):
+    paths = (board / stage).glob("*.md")
     return sorted((path for path in paths if CARD_ID.match(path.stem)), key=card_order)
 
 
@@ -78,6 +82,15 @@ def acceptance_checks(source):
             section_level = len(heading[1]) if heading[2].casefold() == "acceptance criteria" else None
         if section_level and re.match(r"\s*[-*+]\s+\[[ xX]\]", line):
             yield line.strip()
+
+
+def resource_links(source):
+    """Read the Markdown links in a record's Resources section."""
+    section = re.search(r"(?ms)^## Resources[ \t]*$(.*?)(?=^## |\Z)", source)
+    if section:
+        for line in markdown_lines(section.group(1)):
+            for match in LINK.finditer(line):
+                yield match[1] or match[2]
 
 
 def markdown_files(scope=None, root=ROOT):

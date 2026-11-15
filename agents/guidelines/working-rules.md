@@ -2,6 +2,10 @@
 
 Apply the [operational lean rules](lean-specifications.md), derived from the shared manifesto, in every role. Use existing approvals where they cover the next action; keep proposals, authorized execution, technical verification and User acceptance distinct.
 
+## Current Card workflow
+
+Start from the [Card delivery workflow](../actions/deliver-card.md). One agent frames, executes, verifies and closes authorized Card work. The user's decisions and the project's permissions determine what the agent may do. Keep the sections below for existing installations that still use separate roles and for historical Batch records.
+
 ## Authority and exceptions
 
 Read and write only within the assigned role's limits, including when gathering context. Host enforcement can narrow access, never widen it. A role never takes over another role's duties, even on instruction: name the limit and route to the permitted role in a new or existing session. The Orchestrator may delegate that role within the current chat when the host permits.

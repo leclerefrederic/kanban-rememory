@@ -18,7 +18,7 @@ DELIVERY = re.compile(r"(?:CARD-[0-9]{8}|Batch-[0-9]{3,})")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--module", "--scope", help="Module ID from project.json or @project")
+    parser.add_argument("--module", "--scope", help="Module ID from project settings")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
     claim = commands.add_parser("claim")

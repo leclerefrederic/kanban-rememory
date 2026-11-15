@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "board_layout": "module",
   "project": {
     "id": "kanban-rememory",
     "name": "Kanban Rememory"
@@ -15,26 +16,17 @@
     "configuration": {
       "workspace": "project/modules/configuration"
     },
-    "kanban": {
-      "workspace": "project/modules/kanban"
-    },
-    "specifications": {
-      "workspace": "project/modules/specifications"
-    },
-    "deliveries": {
-      "workspace": "project/modules/deliveries"
-    },
     "acceptance": {
       "workspace": "project/modules/acceptance"
     },
-    "agents": {
-      "workspace": "project/modules/agents"
-    },
-    "memory": {
-      "workspace": "project/modules/memory"
+    "orchestrator": {
+      "workspace": "project/modules/orchestrator"
     },
     "notifications": {
       "workspace": "project/modules/notifications"
+    },
+    "misc": {
+      "workspace": "project/modules/misc"
     }
   },
   "execution": {
@@ -42,5 +34,30 @@
     "branch_required": true,
     "worktree_required": true,
     "concurrent_integrations": 1
-  }
+  },
+  "workflow": {
+    "stages": [
+      "backlog",
+      "development",
+      "completion",
+      "cancellation"
+    ],
+    "active": [
+      "development"
+    ],
+    "completed": "completion",
+    "wip_limit": 1,
+    "timezone": "Europe/Paris",
+    "transitions": {
+      "backlog": [
+        "development",
+        "cancellation"
+      ],
+      "development": [
+        "completion",
+        "cancellation"
+      ]
+    }
+  },
+  "last_card_id": 159
 }

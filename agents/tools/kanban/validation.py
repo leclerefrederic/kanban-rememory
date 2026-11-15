@@ -7,7 +7,7 @@ from urllib.parse import unquote, urlsplit
 
 from .batches import relationship, validate_lot_mapping
 from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, anchors,
-                    check_module_records, markdown_files, markdown_lines)
+                    check_module_records, header_value, markdown_files, markdown_lines, resource_links)
 from .project import PROJECT_SCOPE
 from .specifications import SPECIFICATION_NAMES, specification_root
 
@@ -103,22 +103,51 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT, *, context=Non
     if context:
         for workspace in workspaces:
             check_module_records(workspace)
+    card_workspaces = context.card_workspaces() if context else (project,)
+    historical = {workflow["completed"], "cancellation"}
     for stage in workflow["stages"]:
-        for path in sorted((project / "kanban" / stage).glob("*.md")):
+        paths = [(workspace, path) for workspace in card_workspaces
+                 for path in sorted(((context.card_directory(workspace) if context else workspace / "kanban")
+                                     / stage).glob("*.md"))]
+        for workspace, path in paths:
             match = CARD_ID.match(path.stem)
             if not match or match[1].endswith("-00000000"):
                 findings.append(f"{path.relative_to(root)}: expected a card ID with eight digits from 00000001 to 99999999")
                 continue
-            by_id[CARD_ID.match(path.stem)[1].upper()].append(path.relative_to(root))
+            task_id = match[1].upper()
             if context:
                 try:
                     scope = context.card_scope(path, allow_legacy=True)
                 except ValueError as error:
                     findings.append(f"{path.relative_to(root)}: {error}")
                     continue
-                if scope is None and stage not in {workflow["completed"], "cancellation"}:
+                if scope is None and (context.flat_board or stage not in historical):
                     findings.append(f"{path.relative_to(root)}: assign a scope to unfinished Cards before switching boards")
                     continue
+                if context.module_boards and workspace != project and scope is None and stage in historical:
+                    continue  # Older module archives retain their qualified IDs.
+                if context.module_boards and stage not in historical and workspace == project:
+                    findings.append(f"{path.relative_to(root)}: move unfinished Cards to their module board")
+                if context.module_boards and workspace != project and scope is not None:
+                    if workspace != context.card_workspace(scope):
+                        findings.append(f"{path.relative_to(root)}: Card belongs on the {scope} board")
+                    source = path.read_text(encoding="utf-8")
+                    affected = header_value(source, "affected_modules", [])
+                    if (not isinstance(affected, list) or any(
+                        not isinstance(module, str) or module not in context.modules or module == context.misc_module
+                        for module in affected
+                    ) or (affected and scope != context.misc_module)):
+                        findings.append(f"{path.relative_to(root)}: affected_modules must list real modules on a {context.misc_module} Card")
+                    attachments = context.card_resources(workspace, task_id)
+                    for href in resource_links(source):
+                        url = urlsplit(href)
+                        if url.scheme or url.netloc or not url.path:
+                            continue
+                        target = (path.parent / unquote(url.path)).resolve()
+                        resources = attachments.parent
+                        if target.is_relative_to(resources) and (not target.is_relative_to(attachments)
+                                                                 or not target.is_file()):
+                            findings.append(f"{path.relative_to(root)}: invalid Card attachment {href}")
                 scoped_paths[scope or PROJECT_SCOPE].append(path)
                 if scope is not None:
                     card_scopes[path] = scope
@@ -127,6 +156,7 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT, *, context=Non
                         findings.append(f"{path.relative_to(root)}: Batch Cards require a module scope")
                     if stage in workflow["active"]:
                         active_counts[scope] += 1
+            by_id[task_id].append(path.relative_to(root))
             if stage == workflow["completed"]:
                 for check in acceptance_checks(path.read_text(encoding="utf-8")):
                     if re.match(r"[-*+]\s+\[ \]", check):
@@ -139,13 +169,17 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT, *, context=Non
         for scope in (PROJECT_SCOPE, *context.modules) if selected_scope is None else (selected_scope,):
             if active_counts[scope] > workflow["wip_limit"]:
                 findings.append(f"{scope}: Card WIP exceeds the shared workflow limit")
-            findings.extend(validate_lot_mapping(scoped_paths[scope], context.scope_workspace(scope), root))
+            findings.extend(validate_lot_mapping(scoped_paths[scope], context.scope_workspace(scope), root,
+                                                 standalone=context.flat_board))
     else:
         findings.extend(validate_lot_mapping(
             (root / path for paths in by_id.values() for path in paths), project, root,
         ))
 
-    board_paths = (root / "project/kanban", *(space / "kanban" for space in workspaces))
+    if context and context.flat_board:
+        board_paths = tuple(space / stage for space in workspaces for stage in workflow["stages"])
+    else:
+        board_paths = (root / "project/kanban", *(space / "kanban" for space in workspaces))
     batch_folders = ("batches", "lots", "Lots")
     for path in markdown_files(None if project == root / "project" else project, root):
         name = path.relative_to(root)

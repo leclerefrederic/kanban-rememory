@@ -4,24 +4,11 @@ Kanban Rememory uses the same project records and working method with Codex and 
 
 ## Coordinate from one chat
 
-Open a normal session in an adopted project. Codex reads `AGENTS.md`; Claude Code reads it through `@AGENTS.md` in `CLAUDE.md`. **KR Orchestrator** starts by default unless a role was explicitly chosen. It prepares scope with you, records decisions and delegates approved execution to KR Developer and acceptance to KR Tester.
+Open a normal session in the project. Codex reads `AGENTS.md`; Claude Code reads it through `@AGENTS.md` in `CLAUDE.md`. One agent follows the Card in that chat, using the relevant skills as guides. You decide scope and acceptance, and publication follows the project's permissions.
 
-Continue in that chat when you clarify a requirement, answer a test case or decide on delivery. The Orchestrator routes the answer to the responsible agent. Explicitly selected roles and assigned subagents retain their roles. If the host cannot delegate, the session explains the blocker and leaves an actionable handoff; it does not take over a role it cannot perform.
+The module's Kanban holds its Cards. The project journal links decisions and publications to those Cards. Older Specs, Batches and associated evidence stay available in their original records.
 
-## One shared core
-
-The repository keeps the roles, Cards, Specifications, Batches, tests, reports and Rememory journal. Agents recover the applicable instructions, approved scope and evidence from those records. Switching assistants does not require another format or erase earlier decisions.
-
-The same boundaries apply:
-
-- You decide the scope, authorize execution and make the final delivery decision. Publication follows the project's permissions.
-- KR Writer prepares scope and backlog Cards. KR Developer owns execution, technical checks, journal entries and Git. KR Tester owns acceptance results.
-- Tests identify the exact candidate. A passed case does not by itself accept a Batch.
-- Completed Cards and closed Batch records stay unchanged. New work and inherited defects receive their own follow-up records.
-
-The [framework guide](understand-the-framework.md) explains these responsibilities and records. The [lean manifesto](lean-specifications.md) supplies the shared principles.
-
-## Optional integrations
+## Optional integrations for legacy role and Batch workflows
 
 | Integration | What it adds |
 | --- | --- |
@@ -43,7 +30,7 @@ Project interfaces and conversation histories differ between products. Do not as
 
 ## Change assistants or resume later
 
-Identify the repository and, if known, the Card or Batch. Ask the new session to recover the current state and continue the next authorized action. It checks the records and obtains Git evidence through KR Developer before resuming affected work. Existing authorization remains usable where it still covers that action.
+Identify the repository and, if known, the Card. Ask the new session to recover the current state and continue the next authorized action from the Card and project Rememory. Existing authorization remains usable where it still covers that action.
 
 For a delivered candidate, resume acceptance on its recorded revision. For interrupted closure, recover the existing closure before starting new work. [Resume work](resume-work.md) explains what you should expect.
 

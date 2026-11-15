@@ -3,32 +3,28 @@
 This is the resulting layout, not a copy list. [Installation](install.md) owns copying/configuration and [workflow setup](configure-workflow.md) creates the approved stage folders. Keep existing product code/tests alongside it.
 
 ```text
-repository/
-  AGENTS.md, CLAUDE.md             Project permissions and shared startup
-  documentation/                  Human guides and examples
-  agents/
-    index.md, VERSION
-    guidelines/, actions/, setup/
-    roles/                        orchestrator, writer, developer, tester
-    templates/                    card, rememory-day, specification, batch-*
-    tools/                        manage-kanban-board.py, kanban/
-    skills/                       Optional distributed role routers
-    hosts/claude/agents/           Optional distributed native adapters
-  .agents/skills/                  Optional Codex discovery copies
-  .claude/skills/, agents/         Optional Claude discovery copies
-  project/
-    kanban/
-      workflow.json
-      backlog/, development/, code-review/, completion/, cancellation/
-    rememory/
-      project/
+project/
+  settings.json
+  rememory/
+    YYYY-MM-DD.md
+  modules/
+    notifications/
+      backlog/
+      cancellation/
+      completion/
+      development/
+      resources/
+    misc/
+      backlog/
+      cancellation/
+      completion/
+      development/
+      resources/
 ```
 
-The example is Standard; the actual configured workflow owns stage names/order and active WIP. Cards live in their stage folders, journals by date/owner in Rememory. Kit templates remain under agents, never as a dated project journal.
+The `workflow` section of `settings.json` defines stage names and order. Cards use one project-wide ID sequence. Attachments live under the owning module's `resources/<card-id>/`. Dated files in `rememory/` form one project journal.
 
-With modules, root `project.json` declares their workspace locations. The project board and project journal stay above the module workspaces. The shared Rememory contains each module's journal at `project/rememory/modules/<module-id>/`. If the manifest sets a custom `shared.memory`, its `project/` and `modules/<module-id>/` subdirectories follow the same layout. Each workspace holds `specifications/` and `batches/` when enabled. A project's Cards carry a module or project scope and use one shared sequence of IDs.
-
-With the Batch module:
+Historical Batch layout:
 
 ```text
 project/
