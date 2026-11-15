@@ -15,4 +15,4 @@ This is internal execution machinery. Human explanations live in `documentation/
 | Adopt or upgrade | [Install](setup/install.md) |
 | Inspect planned scheduling | [Scheduled procedure](actions/scheduled-batch-job.md), not an installed scheduler |
 
-`guidelines/` owns invariant rules; `actions/` ordered execution; `setup/` installation/configuration; `roles/` authority; `hosts/` native adapters; `skills/` minimal discovery routes; `templates/` blank records; `tools/` executables. Four root relays and legacy role/Batch paths exist only for historical/custom references. Do not load them through active routing.
+`guidelines/` owns invariant rules; `actions/` ordered execution; `setup/` installation/configuration; `roles/` authority; `hosts/` native adapters; `skills/` minimal discovery routes; `templates/` blank records; `tools/` executables.

@@ -1,3 +1,0 @@
-# Lean agent rules — compatibility reference
-
-Historical links keep this path. Read the [canonical instructions](guidelines/lean-specifications.md). This relay defines no rule; active entry points use the canonical path.

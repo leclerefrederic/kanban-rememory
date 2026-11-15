@@ -18,7 +18,7 @@ Developer performs approved filesystem/Git work. Keep project code, root instruc
 | `agents/` | `index.md`, `VERSION`; canonical `guidelines/`, `actions/`, `setup/`, `roles/`, `templates/`. In roles copy `orchestrator.md`, `writer.md`, `developer.md`, `tester.md`. |
 | `agents/tools/` | `manage-kanban-board.py` and the `kanban/` package. |
 
-Optional procedures ship as reference material; this does not activate tools, agents, alerts or scheduling. Historical relays under old root/role/Batch paths are for existing references, not fresh core routing. Do not copy the kit's project board, Cards, Specs, Batches, dated journals or root project-specific policy.
+Optional procedures ship as reference material; this does not activate tools, agents, alerts or scheduling. Do not copy the kit's project board, Cards, Specs, Batches, dated journals or root project-specific policy.
 
 Merge this entry into the target's `AGENTS.md` without removing its existing instructions:
 
@@ -43,6 +43,6 @@ Options can be added later. Run each option's own preview/check before applicati
 
 ## Upgrade and verify
 
-Inventory current paths/version before copying. Compare source and installed bytes with the known distributed revision; preserve custom roles, instructions, adapters, skills, extra files and settings. Merge approved changes deliberately rather than overwrite a directory. Existing legacy references can retain the documented relays; old launch IDs resolve to canonical policies. Never keep competing customized policies unnoticed: reconcile them before claiming successful role migration.
+Inventory current paths/version before copying. Compare source and installed bytes with the known distributed revision; preserve custom roles, instructions, adapters, skills, extra files and settings. Merge approved changes deliberately rather than overwrite a directory. Old launch IDs resolve to canonical policies. Never keep competing customized policies unnoticed: reconcile them before claiming successful role migration.
 
 Run board validate/show; check the selected options and rerun setup to verify no unintended change. Open a fresh target-project chat and confirm default Orchestrator, explicit-role precedence, state and next authorized action. Native delegation must actually be available before a handoff runs. Record each result as verified, awaiting User action, or blocked, with exact recovery steps. Automated tests and simulated alerts do not prove native discovery or real delivery.

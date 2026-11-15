@@ -15,6 +15,38 @@ HISTORICAL_CARD_REFERENCES = {
     ("project/batches/batch-001/report.md", "CARD-00000029"): 1,
     ("project/batches/batch-002/report.md", "CARD-00000058"): 1,
 }
+# Exact links retained in frozen records after CARD-00000142 removed the redirects.
+HISTORICAL_RETIRED_LINKS = {
+    ('project/batches/batch-001/tests.md',
+     '../../../agents/batches/resume-a-batch.md'),
+    ('project/kanban/completion/card-00000003-software-development.md',
+     '../../../agents/kanban/software-development-workflow.md#example'),
+    ('project/kanban/completion/card-00000078-align-the-documentation-and-tools-with-the-delivery-workflow.md',
+     '../../../agents/work-in-a-project.md'),
+    ('project/kanban/completion/card-00000078-align-the-documentation-and-tools-with-the-delivery-workflow.md',
+     '../../../agents/batches/batch-workflow.md'),
+    ('project/kanban/completion/card-00000078-align-the-documentation-and-tools-with-the-delivery-workflow.md',
+     '../../../agents/batches/start-and-close-batches.md'),
+    ('project/kanban/completion/card-00000078-align-the-documentation-and-tools-with-the-delivery-workflow.md',
+     '../../../agents/batches/delivery-example.md'),
+    ('project/kanban/completion/card-00000083-apply-the-shared-lean-manifesto-through-explicit-agent-rules.md',
+     '../../../agents/lean-specifications.md'),
+    ('project/kanban/completion/card-00000085-keep-one-readme-and-name-documentation-entry-points-explicitly.md',
+     '../../../agents/maintain-rememory.md'),
+    ('project/kanban/completion/card-00000140-parallelize-independent-work-within-an-approved-assignment.md',
+     '../../../agents/orchestrate-work.md'),
+    ('project/specs/approved/spec-012-r1.md',
+     '../../../agents/roles/specification-agent.md'),
+    ('project/specs/approved/spec-012-r1.md',
+     '../../../agents/roles/development-agent.md'),
+    ('project/specs/approved/spec-016-r1.md',
+     '../../../agents/work-in-a-project.md'),
+    ('project/specs/approved/spec-016-r1.md',
+     '../../../agents/batches/batch-workflow.md'),
+    ('project/specs/approved/spec-019-r1.md',
+     '../../../agents/batches/batch-workflow.md'),
+}
+
 BATCH_CARD_ID = re.compile(r"\b(?:CARD|TASK)-([0-9]{8})\b", re.IGNORECASE)
 
 
@@ -89,6 +121,8 @@ def validate(workflow):
                 if not target.exists() and path.is_relative_to(PROJECT / "batches"):
                     target = target.with_name(target.name.lower())
                 if not target.exists() and archived_specification_resource(path, target.resolve()):
+                    continue
+                if not target.exists() and (name.as_posix(), href) in HISTORICAL_RETIRED_LINKS:
                     continue
                 if not target.exists():
                     findings.append(f"{name}: missing link target {href}")
