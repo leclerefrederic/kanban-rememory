@@ -1,50 +1,35 @@
-# 🧠 Kanban Rememory
+# Kanban Rememory
 
-**You bring the intent. The agents do the work. The repository remembers.**
+**You bring the intent. The agent ships the work. The repository remembers.**
 
-Kanban Rememory is a Git and Markdown framework for running software projects with AI agents. It gives them a shared way to understand requests, organize work, implement changes, verify results, and continue across sessions.
+Five cards went through in one pass, merge included. The project owner didn't have to touch the board or step in while the agent worked. The next session can open the repository and see what shipped.
 
-You explain what you want, approve the scope, authorize work and judge the result. **The agents write the records and maintain the board.**
+Kanban Rememory is a Git and Markdown toolkit for running software projects with AI agents. It keeps the work beside the code so it can survive the chat that started it.
 
-[Read the guide](documentation/guide.md) · [Start a project](documentation/guide.md#start-a-project) · [Read the manifesto](documentation/lean-specifications.md)
+## Stop being the project's human RAM
 
-## Why this box exists
+You ask for a form. You get two extra buttons and a settings screen. Then you open a new chat and find yourself explaining the form again, trying to remember which build you tested.
 
-You ask for a form. You get two extra buttons, a settings screen, and a cheerful explanation of why you needed them. You ask to test it. The agent forgets to tell you which build to open. A new session starts. Time to explain the whole bloody project again.
+Put the agreement in the repository. Give each record one job.
 
-Congratulations. You are now the project's human RAM.
+- **The card** says what should happen, what's in scope, and how to tell when it's done. Each module has its own board, and the card's folder shows its stage.
+- **The journal** records decisions and milestones that matter beyond one card.
+- **Git** keeps the history and identifies the exact revision that was checked and published.
 
-Kanban Rememory keeps agreed behavior, work state and evidence beside the code. Agents can resume authorized work and leave a useful handoff. You can inspect the records. Less chat archaeology; more software you can use.
+The agent keeps those records current. You can switch chats without having to reconstruct the project from memory.
 
-## The guiding principles: every feature pays rent
+## From request to merge
 
-The [Lean Specifications manifesto](documentation/lean-specifications.md) sets the shared principles:
+You decide what you want. The agent records the agreement, implements it, and runs the checks that apply. Work can happen directly on `main` or on a release branch.
 
-- **Start with the outcome.** Explain who needs to achieve what and how success will be checked.
-- **Make each requirement earn its place.** Keep behavior that provides value or necessary protection.
-- **Specify the smallest complete experience.** Include relevant failure recovery and binding mockup details. Ambiguous behavior becomes a question.
-- **Give requirements a way to pass or fail.** Observable criteria and evidence identify what was checked and on which revision.
-- **Change scope only by agreement.** Suggestions stay separate; approved scope changes only on the Card. Every observed defect remains debt until its correction is verified.
-- **Build the simplest thing that meets the criteria.** Reuse what works, preserve required protections, and stop when the agreed outcome is verified.
+You can approve the verified revision at the end or authorize publication up front. With approval up front, the agent can publish once the checks pass and the result stays within the agreed scope.
 
-## The records that keep the work together
+If you asked for a form, the card should tell the agent what makes the form ready to ship. The settings screen can wait until someone actually asks for it.
 
-A **Card** carries the outcome, agreed scope, decisions and delivery evidence. Add a Resources section when it needs attachments or references. **Rememory** keeps the project journal of decisions, milestones and publications with links to the relevant Cards. Git history keeps earlier records.
+## Start with a real task
 
-## One Kanban per module
+[Start a project](documentation/guide.md#start-a-project) with your agent. You'll need Git and Python 3.9 or later. Installation starts no background service.
 
-Each declared module stores its Cards and their resources in its own Kanban. Cards without a natural owner go to `misc`. A cross-module change that ships together has one Card, linked by its stable ID from the affected modules. The shared workflow and project settings live in `project/settings.json`. The project journal is in `project/rememory/`, with one file per date.
+The [user guide](documentation/guide.md) covers requests, approvals, and handoffs. The agent follows the [workflow](orchestrator/workflow.md). The [Lean Specifications manifesto](documentation/lean-specifications.md) explains how to keep scope under control.
 
-## One agent follows the Card
-
-In a normal chat, the same agent clarifies the request, updates the Card, implements the authorized change on a dedicated branch, runs the checks that cover it and publishes under the project's permissions once you approve the verified revision. You decide scope and acceptance where your decision is required.
-
-## Pick your next move
-
-[Start a project](documentation/guide.md#start-a-project) with your agent. It checks prerequisites, proposes a short, standard, long or custom workflow, then installs and verifies the approved setup. The tools require Git and Python 3.9 or later.
-
-Agent sessions execute the kit instructions and checks. Installing the kit starts no background development service.
-
-This repository uses the same Cards and records to develop the kit; your agent installs the reusable pieces in yours.
-
-The [user guide](documentation/guide.md) covers requests, approval, resumption, defects and switching assistants. The agent follows [its workflow](orchestrator/workflow.md).
+This repository uses Kanban Rememory to build Kanban Rememory.
