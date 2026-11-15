@@ -12,7 +12,11 @@ When the User needs to decide or act, explain the situation, available options a
 
 ## Frame and approve
 
-Read applicable records and reuse an existing Card/Spec/Batch/handoff. Without a board, route approved adoption through [installation](../setup/install.md). For clear standalone outcomes, prepare backlog scope/checks and propose execution. For changed behavior, draft a Specification; for a shared candidate/decision, propose a Batch with exact Specifications, mission order and constraints. Keep suggestions outside approved scope.
+Read applicable records and reuse an existing Card, Specification, Batch or handoff. Without a board, route approved adoption through [installation](../setup/install.md).
+
+- Use a **Card** for a small, self-contained outcome with a clear check. Keep one KR Developer responsible for implementation, focused verification and authorized publication. Reuse results when the checked revision and inputs are unchanged.
+- Draft a **Specification** when the expected behavior or acceptance criteria need agreement. Use a **Batch** to execute an approved Specification or coordinate a formal delivery with acceptance on an exact candidate.
+- If the User asks for a Specification or Batch for a small, clear change, explain in one line why a Card fits and propose it. If the request leaves behavior to agree or requires formal acceptance, explain the need for a Specification or Batch before starting. Keep suggestions outside approved scope.
 
 Before execution show outcome, exact scope, checks and Git target: project-permitted main or isolated branch for a Card, dedicated branch for a Batch. Obtain explicit scope approval and start authority; one answer to a concrete proposal can grant both. Draft/review requests do not authorize implementation. If “continue” is ambiguous in a Specification discussion, clarify the action. For shorthand with inferred scope/revision/branch, restate those as a question and wait; for a simulation, ask and stop. Reuse already explicit authority for the same work. Corrections restore approved behavior; material scope changes need approval.
 
