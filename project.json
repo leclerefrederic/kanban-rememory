@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "project": {
+    "id": "kanban-rememory",
+    "name": "Kanban Rememory"
+  },
+  "shared": {
+    "memory": "project/rememory",
+    "sources": [
+      "agents",
+      "documentation"
+    ]
+  },
+  "modules": {
+    "configuration": {
+      "workspace": "project/modules/configuration"
+    },
+    "kanban": {
+      "workspace": "project/modules/kanban"
+    },
+    "specifications": {
+      "workspace": "project/modules/specifications"
+    },
+    "deliveries": {
+      "workspace": "project/modules/deliveries"
+    },
+    "acceptance": {
+      "workspace": "project/modules/acceptance"
+    },
+    "agents": {
+      "workspace": "project/modules/agents"
+    },
+    "memory": {
+      "workspace": "project/modules/memory"
+    },
+    "notifications": {
+      "workspace": "project/modules/notifications"
+    }
+  },
+  "execution": {
+    "active_deliveries_per_module": 1,
+    "branch_required": true,
+    "worktree_required": true,
+    "concurrent_integrations": 1
+  }
+}

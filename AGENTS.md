@@ -6,6 +6,8 @@ Read the [shared working instructions](agents/guidelines/working-rules.md) befor
 
 ## Rules for the Kanban Rememory repository
 
-This repository uses its own cards and journal to track changes to the kit. The journal uses Europe/Paris time, and work in progress is limited to one card in Development. Before moving a card to Completion, review the diff and run applicable tests in Development. Select the oldest eligible backlog card by ID unless an agreed priority is documented on the card. Review blockers and flow at closure or before resuming interrupted work. Adapt this section for the target repository.
+This repository tracks Cards on one project Kanban. Each Card names its owning module or project scope. Keep one active delivery per scope and one Card in Development per scope. Work on dedicated branches and worktrees of the same clone. Integrate one delivery at a time. Before moving a Card to Completion, review the diff and run the applicable checks in Development. Select the oldest eligible backlog Card by ID unless an agreed priority is documented on it. Review blockers and flow at closure or before resuming interrupted work.
+
+Use Europe/Paris time. Record one concise milestone for each verified publication in the project journal. Keep durable module rationale and resumption notes in the module journal when useful. Link to the original Card, Spec, Batch or evidence. The former unscoped Cards remain at their original paths as read-only history.
 
 Publish each verified change to `origin/main` after closing its card. The repository owner has granted standing authorization for these pushes.
