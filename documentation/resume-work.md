@@ -4,7 +4,7 @@ Use this guide after an interrupted session, a change of agent or a break in the
 
 ## Ask for recovery
 
-Identify the repository. If you know the relevant Card or Batch, mention it; otherwise the KR Developer reads the current board and the delivery records, and the KR Writer reads the delivery records.
+Identify the repository and, if known, the relevant Card or Batch in the current project chat. KR Orchestrator normally coordinates recovery, asking KR Developer to reconcile execution and Git evidence and KR Tester to resume acceptance when needed. An explicitly selected role keeps its responsibilities and requests evidence from the appropriate role.
 
 > Resume work in this repository. Recover the current task or Batch, check what has actually been verified, and continue the next authorized action. Ask me only for decisions that are still missing.
 

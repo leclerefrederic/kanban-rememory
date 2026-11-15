@@ -30,7 +30,7 @@ A **Card** records an executable task and its completion evidence. Cards can ref
 
 ## Telegram alerts
 
-If you enable Telegram, the KR Developer alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to, and appears once. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a send fails, the request or result stays in the chat and the agent says that no alert was sent.
+If you enable Telegram, the KR Developer alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to. Confirmed alerts are tracked to avoid duplicate sends. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a message was certainly not sent, the agent says so in the chat. If delivery is uncertain, it reports that uncertainty and checks before any retry.
 
 ## Reading progress
 

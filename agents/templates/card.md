@@ -12,6 +12,10 @@ specifications: []
 
 ## Expected outcome
 
+## Scope and authorization
+
+Record the approved boundary and permission to execute.
+
 ## Acceptance criteria
 
 ## Execution and evidence

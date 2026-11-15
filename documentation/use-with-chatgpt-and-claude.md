@@ -1,64 +1,55 @@
 # Use Kanban Rememory with ChatGPT and Claude
 
-Kanban Rememory works with ChatGPT (Codex) and Claude (Claude Code). The method is the same for both. Each assistant can also have extra capabilities of its own, kept apart so they never change the method.
-
-## One shared core
-
-The shared core is what makes a project behave the same whichever assistant you use:
-
-- the roles, Cards, Specifications, Batches, tests and reports;
-- the approval rules and the limit on work in progress;
-- the Rememory journal and the evidence it records;
-- the checks that agents run before acting, such as the Batch guard script.
-
-A rule in the core means the same thing for every assistant. An assistant that starts a session reads the core first and can recover the project state from it alone.
-
-## Two optional branches
-
-A branch adds help for one assistant. It can make a rule easier to follow or enforce it mechanically. It cannot add, remove or reinterpret a rule.
-
-| | Shared core | Claude branch | Codex branch |
-| --- | --- | --- | --- |
-| Skills | Same `SKILL.md` content (`name`, `description`, instructions) | Discovered in `.claude/skills/` | Discovered in `.agents/skills/` |
-| Role limits | Written in the role instructions. The role files also carry their read and write limits in a header that the Claude check reads | Optional check for a session started as a named agent (`claude --agent`): a `PreToolUse` hook refuses an action outside the role and names the agent to use. Sessions without a named agent are not restricted | Advisory in this version: the tool call carries no agent identity and no tested per-session setting declares a role. Sandbox and approval settings can add their own limit |
-| Distribution | Files of the kit, copied into each discovery folder by a script | Same copy; a plugin is possible but not built | Same copy; a plugin is possible but not built |
-
-Both assistants find the same skill file format in their own folder, so one skill text can serve both. The kit's skills live in `agents/skills/`; they point to their operating instructions. A script in the kit copies them into the two discovery folders, and can report a copy that has drifted from the kit. Hooks differ. Claude Code can attach a hook to a skill. Codex loads project hooks only after you trust the project and review the hook. Codex does not support an "ask" answer from a hook, so branch hooks must only allow or deny.
-
-A hook is a safety net, not the only protection. The role instructions and the Batch checks remain the rule; a hook only makes an assistant stop earlier. Two optional checks exist today: the push check for Batches, and the Claude Code role check described in [Configure the Claude Code role check](../agents/configure-claude-role-hook.md). Neither protects a session or tool that is not listed there.
+Kanban Rememory uses the same project records and working method with Codex and Claude Code. Optional integrations help an assistant find the instructions or check some role limits. They do not change your decisions or grant more permission.
 
 ## Coordinate from one chat
 
-Open a normal session in an adopted project. Codex reads `AGENTS.md`; Claude Code reads it via `@AGENTS.md` in `CLAUDE.md`. [KR Orchestrator](../agents/roles/orchestrator.md) starts by default unless a role was explicitly chosen. The Orchestrator frames the Card or Batch, asks for approval and delegates to KR Developer or KR Tester as needed. If the host cannot delegate, the session keeps the approved handoff available and explains the blocker.
+Open a normal session in an adopted project. Codex reads `AGENTS.md`; Claude Code reads it through `@AGENTS.md` in `CLAUDE.md`. **KR Orchestrator** starts by default unless a role was explicitly chosen. It prepares scope with you, records decisions and delegates approved execution to KR Developer and acceptance to KR Tester.
 
-## Where each assistant draws its lines
+Continue in that chat when you clarify a requirement, answer a test case or decide on delivery. The Orchestrator routes the answer to the responsible agent. Explicitly selected roles and assigned subagents retain their roles. If the host cannot delegate, the session explains the blocker and leaves an actionable handoff; it does not take over a role it cannot perform.
 
-The two assistants do not organize their projects the same way, so the kit does not rely on the assistant to keep the roles apart.
+## One shared core
 
-- **Claude:** a Cowork project and the Code tab are separate spaces. A Cowork project holds its folders and its instructions for every session in it. In the Code tab you choose the folder for each session.
-- **ChatGPT and Codex:** one project space can hold Chat, Work and Codex conversations, so nothing in the product separates the roles. A local project gives its chats access to one or more folders; a ChatGPT project has no folder access. Each product keeps its own conversation history.
-- **Instructions:** project instructions exist on both sides, but the documentation does not say that they carry from ChatGPT Work into Codex. The repository's `AGENTS.md` and the kit documents remain the instructions every assistant can find.
+The repository keeps the roles, Cards, Specifications, Batches, tests, reports and Rememory journal. Agents recover the applicable instructions, approved scope and evidence from those records. Switching assistants does not require another format or erase earlier decisions.
 
-Because the roles can blur, the kit protects the **hand-offs**, not the conversations. Approval of a Specification is proven in Git. Your verdict on a delivery is recorded for the exact tested revision. A closed Card never changes. An optional check can also refuse a push that would close a Batch without your recorded acceptance. An agent asked to do the other role's work names the rule and sends you to the right agent. It cannot move work past these points without your decision. Assistants that cannot enforce rules in their own chat window, such as the chat apps, rely on these records and on the instructions only.
+The same boundaries apply:
 
-Some details are not confirmed, in particular whether repository hooks run in the desktop apps. The kit does not depend on them.
+- You decide the scope, authorize execution and make the final delivery decision. Publication follows the project's permissions.
+- KR Writer prepares scope and backlog Cards. KR Developer owns execution, technical checks, journal entries and Git. KR Tester owns acceptance results.
+- Tests identify the exact candidate. A passed case does not by itself accept a Batch.
+- Completed Cards and closed Batch records stay unchanged. New work and inherited defects receive their own follow-up records.
 
-## What the Claude Code role check protects
+The [framework guide](understand-the-framework.md) explains these responsibilities and records. The [lean manifesto](lean-specifications.md) supplies the shared principles.
 
-It protects a Claude Code session started as the named Writer, Developer or Tester role, and only for the file reads, file writes, searches, Git commands and visible shell paths of that role's limits. It does not protect: a session with no named agent, Codex, the chat applications, shell commands that hide the file they touch, other tools, or the check's own settings file, and it lets an action through when it fails. For these the limits are advisory. It was tested with the command line, which gives the session identity to the hook; whether it runs in the Claude Code desktop app is unconfirmed, and so are the Codex questions about the shell environment, sub-agents and a per-session role. The agent procedure lists each limit and each unconfirmed fact.
+## Optional integrations
 
-## What this means for you
+| Integration | What it adds |
+| --- | --- |
+| Role skills | The same four `kr-*` skills route each assistant to the shared instructions. They are discovered in `.agents/skills/` for Codex and `.claude/skills/` for Claude Code. |
+| Claude Code role check | A check for sessions launched as named Writer, Developer or Tester agents refuses covered actions outside their role limits. |
+| Batch publication check | An optional Git hook checks guarded Batch closure pushes before publication. |
 
-- You can switch assistants, or use both on one project, without changing the project records.
-- A project works without either branch. Install a branch to get its extra help.
-- A branch never grants an agent more permission. Approval of scope, acceptance and publication stays with you.
+Your agent installs and verifies selected options, preserving customizations during updates. Copying alone does not prove activation. See the agent procedures for [skills](../agents/setup/skills.md), the [Claude Code role check](../agents/setup/claude-role-check.md), and [Batch setup](../agents/setup/batches.md).
 
-## Checked sources
+A project works without these integrations. Instructions and approval rules still apply; an integration only provides the checks documented for it.
 
-The skill folders and hook behavior above come from the vendors' documentation, checked on 2026-11-14. Check it again before relying on a detail, because both products change.
+## Understand what a check covers
 
-- [Codex skills](https://developers.openai.com/codex/skills)
-- [Codex hooks](https://developers.openai.com/codex/hooks)
-- [Codex approvals and security](https://developers.openai.com/codex/agent-approvals-security)
-- [Claude Code skills](https://code.claude.com/docs/en/skills)
-- [Claude Code hooks](https://code.claude.com/docs/en/hooks)
+The Claude role check covers selected tools and visible project paths in named sessions. It does not enforce role limits in Codex or ordinary chat applications, and it does not cover every shell command or tool. A session without a named agent is not restricted by that check. Role instructions remain applicable in all these cases.
+
+The [role-check procedure](../agents/setup/claude-role-check.md#what-the-check-covers-and-does-not-cover) lists its precise coverage, failure behavior and unconfirmed host details. Do not infer enforcement from an assistant's name or from the presence of a hook file. Other sandbox and approval controls can impose their own limits.
+
+Project interfaces and conversation histories differ between products. Do not assume that instructions from another chat application carry into a coding session. The repository's entry files and project records provide the shared starting point.
+
+## Change assistants or resume later
+
+Identify the repository and, if known, the Card or Batch. Ask the new session to recover the current state and continue the next authorized action. It checks the records and obtains Git evidence through KR Developer before resuming affected work. Existing authorization remains usable where it still covers that action.
+
+For a delivered candidate, resume acceptance on its recorded revision. For interrupted closure, recover the existing closure before starting new work. [Resume work](resume-work.md) explains what you should expect.
+
+## Sources and verification
+
+Vendor documentation for the skill locations and hooks was checked on 2026-11-14. Product details can change; the setup procedures distinguish verified behavior from unconfirmed coverage.
+
+- [Codex skills](https://developers.openai.com/codex/skills) and [approval controls](https://developers.openai.com/codex/agent-approvals-security)
+- [Claude Code skills](https://code.claude.com/docs/en/skills) and [hooks](https://code.claude.com/docs/en/hooks)

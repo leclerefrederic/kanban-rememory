@@ -1,6 +1,6 @@
 """Claude Code PreToolUse hook: refuse an action outside the role of the session.
 
-The role is the `agent_type` Claude Code gives a session started as a named agent. The limits come from the
+The role is the `agent_type` Claude Code gives a session started as a named agent. Legacy launch names select the same canonical policy. The limits come from the
 header of the matching role file in agents/roles/. A session without a known role is not restricted.
 """
 
@@ -12,6 +12,8 @@ import subprocess
 import sys
 
 from kanban.files import header_value
+
+ROLE_ALIASES = {"development-agent": "developer", "specification-agent": "writer"}
 
 READ_TOOLS = {"Read": "file_path"}
 SEARCH_TOOLS = {"Glob": "path", "Grep": "path"}
@@ -30,10 +32,20 @@ def load_roles(root):
         except ValueError:
             continue
         if name:
+            if name in roles:
+                raise ValueError(f"Duplicate role {name}: {roles[name]['file']} and agents/roles/{path.name}")
             title = re.search(r"(?m)^# Actor: (.+)$", text)
             roles[name] = {"name": name, "title": title.group(1) if title else name, "file": f"agents/roles/{path.name}",
                            "read": header_value(text, "read"), "write": header_value(text, "write"),
                            "git": header_value(text, "git")}
+    for old, canonical in ROLE_ALIASES.items():
+        if old in roles:
+            legacy = roles.pop(old)
+            if canonical not in roles:
+                roles[canonical] = {**legacy, "name": canonical}
+            else:
+                print(f"Legacy policy {legacy['file']} is superseded by {roles[canonical]['file']}. "
+                      "Review the old file; both launch IDs use the canonical policy.", file=sys.stderr)
     return roles
 
 
@@ -120,6 +132,7 @@ def violation(role, root, tool, tool_input, cwd):
 
 def decide(roles, agent_type, root, tool, tool_input, cwd):
     """Return a refusal message, or None to allow."""
+    agent_type = ROLE_ALIASES.get(agent_type, agent_type)
     role = roles.get(agent_type)
     if role is None:
         return None

@@ -11,7 +11,7 @@ batch: "Batch-101"
 - Tested commit: `candidate-b`, with the earlier `candidate-a` results retained below.
 - Environment or prerequisites: macOS; local Booking Desk demo workspace containing bookings `Élodie` and `Smith, Alex`. No login or network connection is required in this example.
 - Technical evidence: `candidate-a` passed an automated accents check; `candidate-b` passed both accents and comma-field regression checks.
-- Scope: [SPEC-101 revision 1](project-specification.md), selected by [Batch-101](batch-description.md).
+- Scope: [SPEC-101 revision 1](specification.md), selected by [Batch-101](batch-description.md).
 
 | Candidate | Preserved build location in the example project |
 | --- | --- |

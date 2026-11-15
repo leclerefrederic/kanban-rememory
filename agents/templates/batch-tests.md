@@ -6,7 +6,6 @@ batch: null
 
 # Acceptance tests
 
-
 - Tested commit:
 - Environment or prerequisites:
 - Technical evidence:
@@ -16,6 +15,8 @@ batch: null
 
 ## Startup and actions by case
 
-For each test or case, record the exact build and launch instructions, sessions or connections, fixtures, actions, expected result, and stopping point. When presenting a case, repeat its startup instructions even if unchanged and include all instructions in the OK / KO question. Follow the guided acceptance procedure in `agents/roles/tester.md`.
-
-Retain earlier attempts. Link screenshots under `evidence/`. For blocked or unexecuted required tests, record the reason and original scenario reference when carried forward.
+- Case ID, candidate and build:
+- Launch, sessions/connections and fixtures:
+- Actions, expected result and stopping point:
+- Earlier attempts and evidence links under `evidence/`:
+- Blocked or unexecuted case: reason and original scenario reference:

@@ -18,21 +18,56 @@ from unittest.mock import patch
 
 KIT = Path(__file__).resolve().parents[2]
 INSTALL_FILES = (
-    "documentation/index.md", "documentation/understand-the-framework.md",
-    "documentation/start-a-project.md", "documentation/deliver-a-batch.md",
-    "documentation/test-and-accept-a-batch.md",
-    "documentation/lean-specifications.md",
-    "documentation/assign-a-task.md", "documentation/resume-work.md", "documentation/report-a-defect.md", "documentation/use-with-chatgpt-and-claude.md",
-    "documentation/examples/project-specification.md", "documentation/examples/batch-description.md",
-    "documentation/examples/kanban-card.md", "documentation/examples/batch-tests.md",
-    "documentation/examples/batch-report.md",
-    "agents/configure-a-project.md", "agents/work-in-a-project.md", "agents/lean-specifications.md",
-    "agents/roles/user.md", "agents/roles/specification-agent.md", "agents/roles/development-agent.md",
-    "agents/roles/orchestrator.md", "agents/roles/tester.md", "agents/orchestrate-work.md",
-    "agents/kanban/board-guide.md", "agents/kanban/software-development-workflow.md",
-    "agents/kanban/write-task-cards.md", "agents/templates/kanban-card.md", "agents/templates/project-layout.md",
-    "agents/tools/manage-kanban-board.py", "agents/maintain-rememory.md", "agents/templates/daily-template.md",
-    "agents/configure-claude-role-hook.md",
+    'documentation/assign-a-task.md',
+    'documentation/deliver-a-batch.md',
+    'documentation/examples/batch-description.md',
+    'documentation/examples/batch-report.md',
+    'documentation/examples/batch-tests.md',
+    'documentation/examples/card.md',
+    'documentation/examples/specification.md',
+    'documentation/index.md',
+    'documentation/lean-specifications.md',
+    'documentation/report-a-defect.md',
+    'documentation/resume-work.md',
+    'documentation/start-a-project.md',
+    'documentation/telegram-setup.md',
+    'documentation/test-and-accept-a-batch.md',
+    'documentation/understand-the-framework.md',
+    'documentation/use-with-chatgpt-and-claude.md',
+    'documentation/user-responsibilities.md',
+    'agents/index.md',
+    'agents/VERSION',
+    'agents/guidelines/batches.md',
+    'agents/guidelines/kanban.md',
+    'agents/guidelines/lean-specifications.md',
+    'agents/guidelines/working-rules.md',
+    'agents/actions/close-batch.md',
+    'agents/actions/develop-batch.md',
+    'agents/actions/maintain-rememory.md',
+    'agents/actions/manage-board.md',
+    'agents/actions/notify-user.md',
+    'agents/actions/orchestrate-work.md',
+    'agents/actions/resume-work.md',
+    'agents/actions/scheduled-batch-job.md',
+    'agents/actions/write-card.md',
+    'agents/setup/batches.md',
+    'agents/setup/claude-role-check.md',
+    'agents/setup/configure-workflow.md',
+    'agents/setup/install.md',
+    'agents/setup/project-layout.md',
+    'agents/setup/skills.md',
+    'agents/setup/telegram.md',
+    'agents/templates/batch-description.md',
+    'agents/templates/batch-report.md',
+    'agents/templates/batch-tests.md',
+    'agents/templates/card.md',
+    'agents/templates/rememory-day.md',
+    'agents/templates/specification.md',
+    'agents/roles/orchestrator.md',
+    'agents/roles/writer.md',
+    'agents/roles/developer.md',
+    'agents/roles/tester.md',
+    'agents/tools/manage-kanban-board.py',
 )
 
 
@@ -49,7 +84,7 @@ class KanbanBoardTests(unittest.TestCase):
         shutil.copytree(KIT / "agents/tools/kanban", self.root / "agents/tools/kanban",
                         ignore=shutil.ignore_patterns("__pycache__"))
         (self.root / "AGENTS.md").write_text(
-            "Read the [shared working instructions](agents/work-in-a-project.md) "
+            "Read the [shared working instructions](agents/guidelines/working-rules.md) "
             "before adopting the kit or working on cards.\n", encoding="utf-8",
         )
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)
@@ -161,7 +196,7 @@ class KanbanBoardTests(unittest.TestCase):
         (self.board / "workflow.json").write_bytes(source.read_bytes())
         archived = self.board / "archive/task-00000009-archived.md"
         archived.touch()
-        template = self.root / "agents/templates/kanban-card.md"
+        template = self.root / "agents/templates/card.md"
         template.write_text(template.read_text().replace("CARD-NNNNNNNN", "TASK-NNNNNNNN"))
         self.run_board("new", "Test adoption", "--owner", "Maintainers", "--apply")
         created = (self.board / "queue/card-00000010-test-adoption.md").read_text()
@@ -456,22 +491,30 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertIn("Approval mismatch", self.run_board("verify-approval", "batch-001", revision, expected=1))
 
     def test_batch_module_installation_and_worked_example(self):
-        shutil.copytree(KIT / "agents/batches", self.root / "agents/batches")
-        for name in ("project-specification.md", "batch-description.md", "batch-tests.md", "batch-report.md"):
-            shutil.copy(KIT / "agents/templates" / name, self.root / "agents/templates" / name)
-        shutil.copy(KIT / "agents/run-scheduled-batch-job.md", self.root / "agents")
+        # Static instructions/templates already ship with core; this option adds the guard.
         shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
         self.run_board("init", "--template", "short", "--apply")
         self.run_board("validate")
-        example = (self.root / "agents/batches/delivery-example.md").read_text()
-        records = re.findall(r"```markdown\n(.*?)\n```", example, re.DOTALL)
-        self.assertEqual(len(records), 4)
-        destinations = ("project/specs/approved/spec-001-r1.md", "project/batches/batch-001/description.md",
-                        "project/batches/batch-001/tests.md", "project/batches/batch-001/report.md")
-        for destination, record in zip(destinations, records):
+        mapping = {
+            "documentation/examples/specification.md": "project/specs/approved/spec-101-r1.md",
+            "documentation/examples/batch-description.md": "project/batches/batch-101/description.md",
+            "documentation/examples/batch-tests.md": "project/batches/batch-101/tests.md",
+            "documentation/examples/batch-report.md": "project/batches/batch-101/report.md",
+        }
+        for source, destination in mapping.items():
+            # Rebase illustrative relative links when the same record is placed in a project.
+            def rebase(match):
+                href = match.group(1)
+                if ":" in href or href.startswith("#"):
+                    return match.group(0)
+                path, separator, anchor = href.partition("#")
+                target = os.path.normpath(str(Path(source).parent / path))
+                relative = os.path.relpath(mapping.get(target, target), Path(destination).parent)
+                return "](" + relative + ("#" + anchor if separator else "") + ")"
+            record = re.sub(r"\]\(([^)]+)\)", rebase, (KIT / source).read_text())
             path = self.root / destination
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(record + "\n")
+            path.write_text(record)
         self.run_board("validate")
 
     def test_batch_guard_uses_workflow_and_configured_build_files(self):
@@ -643,7 +686,11 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("match kit", sync("--check"))
         (self.root / ".agents/skills/kr-developer/SKILL.md").write_text("edited\n")
         self.assertIn(".agents/skills/kr-developer", sync("--check", expected=1))
-        self.assertIn("updated 1 skill folder(s)", sync("--target", "codex"))
+        self.assertIn("preserved customized current skills", sync("--target", "codex", expected=1))
+        self.assertEqual((self.root / ".agents/skills/kr-developer/SKILL.md").read_text(), "edited\n")
+        # Explicit project reconciliation, outside the synchronizer.
+        shutil.copy(self.root / "agents/skills/kr-developer/SKILL.md",
+                    self.root / ".agents/skills/kr-developer/SKILL.md")
         self.assertEqual((own / "SKILL.md").read_text(), "mine\n")
 
         # Simulate earlier installations using the exact pre-rename skill bytes.
@@ -654,12 +701,11 @@ class KanbanBoardTests(unittest.TestCase):
             "kanban-rememory-tester": "kr-tester",
         }
         target = self.root / ".agents/skills"
+        historical = json.loads((KIT / "agents/tools/fixtures/role-migration-308b747.json").read_text())["files"]
         for old, new in old_names.items():
             legacy = target / old
             legacy.mkdir()
-            current = (target / new / "SKILL.md").read_bytes()
-            original = current.replace(f"name: {new}\n".encode(), f"name: {old}\n".encode(), 1)
-            (legacy / "SKILL.md").write_bytes(original)
+            (legacy / "SKILL.md").write_text(historical[f"agents/skills/{old}/SKILL.md"])
 
         customized = self.root / ".claude/skills/kanban-rememory-tester"
         customized.mkdir()
@@ -705,7 +751,7 @@ class KanbanBoardTests(unittest.TestCase):
             module.main()
         self.assertFalse(old_codex.parent.exists())
         self.assertEqual(old_claude.read_bytes(), b"custom project skill")
-        self.assertEqual(stale_source.read_bytes(), stock)
+        self.assertFalse(stale_source.parent.exists())
         self.assertFalse((self.root / ".agents/skills/kr-standalone").exists())
 
     def test_installed_skills_match_the_kit(self):
@@ -735,8 +781,8 @@ class KanbanBoardTests(unittest.TestCase):
 
         manifesto = principles("documentation/lean-specifications.md")
         self.assertEqual(len(manifesto), 6)
-        self.assertEqual(principles("agents/lean-specifications.md"), manifesto)
-        self.assertIn("documentation/lean-specifications.md", (KIT / "agents/lean-specifications.md").read_text())
+        self.assertEqual(principles("agents/guidelines/lean-specifications.md"), manifesto)
+        self.assertIn("documentation/lean-specifications.md", (KIT / "agents/guidelines/lean-specifications.md").read_text())
         readme = (KIT / "README.md").read_text()
         section = readme.split("## The guiding principles", 1)[1].split("\n## ", 1)[0]
         self.assertEqual(len(re.findall(r"(?m)^- \*\*", section)), 6)
@@ -764,12 +810,12 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertNotRegex(text, r"(?i)planned, not delivered|planned: a `PreToolUse`|role hooks? (is|are) planned",
                                     str(path.relative_to(KIT)))
         page = (KIT / "documentation/use-with-chatgpt-and-claude.md").read_text()
-        self.assertIn("configure-claude-role-hook.md", page)
-        self.assertIn("unconfirmed", (KIT / "agents/configure-claude-role-hook.md").read_text().lower())
+        self.assertIn("claude-role-check.md", page)
+        self.assertIn("unconfirmed", (KIT / "agents/setup/claude-role-check.md").read_text().lower())
 
     def test_role_headers_match_the_prose_lists(self):
         module, roles = self.role_hook()
-        self.assertEqual(set(roles), {"specification-agent", "development-agent", "tester"})
+        self.assertEqual(set(roles), {"writer", "developer", "tester"})
         for name, role in roles.items():
             text = (KIT / role["file"]).read_text().split("\n---\n", 1)[1]
             for kind in ("read", "write"):
@@ -802,7 +848,7 @@ class KanbanBoardTests(unittest.TestCase):
                 self.assertNotIn("override", message.lower().replace("does not set", ""))
         for tool, fields in (("Read", {"file_path": "project/specs/draft/spec-001-r1.md"}),
                              ("Write", {"file_path": "project/specs/draft/spec-001-r1.md"}),
-                             ("Read", {"file_path": "agents/roles/development-agent.md"}),
+                             ("Read", {"file_path": "agents/roles/developer.md"}),
                              ("Read", {"file_path": "AGENTS.md"}),
                              ("Read", {"file_path": "project/kanban/development/card-1.md"}),
                              ("Write", {"file_path": "project/kanban/backlog/card-1.md"}),
@@ -857,7 +903,9 @@ class KanbanBoardTests(unittest.TestCase):
 
     def test_role_hook_installer_previews_installs_and_removes_only_its_own(self):
         shutil.copy(KIT / "agents/tools/install-claude-role-hook.py", self.root / "agents/tools")
-        shutil.copytree(KIT / "agents/claude", self.root / "agents/claude")
+        shutil.copy(KIT / "agents/tools/role-limit-hook.py", self.root / "agents/tools")
+        shutil.copytree(KIT / "agents/roles", self.root / "agents/roles", dirs_exist_ok=True)
+        shutil.copytree(KIT / "agents/hosts/claude", self.root / "agents/hosts/claude")
         settings = self.root / ".claude/settings.json"
         settings.parent.mkdir(parents=True)
         other = {"matcher": "Bash", "hooks": [{"type": "command", "command": "echo mine"}]}
@@ -880,19 +928,19 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertEqual(data["hooks"]["PreToolUse"][0], other)
         self.assertEqual(len(data["hooks"]["PreToolUse"]), 2)
         self.assertIn("role-limit-hook.py", data["hooks"]["PreToolUse"][1]["hooks"][0]["command"])
-        for name in ("specification-agent.md", "development-agent.md", "tester.md"):
+        for name in ("writer.md", "developer.md", "tester.md"):
             self.assertEqual((self.root / ".claude/agents" / name).read_bytes(),
-                             (KIT / "agents/claude/agents" / name).read_bytes())
+                             (KIT / "agents/hosts/claude/agents" / name).read_bytes())
         self.assertIn("Nothing to change", install("--apply"))  # Idempotent.
         self.assertEqual(len(json.loads(settings.read_text())["hooks"]["PreToolUse"]), 2)
         install("--remove", "--apply")
         data = json.loads(settings.read_text())
         self.assertEqual(data["hooks"]["PreToolUse"], [other])
-        self.assertFalse((self.root / ".claude/agents/specification-agent.md").exists())
+        self.assertFalse((self.root / ".claude/agents/writer.md").exists())
         self.assertFalse((self.root / ".claude/agents/tester.md").exists())
         self.assertIn("Nothing to change", install("--remove", "--apply"))
         settings.write_text("{not json")
-        self.assertIn("not valid JSON", install("--apply", expected=1))
+        self.assertIn("valid settings", install("--apply", expected=1))
 
     def test_role_hook_command_reads_the_session_identity(self):
         shutil.copytree(KIT / "agents/roles", self.root / "agents/roles", dirs_exist_ok=True)

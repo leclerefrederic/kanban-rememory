@@ -2,123 +2,87 @@
 
 **You bring the intent. The agents do the work. The repository remembers.**
 
-Kanban Rememory is a Git and Markdown framework for running software projects with AI agents. It gives them a shared way to understand requests, organize work, implement changes, verify results, and preserve enough context to continue across sessions.
+Kanban Rememory is a Git and Markdown framework for running software projects with AI agents. It gives them a shared way to understand requests, organize work, implement changes, verify results, and continue across sessions.
 
-Think of it as a little workshop inside your repository, staffed by agents with a shared notebook. A request goes in. They organize the work and bring back a delivery you can test, the evidence behind it, and any decisions they need from you. The notebook survives the next “Hello! How can I help you today?”
-
-You explain what you want, approve the scope, and judge the result. **The agents write the records and maintain the board.** KR Writer prepares backlog Cards. KR Developer owns execution and closure.
-
-You get to build your project. The AI gets the paperwork. A small victory for humanity.
+You explain what you want, approve the scope, authorize work and judge the result. **The agents write the records and maintain the board.**
 
 [Read the guides](documentation/index.md) · [Start a project](documentation/start-a-project.md) · [Read the manifesto](documentation/lean-specifications.md)
 
-## Why this box exists: enthusiasm needed adult supervision
+## Why this box exists
 
 You ask for a form. You get two extra buttons, a settings screen, and a cheerful explanation of why you needed them. You ask to test it. The agent forgets to tell you which build to open. A new session starts. Time to explain the whole bloody project again.
 
 Congratulations. You are now the project's human RAM.
 
-Kanban Rememory grew out of that frustration. The project needs an answer to a few persistent questions: what did we agree to build, who is doing what, what actually passed, and what happens next?
-
-The answers live alongside the code. An agent can read them, resume authorized work, and leave a useful handoff. You can inspect them whenever you want.
-
-Less chat archaeology. More software you can actually use.
+Kanban Rememory keeps agreed behavior, work state and evidence beside the code. Agents can resume authorized work and leave a useful handoff. You can inspect the records. Less chat archaeology; more software you can use.
 
 ## The guiding principles: every feature pays rent
 
-- **Every feature pays rent.** Every requirement needs a clear benefit: experience, usability, performance, or a necessary protection. Even that adorable little extra button.
-- **“While I was at it…” needs permission.** Agents can suggest improvements. Adding behavior requires your agreement. An active Batch keeps its approved scope.
-- **Let the agents carry the clipboard.** They break down work, manage Cards, check dependencies, write code, and maintain evidence within their authorization. They ask when a decision belongs to you or the expected behavior is unclear.
-- **“Done” comes with evidence.** Acceptance criteria describe observable results. Tests identify the revision they checked. Confidence and a sparkle emoji will only get you so far.
-- **Bugs get names and follow-ups.** Every observed defect becomes debt. Blocking defects require correction before acceptance; deferred debt and outstanding tests remain traceable. Sweeping them under the next Batch gets expensive.
-- **Know when to stop.** Reuse what works, preserve required protections, and stop when the agreed outcome is achieved and verified. Resist the encore.
+The [Lean Specifications manifesto](documentation/lean-specifications.md) sets the shared principles:
 
-**Be lazy about writing unnecessary code. Be stubborn about delivering what was agreed.** The [Lean Specifications manifesto](documentation/lean-specifications.md) is the full reference.
+- **Start with the outcome.** Explain who needs to achieve what and how success will be checked.
+- **Make each requirement earn its place.** Keep behavior that provides value or necessary protection.
+- **Specify the smallest complete experience.** Include relevant failure recovery and binding mockup details. Ambiguous behavior becomes a question.
+- **Give requirements a way to pass or fail.** Observable criteria and evidence identify what was checked and on which revision.
+- **Change scope only by agreement.** Suggestions stay separate; the approved baseline of an active Batch stays fixed. Every observed defect remains debt until its correction is verified.
+- **Build the simplest thing that meets the criteria.** Reuse what works, preserve required protections, and stop when the agreed outcome is verified.
 
-## The pieces of the puzzle
+## The records that keep the work together
 
-Open the box. Here is what keeps the work together. The agents maintain these pieces; you can inspect them whenever curiosity or suspicion strikes.
+Start with **Cards and Rememory**. Add the optional Specification and Batch module when you need a formal agreement about a delivery and its acceptance. A small standalone task can remain a small standalone task.
 
-| Piece | What it does | How it connects |
-| --- | --- | --- |
-| **Specifications** | Describe the intended outcome, scope, acceptance criteria, and any binding mockups or resources. | A Batch selects exact approved revisions. |
-| **Batches** | Define a delivery: one or more approved Specifications, priorities, tests, a report, and your final decision. | Keep the scope fixed while implementation and acceptance progress. |
-| **Cards** | Track the KR Developer's executable tasks, dependencies, blockers, and completion evidence. | Can reference a Batch and Specifications; standalone Cards need neither. |
-| **Tests and reports** | Preserve tested revisions, results, screenshots, defects, decisions, and closure evidence. | Belong to their Batch and make its delivery reviewable. |
-| **Rememory** | Keep a concise journal of decisions, verified milestones, and next actions. | Give the next agent the context needed to resume the work. |
-| **Instructions and tools** | Define agent responsibilities and provide commands to create, move, display, and validate Cards, plus Batch checks. | Help agents maintain consistent records and follow the agreed workflow. |
+| Record | What it preserves |
+| --- | --- |
+| **Card** | An executable task, its outcome, scope, dependencies and completion evidence. It can reference a Specification or Batch. |
+| **Rememory** | A concise journal of decisions, verified milestones, blockers and the next authorized action. |
+| **Specification** | Intended behavior, acceptance criteria, constraints and any binding mockups or resources. |
+| **Batch** | A delivery selecting exact approved Specification revisions, with priorities, tests, a report and your final decision. |
+| **Tests and report** | The tested candidate, results, defects, outstanding checks, decisions and closure evidence for that Batch. |
 
-The records live under `project/specs/`, `project/batches/`, `project/kanban/`, and `project/rememory/`. Human-readable guides live in `documentation/`. Agent instructions, templates, and executable tools live together under `agents/`.
+**A Batch groups Specifications. Cards track execution independently.** A Card can point to a Batch; Batch records do not contain Cards. Stable IDs connect the records, Git preserves their history, and Rememory explains the decisions and next steps.
 
-**A Batch groups Specifications. Cards track execution independently.** A Card can point to a Batch; the Batch does not contain Cards. Its report describes the delivery and its evidence.
+Follow [one complete fictional delivery](documentation/index.md#a-complete-example) through its connected records, failed test, correction and accepted closure.
 
-Stable IDs connect related records. Approved Specification revisions pin the expected behavior. Test results identify the candidate that was checked. Shared resources stay associated with their Specifications through the approval snapshot and resource archives. Git preserves the history; Rememory explains the decisions and next steps.
+## One chat, distinct responsibilities
 
-Start with Cards and Rememory. Add the optional Specification and Batch module when you need a formal agreement about a delivery and its acceptance. A small standalone task can remain a small standalone task. Keep the ceremony proportional.
+Open a normal Codex or Claude Code chat in an adopted project. **KR Orchestrator** starts by default and keeps decisions and handoffs in that chat. Explicitly selected roles and assigned subagents retain their roles.
 
-## How the work runs
+The Orchestrator handles **KR Writer** duties to clarify scope and prepare Specifications and backlog Cards. It delegates implementation, technical checks, Card execution records and authorized Git operations to **KR Developer**. **KR Tester** runs and guides acceptance for the exact delivered candidate. Each role keeps its own authority. The skills are `kr-orchestrator`, `kr-writer`, `kr-developer` and `kr-tester`.
 
-Open a normal Codex or Claude Code project chat. [KR Orchestrator](agents/roles/orchestrator.md) starts by default and keeps decisions and handoffs in that chat. Explicitly selected roles and assigned subagents retain their roles. **KR Writer** drafts Specifications and backlog Cards. **KR Developer** implements, runs technical checks and handles authorized Git operations. [KR Tester](agents/roles/tester.md) runs and guides acceptance for the delivered revision. The role skills are `kr-orchestrator`, `kr-writer`, `kr-developer`, and `kr-tester`.
+For example:
 
-With the Batch module, the delivery loop looks like this:
+> Fix the setup guide's broken links without changing its instructions. Verify local targets and report the result. Execute using the project's existing publication permissions.
+
+The agent checks existing work, dependencies and capacity, and asks about missing decisions that affect the result. Agreement on scope, permission to implement, acceptance and publication are distinct; one instruction can grant several together, and recorded standing permissions remain usable.
+
+## From approved scope to verified delivery
+
+For a standalone task, its approved outcome and checks live on the Card. For Batch work, the delivery follows this loop:
 
 ```mermaid
 flowchart TD
-    request[Your request] --> scope[Agent prepares scope and acceptance criteria]
+    request[Your request] --> scope[Agent prepares scope and checks]
     scope --> approval[You approve scope and authorize execution]
-    approval --> work[Agent organizes and develops the work]
-    work --> checks[Agent runs technical checks]
-    checks --> acceptance[Agent guides you through acceptance]
-    acceptance --> decision[You accept or reject the delivery]
-    acceptance --> correction[Blocking defect: record and authorize correction]
+    approval --> work[Agent develops and verifies the work]
+    work --> acceptance[Agent guides acceptance of the candidate]
+    acceptance --> decision[You accept or reject that revision]
+    acceptance --> correction[Blocking defect: authorize correction]
     correction --> work
-    decision --> closure[Agent closes the Batch and preserves the evidence]
+    decision --> closure[Agent closes and preserves the evidence]
 ```
 
-**1. Bring the idea. The agent brings the questions.** The KR Writer helps clarify what should change, writes the Specification, and proposes concrete acceptance criteria. Suggestions stay separate until agreed. You approve the scope; the agent records it in a Batch.
+You receive the exact revision, startup instructions and acceptance cases with an OK / KO choice. The agent records your observations, keeps previous attempts and guides the next independent case. A case verdict and your final delivery decision are separate.
 
-**2. The KR Developer takes it from there.** Once execution is authorized, it takes the prepared Cards or creates the implementation Cards it needs, checks dependencies and capacity, and implements the work. Cards move through the configured stages. Their folders show the stage; their contents show progress, waiting, or blockers. The agent records technical choices and verification evidence as it works.
+Blocking defects require correction before acceptance. Required scenarios must pass; nonblocking debt may remain only with an explicit deferral. Accepted work is merged and published under the project's Git permissions. Rejected code is archived while the records preserve defects and tests still owed. Closed records remain historical evidence; later work carries unresolved obligations forward.
 
-**3. You get a candidate you can actually test.** The agent identifies the revision and build, prepares the environment instructions, and presents acceptance cases one at a time. Each case includes startup instructions, actions, expected results, and an OK / KO choice. The agent records your verdict and proceeds to the next case. For a KO, it asks what happened and collects a screenshot when available.
-
-**4. Bugs get a return ticket.** A blocking defect returns the open Batch to correction within its approved scope. Earlier results stay attached to their tested revisions. A new candidate brings another check of the failing, affected, and previously blocked scenarios. Nonblocking debt can be deferred explicitly; required tests still need to pass before acceptance. An unexecuted test stays unexecuted, however optimistic the room feels.
-
-**5. You decide; the agent closes.** After acceptance, the KR Developer merges the tested work and records closure under the project's Git permissions. After rejection, it archives the code and preserves the report, debt, and outstanding tests in the closing records. A later delivery can pick up those obligations without starting from amnesia.
-
-For standalone work, the approved outcome and checks live directly on the Card. The KR Developer follows the same discipline of authorization, implementation, verification, and recorded evidence under the project's delivery rules.
-
-## You build the project. The agents keep the thread.
-
-You can ask for a feature, describe a bug, clarify a priority, or ask where the project stands. The agents translate that conversation into the appropriate records and bring back the information needed for your next decision.
-
-You get scope you can review before development, visible progress and blockers during it, guided tests when a delivery is ready, and a record of what remains afterward. Ambiguous behavior becomes a question; the agent pauses the affected work rather than inventing an answer.
-
-When a session ends or another agent takes over, the work remains in the repository. The next agent reads the current state, checks the evidence and permissions, and resumes the next authorized action. Everyone appreciates skipping the three-hour recap. New requests arriving during an active delivery are recorded and queued according to the workflow.
-
-The aim is autonomy within agreed boundaries. You keep product decisions. Agents keep the paperwork and execution moving. Future you has suffered enough.
-
-## Bring your repo. We'll bring the notebook.
-
-Start with the [project setup guide](documentation/start-a-project.md). Your agent handles installation, helps you choose a short, standard, long, or custom workflow, and applies the configuration you approve. You bring the repository and the decisions; it brings the file management. The tools require Git and Python 3.9 or later.
-
-Today, agents execute the workflow through project instructions and tools in their sessions. The repository supplies the memory, rules, and checks; a separate scheduler must invoke an agent for unattended runs. Automated Batch dispatch still needs implementation.
-
-We use Kanban Rememory to build Kanban Rememory. Yes, the box is building the box. We also live with its rough edges, which is an excellent cure for optimistic documentation. This repository's Cards and delivery records are its own history; your agent installs the reusable pieces in yours.
+For the full path, read [Deliver a Batch](documentation/deliver-a-batch.md) and [Test and accept a Batch](documentation/test-and-accept-a-batch.md).
 
 ## Pick your next move
 
-| You want to… | Start here |
-| --- | --- |
-| Find the human-readable documentation | [Guide index](documentation/index.md) |
-| Adopt the framework with your agent | [Start a project](documentation/start-a-project.md) |
-| Give the agent work and set its priority | [Assign a task](documentation/assign-a-task.md) |
-| Understand the roles, board and connected records | [Understand the framework](documentation/understand-the-framework.md) |
-| Keep scope lean | [The manifesto](documentation/lean-specifications.md) |
-| Follow a delivery from request to closure | [Deliver a Batch](documentation/deliver-a-batch.md) |
-| See what the five connected records look like | [A complete example](documentation/index.md#a-complete-example) |
-| Test a candidate and decide on delivery | [Test and accept a Batch](documentation/test-and-accept-a-batch.md) |
-| Continue after a break or change of agent | [Resume work](documentation/resume-work.md) |
-| Explain a problem and follow its correction | [Report a defect](documentation/report-a-defect.md) |
-| Use ChatGPT, Claude or both on one project | [Use with ChatGPT and Claude](documentation/use-with-chatgpt-and-claude.md) |
+[Start a project](documentation/start-a-project.md) with your agent. It checks prerequisites, proposes a short, standard, long or custom workflow, then installs and verifies the approved setup. The tools require Git and Python 3.9 or later.
 
-Human guides live in `documentation/`. Agent operating instructions have their own [index](agents/index.md) under `agents/`; record templates live in `agents/templates/`.
+Agent sessions execute the kit instructions and checks. Unattended runs need a separate scheduler; automated Batch dispatch still needs implementation. Installing the kit starts no background development service.
+
+This repository uses the same Cards and records to develop the kit; your agent installs the reusable pieces in yours.
+
+The [guide index](documentation/index.md) routes requests, resumption, defects and switching assistants. Human guides live in `documentation/`; the separate [agent index](agents/index.md) routes operating instructions and templates.

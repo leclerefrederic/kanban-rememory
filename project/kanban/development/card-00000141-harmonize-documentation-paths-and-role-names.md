@@ -33,7 +33,7 @@ The User explicitly confirmed that `agents/` is internal machinery for Codex and
 
 ## Acceptance criteria
 
-- [ ] A repository-wide coverage map accounts for every documentation area, its documents and findings, with justified historical exclusions; the audit is not limited to the User's examples.
+- [x] A repository-wide coverage map accounts for every documentation area, its documents and findings, with justified historical exclusions; the audit is not limited to the User's examples.
 - [ ] Inventory and before/after mapping identify every proposed rename, its rationale, affected consumers and any compatibility exception; the User approves the concrete implementation scope.
 - [ ] The audit reports Markdown sizes, estimated tokens and cumulative reading by representative agent journey. A proposed readability/context budget is reviewed with the User; large files (including around 15 KB) have an explicit keep/simplify/split rationale.
 - [ ] `agents/` contains concise execution-oriented instructions for Codex and Claude Code, with effective routing and task-relevant loading. Human pedagogy and redundant narrative are removed or placed in reader documentation; permissions and mandatory rules remain explicit.
@@ -49,10 +49,18 @@ The User explicitly confirmed that `agents/` is internal machinery for Codex and
 
 ## Execution and evidence
 
-- State: waiting
-- Actual start:
+- State: in-progress
+- Actual start: 2026-11-15
 - Actual finish:
-- Blocker:
+- Blocker: none; approved refactoring in isolated worktree.
+
+## Audit proposal
+
+- Baseline: `308b747c82dbe290bbd14a53d791be90c2949646` on main, matching the locally recorded origin/main at audit start.
+- [Audit and findings](../../rememory/evidence/card-00000141-audit.md), [migration plan awaiting approval](../../rememory/evidence/card-00000141-plan.md).
+- Detailed evidence: [266-path inventory](../../rememory/evidence/card-00000141-inventory.csv), [Markdown link consumers](../../rememory/evidence/card-00000141-link-consumers.csv), [technical consumers](../../rememory/evidence/card-00000141-technical-consumers.csv), [journey readings](../../rememory/evidence/card-00000141-journeys.csv), [proposed budgets](../../rememory/evidence/card-00000141-target-budgets.csv).
+- Audit only: all 62 active non-project documents read, active Cards reviewed, historical evidence scanned and preserved, draft Specifications assessed through Writer handoff. Proposed before/after readings are estimates awaiting implementation; no product refactoring or native-host behavior test has occurred.
+- Live board/skills checks remain affected only by pre-existing deleted Runner documentation/VERSION. No unrelated edits were restored. Refactoring, implementation verification, acceptance and closure remain outstanding.
 
 ## History
 
@@ -67,3 +75,13 @@ The User explicitly confirmed that `agents/` is internal machinery for Codex and
 - 2026-11-15 — User required Markdown to remain digestible within agent context windows and expressed concern about 15 KB files. Added corpus-wide file/token sizing and cumulative task-reading review; no hard size threshold is assumed.
 
 - 2026-11-15 — User confirmed that agents/ is exclusively internal agent machinery, optimized for Codex/Claude navigation, consultation and execution rather than human exposition (“Voilà exactement”). Recorded agent-first efficiency as the governing design principle.
+
+- 2026-11-15T11:29:29+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-15 — User explicitly prioritized and authorized the global audit with GPT-6 Astra / xhigh and requested the migration plan before refactoring. KR Developer owns this single active Card; audit and evidence only are authorized. Refactoring, closure and publication await the concrete plan approval. Baseline: `308b747c82dbe290bbd14a53d791be90c2949646` on `main`, matching `origin/main`. Preserve unrelated workspace changes.
+
+- 2026-11-15 — Completed the global audit and submitted the concrete mapping, responsibilities, preservation strategy, proposed reading budgets and verification matrix. One owning Developer remains in Development while the User reviews the plan. Notifications are coordinated with the Orchestrator after the question is posted in the original chat.
+
+- 2026-11-15 — After the Orchestrator posted the approval question in the original Codex chat, KR Developer attempted one Telegram attention alert with task `Refonte documentaire du dépôt` and event `card141-migration-plan-v1`. The tool returned exit 2 and delivery could not be confirmed. No automatic resend; the decision remains in the original chat.
+
+- 2026-11-15 — User approved the concrete plan and authorized execution: “Valider le plan et lancer le refactoring”. KR Developer continues the same Card on `codex/card-00000141-docs` in `/private/tmp/kr-card141-docs`, preserving the original workspace changes. The approved plan/CSV mapping, compatibility, SPEC-020 consolidation and verification matrix define the scope. No resend of the unconfirmed Telegram alert.

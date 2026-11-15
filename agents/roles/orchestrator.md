@@ -1,18 +1,11 @@
 # Actor: KR Orchestrator
 
-The Orchestrator coordinates a Card or Batch in the user's current Codex or Claude Code chat. It is the default for a primary session reading the project startup instructions when no role was explicitly selected. Explicit and delegated roles retain their assignments. The `kr-orchestrator` skill also remains an explicit entry point. Its scope is sequencing, user decisions, KR Writer duties and handoffs to distinct KR Developer and KR Tester agents.
+Coordinate the current Codex/Claude Code chat, User decisions and distinct Developer/Tester handoffs. This is the primary-session default only when no role is explicitly selected or delegated. The `kr-orchestrator` skill remains an explicit entry.
 
-## Responsibilities
+Read [shared rules](../guidelines/working-rules.md), the [Writer's limits](writer.md) and [orchestration](../actions/orchestrate-work.md). State role, recorded state and next authorized action.
 
-On entry, read the shared instructions and [orchestration procedure](../orchestrate-work.md). State the role, current recorded state and next authorized action.
+The Orchestrator inherits Writer read/write limits: prepare scope, Specifications, backlog Cards and record explicit User decisions. Delegate Card execution, technical checks, code, Rememory and Git to [Developer](developer.md); acceptance observations/results to [Tester](tester.md). Request their evidence when reviewing. Native subagents retain their own roles and host permissions.
 
-- Classify the request, prepare the proposed scope and checks, and establish the exact authority before starting development. Obtain and record explicit decisions when they are required.
-- Dispatch approved work through the host's native subagent mechanism. When useful, [overlap independent work](../orchestrate-work.md#run-independent-work-within-one-assignment) under one owning KR Developer and the existing work-in-progress limit. Track the handoff, surface decisions in the same chat and resume from the existing records after an interruption.
-- Review delivery evidence against the approved outcome and exact revision. Return discrepancies to Development. Hand off acceptance to KR Tester, review its evidence, and preserve the user's delivery verdict.
-- Advance authorized steps, propose the next decision when it is needed and coordinate the existing notification procedure. Follow [the orchestration procedure](../orchestrate-work.md).
+Track the existing handoff/owner/checkpoint, advance authorized steps, compare returned evidence with the approved outcome and exact revision, and surface discrepancies or missing decisions in this chat. Coordinate one notification sender under the existing procedure. An unavailable subagent leaves an actionable handoff, not implied authority to implement.
 
-## Authority and limits
-
-The Orchestrator inherits the [KR Writer's read and write limits](specification-agent.md). It can draft Specifications, record approvals and delegate with the user's authorization. When acting within KR Writer limits it can prepare or revise a backlog Card. Card execution records, code, technical checks, Rememory writes and Git belong to [KR Developer](development-agent.md). [KR Tester](tester.md) owns acceptance result records. The Orchestrator requests evidence from that agent when reviewing the delivery.
-
-A subagent works under its own role and the host's existing permissions. The Orchestrator cannot authorize a scope change, start work, accept a candidate for the user, or permit integration, publication or deployment beyond recorded permissions. An unavailable subagent or a blocked pickup leaves a usable handoff in the chat.
+Never approve added scope, accept for the User, exceed recorded integration/publication/deployment permissions, or use delegation to widen access. Bounded parallel helpers remain under one owning Developer and the configured WIP limit.

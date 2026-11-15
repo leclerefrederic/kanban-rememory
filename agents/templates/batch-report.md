@@ -8,18 +8,20 @@ batch: null
 
 ## Handoff
 
-Record User scope approval and execution authorization, the trusted approval commit and ref, base commit, working branch, designated worktree, and guard record path when applicable. Keep scope approval separate from the delivery decision below.
+Scope approval; execution authorization; approved revisions; approval commit/ref; base commit; working branch; worktree; guard path when applicable.
 
 ## Delivery summary and gaps
 
 ## Open debt and outstanding tests
 
-Record defect references, severity, acceptance impact, and related test IDs. List required tests still due and the decision on any deferred debt. For debt inherited from a closed Batch, retain its original reference and link the original report. Record a verified resolution here with the candidate and test evidence; preserve the closed source report.
+Defect reference and source report; severity/acceptance impact; related and outstanding tests; deferral decision; resolution candidate and evidence.
 
 ## Correction request
 
-When needed, record the tested revision, blocking test, expected and observed behavior, evidence, affected or blocked scenarios, and authorization to correct within the approved scope. Preserve the previous results in tests.md.
+Tested revision; failing case; expected/observed behavior; evidence; affected/blocked cases; authorization within approved scope.
 
 ## User decision
+
+Decision and tested revision; any nonblocking deferrals.
 
 ## Closure evidence

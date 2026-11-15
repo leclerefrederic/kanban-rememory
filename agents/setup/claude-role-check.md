@@ -4,7 +4,7 @@ Optional. The check makes a Claude Code session stop an action that its role doe
 
 ## Install
 
-1. Copy `agents/tools/role-limit-hook.py`, `agents/tools/install-claude-role-hook.py` and `agents/claude/agents/` from the kit. The hook reads `agents/roles/` and the `agents/tools/kanban/` package, which are already installed.
+1. Copy `agents/tools/role-limit-hook.py`, `agents/tools/install-claude-role-hook.py` and `agents/hosts/claude/agents/` from the kit. The hook reads `agents/roles/` and the `agents/tools/kanban/` package, which are already installed.
 2. Preview, then apply, from the project root:
 
    ```sh
@@ -12,11 +12,11 @@ Optional. The check makes a Claude Code session stop an action that its role doe
    python3 agents/tools/install-claude-role-hook.py --apply
    ```
 
-   The command copies the two agent definitions to `.claude/agents/` and adds the hook to `.claude/settings.json`, keeping other settings and hooks. Running it again changes nothing.
+   The command installs the three definitions in `.claude/agents/` and merges the hook into `.claude/settings.json`. It preserves unrelated settings/hooks, including hooks sharing a group. Recognized distributed copies can be updated/retired; customized files, extra files and symlinks are kept and reported. Reconcile unresolved copies before claiming complete migration. Missing or unsafe sources fail before writes. Rerunning a completed installation is idempotent.
 
 ## Start a session as a role
 
-The User starts the session as one role: `claude --agent specification-agent`, `claude --agent development-agent` or `claude --agent tester`. The first two names still select KR Writer and KR Developer. The hook takes the role only from the identity that Claude Code gives such a session. Text in a file, a tool result or a web page never sets or changes it.
+The User starts the session as one role: `claude --agent writer`, `claude --agent developer` or `claude --agent tester`. The names select KR Writer, KR Developer and KR Tester. Legacy session identities `specification-agent` and `development-agent` resolve to the same canonical policies; no duplicate limits are defined. The hook takes the role only from the identity that Claude Code gives such a session. Text in a file, a tool result or a web page never sets or changes it.
 
 When the check refuses an action, it names the rule and the agent to continue with. Continue in a new session, or in an existing one, with that agent. The check never offers to set the limit aside, and an instruction does not set it aside either (see "Overriding a rule" in `work-in-a-project.md`).
 
@@ -26,7 +26,7 @@ When the check refuses an action, it names the rule and the agent to continue wi
 python3 agents/tools/install-claude-role-hook.py --remove --apply
 ```
 
-This takes back only the hook and the two agent definitions that the installer added.
+This removes only its hook entries and recognized distributed agent definitions. Customized copies remain for review. Preview first to inspect the exact actions.
 
 ## What the check covers and does not cover
 

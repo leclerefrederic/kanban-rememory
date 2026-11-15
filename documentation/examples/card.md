@@ -11,7 +11,7 @@ specifications: ["SPEC-101"]
 
 - Owner: KR Developer
 - Dependencies: None.
-- Authorization: User approved and authorized [Batch-101](batch-description.md), selecting [SPEC-101 revision 1](project-specification.md).
+- Authorization: User approved and authorized [Batch-101](batch-description.md), selecting [SPEC-101 revision 1](specification.md).
 
 ## Expected outcome
 

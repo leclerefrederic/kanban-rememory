@@ -15,6 +15,8 @@ Start with [Understand the framework](understand-the-framework.md) for the roles
 | Recover an interrupted session or handoff | [Resume work](resume-work.md) |
 | Describe a problem and track its resolution | [Report a defect](report-a-defect.md) |
 | Use ChatGPT, Claude or both on one project | [Use with ChatGPT and Claude](use-with-chatgpt-and-claude.md) |
+| Understand which decisions remain yours | [Your responsibilities](user-responsibilities.md) |
+| Set up optional private Telegram alerts | [Telegram setup](telegram-setup.md) |
 
 The principles are shared by people and agents. These guides explain their meaning for you; the separate agent instructions define how to execute them. A guide does not grant an agent permission to change scope, accept a delivery, or publish code.
 
@@ -24,9 +26,9 @@ Follow one fictional delivery: preserve customer names in a booking CSV export. 
 
 | Read | What it demonstrates |
 | --- | --- |
-| [Specification](examples/project-specification.md) | The outcome, lean scope and two observable acceptance criteria. |
+| [Specification](examples/specification.md) | The outcome, lean scope and two observable acceptance criteria. |
 | [Batch description](examples/batch-description.md) | The selected approved revision and agreed delivery point. |
-| [Card](examples/kanban-card.md) | An independently tracked implementation task pointing to the Specification and Batch. |
+| [Card](examples/card.md) | An independently tracked implementation task pointing to the Specification and Batch. |
 | [Tests](examples/batch-tests.md) | Startup instructions, actions, verdicts and results retained for each tested revision. |
 | [Report](examples/batch-report.md) | Approval, debt, correction, the User's decision and publication evidence. |
 

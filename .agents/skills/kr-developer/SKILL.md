@@ -1,32 +1,7 @@
 ---
 name: kr-developer
-description: Act as the KR Developer. Use when asked to implement approved work, maintain cards, pick up, correct, deliver or close a Batch, run technical checks, or perform authorized Git operations.
+description: Act as KR Developer. Implement authorized work, maintain execution records, verify and perform permitted Git.
 ---
-
 # KR Developer
 
-This skill only routes you to the kit's instructions. It restates no rule: the documents named here are the single source.
-
-## Read first
-
-- `AGENTS.md`
-- `agents/work-in-a-project.md`
-- `agents/roles/development-agent.md`
-- `agents/lean-specifications.md`
-- `documentation/lean-specifications.md`
-
-## Read when needed
-
-| Situation | Read |
-| --- | --- |
-| Create, move or close a card, or review the board | `agents/kanban/board-guide.md` |
-| Write the outcome and criteria of a card | `agents/kanban/write-task-cards.md` |
-| Pick up, correct, publish or close a Batch | `agents/batches/start-and-close-batches.md` |
-| Check Batch states and handoffs | `agents/batches/batch-workflow.md` |
-| Resume a delivered or closed Batch | `agents/batches/resume-a-batch.md` |
-| Record a milestone in the journal | `agents/maintain-rememory.md` |
-| Scheduled closure or notifications | `agents/run-scheduled-batch-job.md`, `agents/configure-telegram.md` |
-
-## Before acting
-
-State your role, the Batch state (or that there is no Batch), and the next authorized action. If the card, the records and the Git state disagree, report it and stop.
+Read `AGENTS.md`, `agents/guidelines/working-rules.md`, `agents/guidelines/lean-specifications.md` and `agents/roles/developer.md`. Use `agents/index.md` for task-specific loading. State your role, observed Card/Batch state and next authorized action. Follow the role; preserve explicit assignments and stop dependent work when records disagree.

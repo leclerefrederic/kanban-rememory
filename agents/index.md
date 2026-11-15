@@ -1,26 +1,18 @@
-# Agent operating instructions
+# Agent instruction router
 
-This directory contains execution instructions for AI agents. Human-facing explanations live in `documentation/`; document templates live in `agents/templates/`.
+This is internal execution machinery. Human explanations live in `documentation/`. Start from the project's `AGENTS.md`, [shared rules](guidelines/working-rules.md) and assigned [role](roles/); then load only the required task below. Procedures never grant authorization.
 
-Keep these audiences separate when maintaining documentation: reader guides explain what happens and why; agent procedures specify how to execute it. Both apply the shared lean principles and approved project rules.
-
-Start with [shared working instructions](work-in-a-project.md) and the applicable role. These procedures implement the project's recorded rules and permissions; they do not grant authorization themselves.
-
-| Operation | Reference |
+| Task | Load |
 | --- | --- |
-| Apply the shared lean principles | [Agent rules](lean-specifications.md) |
-| Start a session in the right work mode | [Skills](skills/): `kr-writer`, `kr-developer`, `kr-tester`, or `kr-orchestrator`; copy them for Claude Code and Codex with `agents/tools/sync-skills.py` |
-| Install in another repository | [Installation procedure](install-in-a-project.md) |
-| Agree on workflow configuration | [Adoption interview](configure-a-project.md) |
-| Coordinate approved work in the current chat | [Orchestrator role](roles/orchestrator.md), [procedure](orchestrate-work.md) |
-| Apply role responsibilities | [KR Writer](roles/specification-agent.md), [KR Developer](roles/development-agent.md), [KR Tester](roles/tester.md), [User responsibilities](roles/user.md) |
-| Operate the board | [Board procedures](kanban/board-guide.md), [Card content](kanban/write-task-cards.md), [software workflow profile](kanban/software-development-workflow.md) |
-| Record milestones and handoffs | [Maintain Rememory](maintain-rememory.md) |
-| Prepare and validate delivery records | [Batch rules](batches/batch-workflow.md), [worked records](batches/delivery-example.md) |
-| Pick up, correct or close a Batch | [Batch operations](batches/start-and-close-batches.md) |
-| Resume acceptance or verify closure | [Resume a Batch](batches/resume-a-batch.md) |
-| Follow the planned scheduled-job procedure | [Scheduled job](run-scheduled-batch-job.md) |
-| Configure optional notifications | [Telegram](configure-telegram.md) |
-| Enable the optional Claude Code role check | [Claude Code role check](configure-claude-role-hook.md) |
+| Apply approval principles | [Operational lean rules](guidelines/lean-specifications.md) |
+| Coordinate the current chat | [Orchestrate](actions/orchestrate-work.md) |
+| Create or move Cards | [Kanban invariants](guidelines/kanban.md), [content](actions/write-card.md), [commands](actions/manage-board.md) |
+| Record a milestone | [Rememory](actions/maintain-rememory.md) |
+| Prepare or execute a Batch | [Batch invariants](guidelines/batches.md); [develop](actions/develop-batch.md) or [close](actions/close-batch.md) for that phase |
+| Run acceptance | [Tester](roles/tester.md#run-and-guide-acceptance) |
+| Resume an assignment | [Resume](actions/resume-work.md) |
+| Send configured alerts | [Notify](actions/notify-user.md) |
+| Adopt or upgrade | [Install](setup/install.md) |
+| Inspect planned scheduling | [Scheduled procedure](actions/scheduled-batch-job.md), not an installed scheduler |
 
-Copy only the required package into an adopting repository as described by the installation procedure.
+`guidelines/` owns invariant rules; `actions/` ordered execution; `setup/` installation/configuration; `roles/` authority; `hosts/` native adapters; `skills/` minimal discovery routes; `templates/` blank records; `tools/` executables. Four root relays and legacy role/Batch paths exist only for historical/custom references. Do not load them through active routing.

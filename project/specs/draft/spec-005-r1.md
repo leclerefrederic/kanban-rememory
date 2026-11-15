@@ -7,7 +7,7 @@ revision: "1"
 
 ## Expected outcome
 
-A recurring job reads durable Batch records and dispatches the next authorized action. The Development Agent runs through the configured Codex or Claude Code engine on the designated Batch worktree. The job uses the same Batch rules regardless of the engine.
+A recurring job reads durable Batch records and dispatches the next authorized action. KR Developer runs through the configured Codex or Claude Code engine on the designated Batch worktree. The job uses the same Batch rules regardless of the engine.
 
 ## Trigger order
 
@@ -23,9 +23,9 @@ An isolated KO verdict, a Batch awaiting acceptance tests or a User decision, an
 
 ## Correction handoff
 
-The Specification Agent records a machine-readable correction request in the Batch records. Include a stable request ID, Batch ID, tested revision, blocking scenario, expected and observed behavior, evidence links, and affected or blocked tests. A request is actionable only for the matching open Batch and candidate. Preserve prior verdicts and the frozen artifact.
+KR Writer records a machine-readable correction request in the Batch records. Include a stable request ID, Batch ID, tested revision, blocking scenario, expected and observed behavior, evidence links, and affected or blocked tests. A request is actionable only for the matching open Batch and candidate. Preserve prior verdicts and the frozen artifact.
 
-The scheduler records its claim durably and dispatches the Development Agent on the same Batch branch. The agent corrects within the approved scope, verifies the change, and records a new candidate commit and build. A repeated tick must resume or reconcile the same claim without launching duplicate work. The Specification Agent resumes acceptance on the new candidate, starting with the failed scenario, then the affected and newly unblocked tests. The User retains the final acceptance or rejection decision.
+The scheduler records its claim durably and dispatches KR Developer on the same Batch branch. The agent corrects within the approved scope, verifies the change, and records a new candidate commit and build. A repeated tick must resume or reconcile the same claim without launching duplicate work. KR Tester resumes acceptance on the new candidate, starting with the failed scenario, then the affected and newly unblocked tests. The User retains the final acceptance or rejection decision.
 
 ## Acceptance criteria
 
@@ -38,5 +38,9 @@ The scheduler records its claim durably and dispatches the Development Agent on 
 
 ## Resources
 
-- [Scheduled job procedure](../../../agents/run-scheduled-batch-job.md) describes the existing closure-first procedure.
-- [Batch operations](../../../agents/batches/start-and-close-batches.md) defines approval, correction, coordination, and closure rules.
+- [Scheduled job procedure](../../../agents/actions/scheduled-batch-job.md) describes the existing closure-first procedure.
+- [Batch operations](../../../agents/guidelines/batches.md) defines approval, correction, coordination, and closure rules.
+
+## Editorial alignment
+
+On 2026-11-15, under the approved CARD-00000141 migration plan, role names and acceptance ownership were aligned with KR Writer, KR Developer and KR Tester. This scheduler draft still awaits scope approval and execution authorization.

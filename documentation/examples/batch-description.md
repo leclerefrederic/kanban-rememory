@@ -11,7 +11,7 @@ status: closed
 
 ## Objective
 
-Deliver [SPEC-101 revision 1](project-specification.md): preserve accented names and names containing commas in the existing CSV export.
+Deliver [SPEC-101 revision 1](specification.md): preserve accented names and names containing commas in the existing CSV export.
 
 ## Execution constraints
 

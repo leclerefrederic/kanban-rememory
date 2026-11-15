@@ -10,7 +10,7 @@ batch: "Batch-101"
 
 ## Handoff
 
-- Scope approval: User approved [SPEC-101 revision 1](project-specification.md) on 2026-01-12 at 09:00 Europe/Paris.
+- Scope approval: User approved [SPEC-101 revision 1](specification.md) on 2026-01-12 at 09:00 Europe/Paris.
 - Execution authorization: User authorized development of [Batch-101](batch-description.md) in the same instruction.
 - Approval commit and ref: `approval`, `refs/heads/batch-approval/batch-101`.
 - Base main commit: `base`.
@@ -18,7 +18,7 @@ batch: "Batch-101"
 - Designated worktree: `/tmp/booking-demo/worktree`.
 - Guard record: `/tmp/booking-demo/repository/.git/kanban-rememory/batch-101/guard.json`.
 
-Scope approval authorized the work; it did not accept the later delivery.
+The recorded scope approval and execution authorization covered development. Neither accepted the later delivery.
 
 ## Delivery summary and gaps
 
@@ -58,5 +58,14 @@ On 2026-01-12 at 11:30 Europe/Paris, after both cases passed, the User explicitl
 - Delivery point: verified merge and publication. No production deployment is claimed.
 
 This section is shown as a later read of the completed history. The closing commit is resolved through its trailer; it cannot record its own hash inside itself.
+
+## If debt continues into another Batch
+
+The records above end with no open debt. Two alternative outcomes illustrate how later delivery records would retain unfinished obligations:
+
+- **An accepted delivery defers a nonblocking defect.** Suppose a separate display defect, `Batch-101-DEBT-02`, had been explicitly deferred. A successor report would keep that reference and link to the original report. It would record the fix revision, passing regression and outstanding-test results, and the accepted delivery containing the correction. The closed source report would remain unchanged.
+- **A rejected delivery leaves a required case blocked.** If a blocker had prevented TEST-02 from running before rejection, the successor would retain `Batch-101/TEST-02`, its expected result—one complete name field with following columns unchanged—and the reason it did not run. It would carry the relevant debt forward and run the case after correction. Fixing the blocker alone would not pass it; a rejected successor would not resolve debt in the published baseline.
+
+These alternatives do not change the accepted outcome recorded above. They show how the original defect identity and test obligation survive a later handoff.
 
 Return to the [example reading order](../index.md#a-complete-example).

@@ -38,18 +38,50 @@ LEGACY_SKILLS = {
 }
 
 
+# Exact kr-* copies shipped before the documentation migration (fa2f2ba).
+# Keep earlier distributed digests when changing a skill, so upgrades can distinguish edits.
+SHIPPED_SKILLS = {
+    "kr-developer": {"16ba9f093446f3a74affaa1bc8f46a4619e5d85720207a8e1a6d764fb54d4364"},
+    "kr-writer": {"bc34cd619f7c0158729e02458ca3e4ff334b009be61089ce3f0d9693e7c33f03"},
+    "kr-orchestrator": {"6e7fb6466ac4e17da4bb6f55e25dd740988d9a6d53a06fee68c32bc93736b3c5"},
+    "kr-tester": {"897d12fe541bc88b79aaa04f595402ebd580530632723a490a767f949b8cd281"},
+}
+
+
+def local_path(path):
+    if path.is_symlink():
+        return False
+    for parent in path.parents:
+        if parent == ROOT:
+            return True
+        if parent.is_symlink() or (parent.exists() and not parent.is_dir()):
+            return False
+    return False
+
+
 def files(folder):
-    return {path.relative_to(folder): path.read_bytes() for path in folder.rglob("*") if path.is_file()}
+    if not local_path(folder) or not folder.is_dir():
+        return None
+    result = {}
+    for path in folder.rglob("*"):
+        if path.is_symlink() or not (path.is_file() or path.is_dir()):
+            return None
+        result[path.relative_to(folder)] = path.read_bytes() if path.is_file() else None
+    return result
 
 
 def is_shipped_legacy_copy(folder, digests):
     skill = folder / "SKILL.md"
     return (
-        not folder.is_symlink() and folder.is_dir()
-        and not skill.is_symlink() and skill.is_file()
+        local_path(skill) and folder.is_dir() and skill.is_file()
         and set(folder.iterdir()) == {skill}
         and sha256(skill.read_bytes()).hexdigest() in digests
     )
+
+
+def kept(folder, kind):
+    print(f"Kept customized {kind} skill {folder.relative_to(ROOT)}. Review it before replacing or removing.",
+          file=sys.stderr)
 
 
 def main():
@@ -57,49 +89,85 @@ def main():
     parser.add_argument("--target", choices=["claude", "codex", "both"], default="both")
     parser.add_argument("--check", action="store_true", help="Report differences without writing.")
     args = parser.parse_args()
+    source_root = ROOT / "agents/skills"
+    if not local_path(source_root) or not source_root.is_dir():
+        sys.exit("Missing or linked agents/skills/. Nothing was changed.")
+    if not local_path(ROOT / "agents/VERSION"):
+        sys.exit("Linked agents/VERSION. Nothing was changed.")
+    try:
+        version = (ROOT / "agents/VERSION").read_text().strip()
+    except OSError:
+        sys.exit("agents/VERSION is missing or unreadable. Nothing was changed.")
     sources = []
-    for source in sorted((ROOT / "agents/skills").iterdir()):
+    legacy_sources = []
+    for source in sorted(source_root.iterdir()):
+        if source.name in LEGACY_SKILLS:
+            legacy_sources.append(source)
+            continue
+        if source.is_symlink():
+            sys.exit(f"Linked skill source {source.relative_to(ROOT)}. Nothing was changed.")
         if not (source / "SKILL.md").is_file():
             continue
-        migration = LEGACY_SKILLS.get(source.name)
-        if migration is not None and migration[0] is None and is_shipped_legacy_copy(source, migration[1]):
-            continue  # A file-copy upgrade may leave a bundled retired source behind.
+        if files(source) is None:
+            sys.exit(f"Linked or unsupported source {source.relative_to(ROOT)}. Nothing was changed.")
         sources.append(source)
     if not sources:
-        sys.exit("No skill found in agents/skills/.")
-    differences = []
+        sys.exit("No skill found in agents/skills/. Nothing was changed.")
     source_names = {source.name for source in sources}
+    copies, retire, conflicts = [], [], []
     for key, relative in TARGETS.items():
         if args.target not in (key, "both"):
             continue
+        ready = set()
         for source in sources:
             destination = ROOT / relative / source.name
-            if not destination.is_dir() or files(source) != files(destination):
-                differences.append(f"{relative}/{source.name}")
-                if not args.check:
-                    shutil.rmtree(destination, ignore_errors=True)
-                    shutil.copytree(source, destination)
+            if files(source) == files(destination):
+                ready.add(source.name)
+            elif (local_path(destination) and not destination.exists()) or is_shipped_legacy_copy(
+                    destination, SHIPPED_SKILLS.get(source.name, set())):
+                copies.append((source, destination))
+                ready.add(source.name)
+            else:
+                conflicts.append(destination)
+                kept(destination, "current")
         for old_name, (new_name, digests) in LEGACY_SKILLS.items():
-            if new_name is not None and new_name not in source_names:
-                continue
             old = ROOT / relative / old_name
-            if not old.exists() and not old.is_symlink():
-                continue
-            if not is_shipped_legacy_copy(old, digests):
-                print(f"Kept customized legacy skill {old.relative_to(ROOT)}. Review it before removing.",
-                      file=sys.stderr)
-                continue
-            differences.append(f"{old.relative_to(ROOT)} (retire legacy copy)")
-            if not args.check:
-                (old / "SKILL.md").unlink()
-                old.rmdir()
-    version = (ROOT / "agents/VERSION").read_text().strip()
+            if not local_path(old):
+                kept(old, "legacy")
+            elif old.exists():
+                if not is_shipped_legacy_copy(old, digests):
+                    kept(old, "legacy")
+                elif new_name is None or new_name in ready:
+                    retire.append(old)
+                else:
+                    print(f"Kept {old.relative_to(ROOT)} until its replacement is reconciled.", file=sys.stderr)
+    for old in legacy_sources:
+        new_name, digests = LEGACY_SKILLS[old.name]
+        if not is_shipped_legacy_copy(old, digests):
+            kept(old, "legacy source")
+        elif new_name is None or new_name in source_names:
+            retire.append(old)
+        else:
+            print(f"Kept {old.relative_to(ROOT)} until its replacement source is available.", file=sys.stderr)
+    differences = [str(target.relative_to(ROOT)) for _, target in copies]
+    differences += [f"{old.relative_to(ROOT)} (retire legacy copy)" for old in retire]
+    differences += [f"{path.relative_to(ROOT)} (customized; review required)" for path in conflicts]
     if args.check:
         if differences:
             sys.exit("Out of date (kit " + version + "): " + ", ".join(differences))
         print(f"Skills match kit {version}.")
-    else:
-        print(f"Kit {version}: updated {len(differences)} skill folder(s)" + (": " + ", ".join(differences) if differences else "."))
+        return
+    for source, destination in copies:
+        if destination.exists():
+            shutil.rmtree(destination)
+        shutil.copytree(source, destination)
+    for old in retire:
+        (old / "SKILL.md").unlink()
+        old.rmdir()
+    print(f"Kit {version}: updated {len(copies) + len(retire)} skill folder(s)" +
+          (": " + ", ".join(differences) if differences else "."))
+    if conflicts:
+        sys.exit("Synchronization is incomplete: reconcile the preserved customized current skills.")
 
 
 if __name__ == "__main__":

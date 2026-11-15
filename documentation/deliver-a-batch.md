@@ -4,7 +4,7 @@ This guide describes a delivery using Specifications and a Batch. For standalone
 
 ## From a request to an approved scope
 
-You explain the desired outcome to the KR Writer. It writes the Specification and prepares observable acceptance criteria. You can clarify or revise the proposal while it is being prepared.
+Explain the desired outcome in the current project chat. In the normal workflow, KR Orchestrator handles KR Writer duties to prepare the Specification and observable acceptance criteria, then coordinates the handoff. You can clarify or revise the proposal while it is being prepared; explicitly selected roles keep their assignments.
 
 A Batch selects one or more exact Specification revisions and records their priority. You approve that scope and authorize execution. Once approved, the Batch baseline stays fixed. Correcting an implementation restores agreed behavior; changing that behavior requires a new approved Specification revision and a delivery plan that preserves the active baseline.
 
@@ -40,7 +40,7 @@ A failed case may leave other cases runnable. A blocking defect prevents accepta
 
 Acceptance applies to the revision you tested. Required scenarios must pass and blocking debt must be resolved. Any nonblocking debt being deferred needs an explicit decision. KR Developer then merges the tested work and completes closure under the project's Git permissions.
 
-If the project turned on the optional publication check, a push that would close a Batch without your recorded acceptance of the tested revision is refused automatically. The agent tells you why and does not bypass the check. It is a safety net that follows your decision; it never replaces it.
+If the project enabled the optional publication check, it verifies the guard evidence for covered Batch closure pushes, including the recorded acceptance or rejection of the tested revision. The agent reports any refusal and does not bypass it. The check has a defined scope; it does not replace your decision or the closure procedure.
 
 On rejection, the candidate code and its automated tests are archived. A separate closing record preserves the Specifications, findings, debt and outstanding acceptance tests without adding rejected implementation to the accepted baseline. The previous main history is preserved.
 

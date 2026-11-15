@@ -25,9 +25,9 @@ These are examples, not required wording. Existing authorization remains valid. 
 
 ## How the agent organizes it
 
-The agent checks for existing work before creating another record. A bounded standalone task can use a Card containing its outcome, scope and checks. If the request needs the project's Specification and Batch workflow, the KR Writer prepares that scope with you, in a new or existing session, before development. See [deliver a Batch](deliver-a-batch.md).
+The agent checks for existing work before creating another record. A bounded standalone task can use a Card containing its outcome, scope and checks. If the request needs the project's Specification and Batch workflow, the Orchestrator prepares that scope with you through its KR Writer duties in the current chat before delegating development. An explicitly selected role keeps its own responsibilities. See [deliver a Batch](deliver-a-batch.md).
 
-KR Writer can draft and revise backlog Cards. KR Developer picks them up, moves them through the board and closes them. A Card can reference a Specification or Batch, but it remains independent. You can inspect the [Card example](examples/kanban-card.md) without maintaining one yourself.
+KR Writer can draft and revise backlog Cards. KR Developer picks them up, moves them through the board and closes them. A Card can reference a Specification or Batch, but it remains independent. You can inspect the [Card example](examples/card.md) without maintaining one yourself.
 
 Priority does not remove dependencies or the work-in-progress limit. If another Batch is active, a new request does not silently join its approved scope. The agent records it for later; standalone work waits until that Batch is delivered and must preserve its acceptance candidate.
 

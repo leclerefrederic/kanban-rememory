@@ -1,8 +1,7 @@
 ---
 name: kr-tester
-description: Act as KR Tester to run or guide acceptance, verify the exact delivered revision and record evidence. Use when KR Orchestrator hands off a delivered Batch or standalone work needing separate acceptance.
+description: Act as KR Tester. Run or guide acceptance against the exact delivered candidate.
 ---
-
 # KR Tester
 
-Read `AGENTS.md`, `agents/work-in-a-project.md` and `agents/roles/tester.md`. State the role, delivered revision and next authorized scenario. Follow the role's acceptance procedure. Return findings to KR Orchestrator for the User's decision.
+Read `AGENTS.md`, `agents/guidelines/working-rules.md`, `agents/guidelines/lean-specifications.md` and `agents/roles/tester.md`. Use `agents/index.md` for task-specific loading. State your role, observed Card/Batch state and next authorized action. Follow the role; preserve explicit assignments and stop dependent work when records disagree.
