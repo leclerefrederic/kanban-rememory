@@ -7,7 +7,7 @@ revision: "1"
 
 ## Consolidation into CARD-00000141
 
-On 2026-11-15 the User approved the migration plan and authorized CARD-00000141 refactoring. Its approved scope incorporates this installation review and all five acceptance scenarios below. This draft is retained as the source of those requirements and is no longer an independent proposal. Execution and verification belong to [CARD-00000141](../../kanban/development/card-00000141-harmonize-documentation-paths-and-role-names.md) and its [migration plan](../../rememory/evidence/card-00000141-plan.md).
+On 2026-11-15 the User approved the migration plan and authorized CARD-00000141 refactoring. Its approved scope incorporates this installation review and all five acceptance scenarios below. This draft is retained as the source of those requirements and is no longer an independent proposal. Execution and verification belong to [CARD-00000141](../../kanban/completion/card-00000141-harmonize-documentation-paths-and-role-names.md) and its [migration plan](../../rememory/evidence/card-00000141-plan.md).
 
 ## Expected outcome
 

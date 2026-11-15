@@ -34,25 +34,25 @@ The User explicitly confirmed that `agents/` is internal machinery for Codex and
 ## Acceptance criteria
 
 - [x] A repository-wide coverage map accounts for every documentation area, its documents and findings, with justified historical exclusions; the audit is not limited to the User's examples.
-- [ ] Inventory and before/after mapping identify every proposed rename, its rationale, affected consumers and any compatibility exception; the User approves the concrete implementation scope.
-- [ ] The audit reports Markdown sizes, estimated tokens and cumulative reading by representative agent journey. A proposed readability/context budget is reviewed with the User; large files (including around 15 KB) have an explicit keep/simplify/split rationale.
-- [ ] `agents/` contains concise execution-oriented instructions for Codex and Claude Code, with effective routing and task-relevant loading. Human pedagogy and redundant narrative are removed or placed in reader documentation; permissions and mandatory rules remain explicit.
-- [ ] The revised reading paths are concise and task-relevant, with before/after context-cost evidence. Splitting preserves discoverability and all binding rules without forcing every agent to load every detail.
-- [ ] A document-responsibility map identifies normative sources, overlaps and contradictions. Every active document in the audited corpus has a clear purpose; shared rules and procedures have one authoritative definition.
-- [ ] The installation/adoption example has one coherent order for prerequisites, choices, approval, copying/configuration and validation; no duplicated commands or approval steps create competing instructions.
-- [ ] Active documentation and entry points use the agreed naming convention. Remaining legacy names are explicitly justified by history or compatibility.
-- [ ] The proposed `agents/` layout separates guidelines, actions and setup with clear placement criteria; the root has a documented purpose and does not remain a miscellaneous collection.
-- [ ] Shared roles and host adapters are distinguishable without duplicating their source-of-truth responsibilities.
-- [ ] Links, role checks and host launch/discovery paths still resolve after migration; applicable checks pass against the exact delivered revision.
-- [ ] Fresh installation and upgrade checks cover the affected Codex and Claude Code paths, preserve unrelated/customized settings and verify current role discovery.
-- [ ] Historical references remain usable, with no unapproved edits to frozen records or changes to role permissions.
+- [x] Inventory and before/after mapping identify every proposed rename, its rationale, affected consumers and any compatibility exception; the User approves the concrete implementation scope.
+- [x] The audit reports Markdown sizes, estimated tokens and cumulative reading by representative agent journey. A proposed readability/context budget is reviewed with the User; large files (including around 15 KB) have an explicit keep/simplify/split rationale.
+- [x] `agents/` contains concise execution-oriented instructions for Codex and Claude Code, with effective routing and task-relevant loading. Human pedagogy and redundant narrative are removed or placed in reader documentation; permissions and mandatory rules remain explicit.
+- [x] The revised reading paths are concise and task-relevant, with before/after context-cost evidence. Splitting preserves discoverability and all binding rules without forcing every agent to load every detail.
+- [x] A document-responsibility map identifies normative sources, overlaps and contradictions. Every active document in the audited corpus has a clear purpose; shared rules and procedures have one authoritative definition.
+- [x] The installation/adoption example has one coherent order for prerequisites, choices, approval, copying/configuration and validation; no duplicated commands or approval steps create competing instructions.
+- [x] Active documentation and entry points use the agreed naming convention. Remaining legacy names are explicitly justified by history or compatibility.
+- [x] The proposed `agents/` layout separates guidelines, actions and setup with clear placement criteria; the root has a documented purpose and does not remain a miscellaneous collection.
+- [x] Shared roles and host adapters are distinguishable without duplicating their source-of-truth responsibilities.
+- [x] Links, role checks and host launch/discovery paths still resolve after migration; applicable checks pass against the exact delivered revision.
+- [x] Fresh installation and upgrade checks cover the affected Codex and Claude Code paths, preserve unrelated/customized settings and verify current role discovery.
+- [x] Historical references remain usable, with no unapproved edits to frozen records or changes to role permissions.
 
 ## Execution and evidence
 
-- State: in-progress
+- State:
 - Actual start: 2026-11-15
-- Actual finish:
-- Blocker: none; approved refactoring in isolated worktree.
+- Actual finish: 2026-11-15
+- Blocker: none.
 
 ## Audit proposal
 
@@ -61,6 +61,15 @@ The User explicitly confirmed that `agents/` is internal machinery for Codex and
 - Detailed evidence: [266-path inventory](../../rememory/evidence/card-00000141-inventory.csv), [Markdown link consumers](../../rememory/evidence/card-00000141-link-consumers.csv), [technical consumers](../../rememory/evidence/card-00000141-technical-consumers.csv), [journey readings](../../rememory/evidence/card-00000141-journeys.csv), [proposed budgets](../../rememory/evidence/card-00000141-target-budgets.csv).
 - Audit only: all 62 active non-project documents read, active Cards reviewed, historical evidence scanned and preserved, draft Specifications assessed through Writer handoff. Proposed before/after readings are estimates awaiting implementation; no product refactoring or native-host behavior test has occurred.
 - Live board/skills checks remain affected only by pre-existing deleted Runner documentation/VERSION. No unrelated edits were restored. Refactoring, implementation verification, acceptance and closure remain outstanding.
+
+## Verified delivery
+
+- User approved the concrete plan and execution; implementation candidate `98ac495347b3da93b71aa449c45f43656e131b30` on `codex/card-00000141-docs`.
+- [Verification and limits](../../rememory/evidence/card-00000141-verification.md): 36 board, 14 migration and 22 Telegram tests passed on the exact candidate; six adoption checks cover SPEC-020 plus frozen content/ACLs. Thirty-three obligations were reviewed as content, not counted as execution tests.
+- [Measured files](../../rememory/evidence/card-00000141-measured-files.csv) and [journeys](../../rememory/evidence/card-00000141-measured-journeys.csv): active documentation including compatibility falls 24.8%; representative reading falls 40–58%. Budget exceptions retain required protections and are recorded.
+- Native [Codex](../../rememory/evidence/card-00000141-native-codex.md) startup and reported Tester delegation passed; native [Claude](../../rememory/evidence/card-00000141-native-claude.md) discovered/ran three current and two legacy identities, with 17 permitted Read/hook observations. Unit cases cover negative permissions; no pre-upgrade live-process resume, native Windows or real Telegram verification is claimed.
+- Frozen records/resources and role ACLs remain byte-identical. Writer supplied SPEC-020 consolidation and draft terminology/link updates. Unrelated local deletions, draft SPEC-013 and graph output remain outside this change.
+- Reviewed the complete diff, checks and flow in Development. CARD-00000128 still requires approved Specification scope; all Batches remain closed. No new work is started.
 
 ## History
 
@@ -85,3 +94,7 @@ The User explicitly confirmed that `agents/` is internal machinery for Codex and
 - 2026-11-15 — After the Orchestrator posted the approval question in the original Codex chat, KR Developer attempted one Telegram attention alert with task `Refonte documentaire du dépôt` and event `card141-migration-plan-v1`. The tool returned exit 2 and delivery could not be confirmed. No automatic resend; the decision remains in the original chat.
 
 - 2026-11-15 — User approved the concrete plan and authorized execution: “Valider le plan et lancer le refactoring”. KR Developer continues the same Card on `codex/card-00000141-docs` in `/private/tmp/kr-card141-docs`, preserving the original workspace changes. The approved plan/CSV mapping, compatibility, SPEC-020 consolidation and verification matrix define the scope. No resend of the unconfirmed Telegram alert.
+
+- 2026-11-15 — Completed the approved refactoring, verified candidate and evidence, reviewed flow and met all Card criteria. Close under the repository’s standing publication authorization; preserve the unrelated main-workspace changes.
+
+- 2026-11-15T12:26:24+01:00 — Stage moved from `development` to `completion`.

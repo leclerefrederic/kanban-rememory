@@ -1,0 +1,41 @@
+{
+  "candidate_base": "98ac495347b3da93b71aa449c45f43656e131b30",
+  "fixture_root": "/private/tmp/kr-card141-adoption-iibh2bgn",
+  "cases": [
+    {
+      "case": "fresh core",
+      "result": "passed",
+      "fixture": "/private/tmp/kr-card141-adoption-iibh2bgn/fresh",
+      "evidence": "approved preview/apply, links/show policy and idempotence"
+    },
+    {
+      "case": "existing core",
+      "result": "passed",
+      "fixture": "/private/tmp/kr-card141-adoption-iibh2bgn/existing",
+      "evidence": "approved preview/apply, links/show policy and idempotence"
+    },
+    {
+      "case": "add selected modules and rerun",
+      "result": "passed",
+      "fixture": "/private/tmp/kr-card141-adoption-iibh2bgn/existing",
+      "evidence": "both skill hosts; Claude hook; Batch dirs; product, existing instructions, personal skill and settings preserved"
+    },
+    {
+      "case": "missing prerequisite and recovery",
+      "result": "passed",
+      "fixture": "/private/tmp/kr-card141-adoption-iibh2bgn/existing",
+      "evidence": "missing canonical adapter refuses before changes, restoration recovers"
+    },
+    {
+      "case": "commands and simulated Telegram",
+      "result": "passed",
+      "fixture": "/private/tmp/kr-card141-adoption-iibh2bgn/existing",
+      "evidence": "copied documented verification script runs 22 tests; no real Telegram message"
+    },
+    {
+      "case": "frozen content and role ACLs",
+      "result": "passed",
+      "evidence": "no protected path changes; read/write/git frontmatter identical across renamed roles"
+    }
+  ]
+}
