@@ -25,7 +25,7 @@ This skill only routes you to the kit's instructions. It restates no rule: the d
 | `project/kanban/workflow.json` is missing | `agents/configure-a-project.md` |
 | The project uses the software workflow profile | `agents/kanban/software-development-workflow.md` |
 | The User must decide, act, or the requested task is finished | `agents/roles/development-agent.md` (Notifications to the User), `agents/configure-telegram.md` |
-| The request involves a Specification or Batch | the Specification Agent or Development Agent skill |
+| The request involves a Specification or Batch | the KR Writer or KR Developer skill |
 
 ## Before acting
 

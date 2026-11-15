@@ -45,7 +45,7 @@ No open debt or required test remains. TEST-01 was repeated on `candidate-b` bec
 
 ## User decision
 
-On 2026-01-12 at 11:30 Europe/Paris, after both cases passed, the User explicitly accepted `candidate-b` with no deferred debt and authorized closure. Specification Agent recorded `validated`; Development Agent then performed closure.
+On 2026-01-12 at 11:30 Europe/Paris, after both cases passed, the User explicitly accepted `candidate-b` with no deferred debt and authorized closure. KR Writer recorded `validated`; KR Developer then performed closure.
 
 ## Closure evidence
 

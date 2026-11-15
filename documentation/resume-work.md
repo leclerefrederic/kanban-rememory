@@ -4,7 +4,7 @@ Use this guide after an interrupted session, a change of agent or a break in the
 
 ## Ask for recovery
 
-Identify the repository. If you know the relevant Card or Batch, mention it; otherwise the Development Agent reads the current board and the delivery records, and the Specification Agent reads the delivery records.
+Identify the repository. If you know the relevant Card or Batch, mention it; otherwise the KR Developer reads the current board and the delivery records, and the KR Writer reads the delivery records.
 
 > Resume work in this repository. Recover the current task or Batch, check what has actually been verified, and continue the next authorized action. Ask me only for decisions that are still missing.
 
@@ -17,7 +17,7 @@ If you only want a status report, say so. The agent should distinguish recoverin
 - Any blocker, open debt or required test still outstanding.
 - The next action and whether it is already authorized or needs your decision.
 
-The Development Agent checks the files and Git state against the records. A conflict between them is reported before affected work continues. Existing approval is reused where it still covers the action; resumption does not require you to approve the same work again.
+The KR Developer checks the files and Git state against the records. A conflict between them is reported before affected work continues. Existing approval is reused where it still covers the action; resumption does not require you to approve the same work again.
 
 ## Continue from the actual stopping point
 
@@ -32,6 +32,6 @@ The Development Agent checks the files and Git state against the records. A conf
 
 Passed tests remain associated with their original revision. A correction does not erase earlier failures or automatically validate cases that could not run. Closed Batches and completed Cards are not reopened to record new work.
 
-The Development Agent leaves a concise journal entry and the next action when handing work over. Recovery is performed by the agent session; it does not imply that a background scheduler is running.
+The KR Developer leaves a concise journal entry and the next action when handing work over. Recovery is performed by the agent session; it does not imply that a background scheduler is running.
 
 Continue with [assign a task](assign-a-task.md) for new work, or [test and accept a Batch](test-and-accept-a-batch.md) for a delivered candidate.

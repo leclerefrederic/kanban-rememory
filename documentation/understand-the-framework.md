@@ -7,12 +7,14 @@ Kanban Rememory gives AI agents a shared working method and a project memory kep
 | Participant | Responsibility |
 | --- | --- |
 | You | Explain needs and priorities, agree on scope, authorize work, try the delivered result, and decide whether to accept it. |
-| Specification Agent | Clarify the need with you, write Specifications, prepare Batches and acceptance scenarios, record your verdicts, and maintain the delivery report. |
-| Development Agent | Implement authorized work, maintain Cards, run technical checks, prepare delivery candidates, and perform authorized Git operations. |
+| KR Orchestrator | Keep work and decisions in the same chat, delegate approved implementation and coordinate acceptance. |
+| KR Writer | Clarify the need, write Specifications and backlog Cards, and prepare Batches and acceptance criteria. |
+| KR Developer | Implement authorized work, maintain Card execution records, run technical checks and perform authorized Git operations. |
+| KR Tester | Run and guide acceptance for the exact delivered candidate and return the evidence for your verdict. |
 
-These are responsibilities, independent of the AI vendor. One AI can perform both agent roles in separate sessions. The distinction keeps the expected behavior, implementation and acceptance decision clear.
+These are responsibilities, independent of the AI vendor. Roles apply independently to the primary session and its assigned agents. The distinction keeps the expected behavior, implementation and acceptance decision clear.
 
-Each agent reads and writes only what its role needs. The Specification Agent works on Specifications and Batches and reads the journal. It does not open the board, the code or Git. The Development Agent builds from approved Specifications only. Neither agent does the other's work, even if you ask: it tells you to continue in a new or existing session with the right agent. If you tell the Development Agent to set aside another rule, it states the rule, asks you to confirm, and records the exception in the journal. The Specification Agent cannot write the journal, so it never sets a rule aside. Only the Development Agent creates, writes, moves, and closes Cards. You can inspect the board, ask about a task, or change its priority through conversation. The agent records your request and checks its effect on current work.
+Each agent reads and writes only what its role needs. KR Writer prepares backlog Cards. KR Developer owns stage changes, implementation, Rememory and Git. KR Tester owns acceptance evidence, including the case answers you give it. You retain the final delivery decision. You can inspect the board, ask about a task, or change its priority through conversation. The agent records your request and checks its effect on current work.
 
 ## What the records mean
 
@@ -28,7 +30,7 @@ A **Card** records an executable task and its completion evidence. Cards can ref
 
 ## Telegram alerts
 
-If you enable Telegram, the Development Agent alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to, and appears once. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a send fails, the request or result stays in the chat and the agent says that no alert was sent.
+If you enable Telegram, the KR Developer alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to, and appears once. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a send fails, the request or result stays in the chat and the agent says that no alert was sent.
 
 ## Reading progress
 

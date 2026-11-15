@@ -1,12 +1,12 @@
 # Resume a delivered or closed Batch
 
-Read `description.md`, `tests.md`, and `report.md` in that order. They identify status, the full tested commit and results, and the User's decision and closing evidence. The report's Handoff section locates the approval ref, branch, worktree, and any guard record. If the records disagree, report the discrepancy and keep the Batch at its current state. The Git checks in this procedure are for the Development Agent. The Specification Agent reads the records only and asks the User to have the Development Agent, in a separate session, verify the Git evidence.
+Read `description.md`, `tests.md`, and `report.md` in that order. They identify status, the full tested commit and results, and the User's decision and closing evidence. The report's Handoff section locates the approval ref, branch, worktree, and any guard record. If the records disagree, report the discrepancy and keep the Batch at its current state. The Git checks in this procedure are for the KR Developer. The KR Writer reads the records only and asks the User to have the KR Developer, in a separate session, verify the Git evidence.
 
 ## Delivered and awaiting a decision
 
 Confirm that `description.md` says `delivered`, `tests.md` identifies the full tested commit, and `report.md` shows the decision is pending. Verify that the commit exists in Git and matches the revision identified in the report if it repeats the value. Report that revision and inspect the recorded test results before choosing the next action.
 
-- If required tests are pending or unexecuted, resume the [guided acceptance procedure](../roles/specification-agent.md#preparing-and-guiding-acceptance-tests) at the next executable case, with complete startup instructions.
+- If required tests are pending or unexecuted, resume the [guided acceptance procedure](../roles/tester.md#run-and-guide-acceptance) at the next executable case, with complete startup instructions.
 - If blocking debt prevents completion, continue independent tests where possible, then arrange correction in the open Batch or record the User's rejection. Preserve blocked scenarios and previous results.
 - Only when all required tests passed and no blocking debt remains, summarize the results and ask for the User's explicit delivery decision, including any deferral of nonblocking debt. Individual OK verdicts do not accept the Batch.
 
@@ -22,6 +22,6 @@ Verify that the matching commit records the closed status and the same decision.
 
 If the optional publication check refused a closing push, report the refusal message and keep the Batch at its current state until the failing check is resolved; never bypass the hook.
 
-Development Agent records the closing trailer and expected Git refs in the Closure evidence section of report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
+KR Developer records the closing trailer and expected Git refs in the Closure evidence section of report.md. These allow an agent to locate the closing commit even though its own hash is unavailable while composing it.
 
 For historical records, use the original ID and `Lot-Closure` trailer. Include the historical `lots/` or `Lots/` path in the Git log query when the closure predates the directory migration.

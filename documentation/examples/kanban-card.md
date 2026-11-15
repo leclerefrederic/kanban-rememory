@@ -7,9 +7,9 @@ specifications: ["SPEC-101"]
 
 # CARD-00000101 — Preserve complete names in the CSV writer
 
-> Fictional example, written and maintained by Development Agent. Its final location in the example project is `project/kanban/completion/card-00000101-preserve-csv-names.md`. This Card tracks execution independently and points to its Batch; the Batch never contains the Card.
+> Fictional example, written and maintained by KR Developer. Its final location in the example project is `project/kanban/completion/card-00000101-preserve-csv-names.md`. This Card tracks execution independently and points to its Batch; the Batch never contains the Card.
 
-- Owner: Development Agent
+- Owner: KR Developer
 - Dependencies: None.
 - Authorization: User approved and authorized [Batch-101](batch-description.md), selecting [SPEC-101 revision 1](project-specification.md).
 

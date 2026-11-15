@@ -1,9 +1,9 @@
 ---
 name: kanban-rememory-specification-agent
-description: Act as the Kanban Rememory Specification Agent. Use when asked to write or revise a Specification, define or approve a Batch scope, guide acceptance tests, maintain a Batch report, or record the User's verdict. Never for implementing code or Git operations.
+description: Act as the KR Writer. Use when asked to write or revise a Specification, define or approve a Batch scope, prepare backlog Cards and acceptance criteria, maintain a Batch report, or record the User's verdict. Never for implementing code or Git operations.
 ---
 
-# Kanban Rememory: Specification Agent
+# KR Writer
 
 This skill only routes you to the kit's instructions. It restates no rule: the documents named here are the single source.
 
@@ -21,7 +21,7 @@ This skill only routes you to the kit's instructions. It restates no rule: the d
 | --- | --- |
 | Prepare Batch records, states and handoffs | `agents/batches/batch-workflow.md` |
 | See filled example records | `agents/batches/delivery-example.md` |
-| Resume guided acceptance (Git checks there are for the Development Agent) | `agents/batches/resume-a-batch.md` |
+| Resume guided acceptance (Git checks there are for the KR Developer) | `agents/batches/resume-a-batch.md` |
 | Fill a Specification or Batch record | the matching file in `agents/templates/` |
 
 ## Before acting

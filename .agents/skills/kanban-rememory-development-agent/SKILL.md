@@ -1,9 +1,9 @@
 ---
 name: kanban-rememory-development-agent
-description: Act as the Kanban Rememory Development Agent. Use when asked to implement approved work, maintain cards, pick up, correct, deliver or close a Batch, run technical checks, or perform authorized Git operations.
+description: Act as the KR Developer. Use when asked to implement approved work, maintain cards, pick up, correct, deliver or close a Batch, run technical checks, or perform authorized Git operations.
 ---
 
-# Kanban Rememory: Development Agent
+# KR Developer
 
 This skill only routes you to the kit's instructions. It restates no rule: the documents named here are the single source.
 

@@ -12,23 +12,25 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
    | `agents/` | `configure-a-project.md`, `work-in-a-project.md`, `lean-specifications.md`, `maintain-rememory.md`, `orchestrate-work.md`, `VERSION` (the kit version your copy comes from) |
    | `agents/roles/` | All role files |
    | `agents/kanban/` | All three operating references |
-   | `agents/skills/` | Optional: skill directories for standalone, Specification Agent, Development Agent and KR Orchestrator, with `agents/tools/sync-skills.py` |
+   | `agents/skills/` | Optional: skill directories for standalone, KR Writer, KR Developer, KR Tester and KR Orchestrator, with `agents/tools/sync-skills.py` |
    | `agents/templates/` | `kanban-card.md`, `project-layout.md`, `daily-template.md` |
    | `agents/tools/` | `manage-kanban-board.py` and the `kanban/` package |
 
    In the target repository's root `AGENTS.md`, create or merge this entry:
 
    ```markdown
-   Read the [shared working instructions](agents/work-in-a-project.md) before adopting the kit or working on cards.
+   In a normal primary project session, act as [KR Orchestrator](agents/roles/orchestrator.md). Explicitly selected roles and delegated role assignments take precedence. Read the [shared working instructions](agents/work-in-a-project.md). This default does not set an enforced host role.
    ```
+
+   Codex reads the root `AGENTS.md`. In Claude Code, add `@AGENTS.md` to the root `CLAUDE.md` so both hosts read the same startup rule. Keep existing project instructions. Open a fresh session in the adopted project to use the new default.
 
    To let Claude Code and Codex discover the skills, run `python3 agents/tools/sync-skills.py`. It copies each skill into `.claude/skills/` and `.agents/skills/` and leaves other skills there untouched. After updating the kit, run it again; `--check` reports a copy that differs from `agents/skills/`, and `--target claude` or `--target codex` limits the copy to one tool.
 
-   For same-chat orchestration, in a new Codex or Claude Code project chat, ask to use the `kanban-rememory-orchestrator` skill. The host must allow native subagent invocation before a handoff can execute. To use the named Claude Code Development Agent with its role check, install the optional integration below.
+   In a new Codex or Claude Code project chat, describe the work directly. The `kanban-rememory-orchestrator` skill is still available for explicit activation. The host must allow native subagent invocation before a handoff can execute. To use the named Claude Code KR Developer with its role check, install the optional integration below.
 
    Define the target project's ownership, journal conventions, and Git permissions in its own `AGENTS.md`. The kit repository's root instructions, board configuration, cards, and dated journal belong to this repository.
 
-   Both agents read the [shared manifesto](../documentation/lean-specifications.md) and follow its [agent rules](lean-specifications.md), referenced by the shared instructions and both roles. Use the approval test when defining and reviewing scope.
+   All roles read the [shared manifesto](../documentation/lean-specifications.md) and follow its [agent rules](lean-specifications.md), referenced by the shared instructions and role files. Use the approval test when defining and reviewing scope.
 
 2. Follow the [guided adoption interview](configure-a-project.md) to select a template or agree on a custom workflow. From the target repository root, preview the result. This example uses the standard template.
 
@@ -50,21 +52,23 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
 Copy all operating references under `agents/batches/`, `agents/run-scheduled-batch-job.md`, the four Specification and Batch templates under `agents/templates/`, `agents/tools/guard-batch-work.py`, and optionally the push check `agents/tools/check-batch-publication.py` with `agents/tools/git-hooks/`. Create the Specification state and resource directories shown in the project directory template. The reader guides explain this optional module without enabling it.
 
-Configure the project instructions used by each agent to read the shared instructions and its role. For Specification Agent, use:
+Configure the project instructions used by each agent to read the shared instructions and its role. For KR Writer, use:
 
 ```text
 Read agents/work-in-a-project.md and agents/roles/specification-agent.md
-before preparing Specifications, Batches, or acceptance tests.
+before preparing Specifications, backlog Cards, Batches, or acceptance criteria.
 ```
 
-For Development Agent, use:
+For KR Developer, use:
 
 ```text
 Read agents/work-in-a-project.md and agents/roles/development-agent.md
 before implementing work, handling corrections, or performing Git operations.
 ```
 
-Give both agents access to the same project records and verify that a fresh session identifies its role, current Batch state, and next authorized action. The [worked example](batches/delivery-example.md) shows the records; the [state table](batches/batch-workflow.md#batch-states-and-transitions) defines the handoffs. Copying the [scheduled-job procedure](run-scheduled-batch-job.md) does not install or enable a scheduler.
+For KR Tester, read `agents/work-in-a-project.md` and `agents/roles/tester.md` before running or guiding acceptance. The named Claude Code Tester is available through the optional role integration. Keep the legacy `specification-agent` and `development-agent` launch names and existing skill identifiers.
+
+Give each role its permitted project records and verify that a fresh session identifies its role, current Batch state, and next authorized action. The [worked example](batches/delivery-example.md) shows the records; the [state table](batches/batch-workflow.md#batch-states-and-transitions) defines the handoffs. Copying the [scheduled-job procedure](run-scheduled-batch-job.md) does not install or enable a scheduler.
 
 See the [project directory template](templates/project-layout.md) for the installed layout.
 

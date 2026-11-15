@@ -1,6 +1,6 @@
 # Test and accept a Batch
 
-Acceptance checks whether the delivered result meets the approved behavior. The agent runs technical checks before delivery and then supports your review of the actual candidate. Your verdict is recorded as evidence, with the revision you tested.
+Acceptance checks whether the delivered result meets the approved behavior. KR Developer runs technical checks before delivery. KR Tester runs eligible acceptance checks and guides your review of the exact candidate. Your verdict is recorded as evidence, with the revision you tested.
 
 ## What happens for each test
 
@@ -27,7 +27,7 @@ Severity describes impact. The test record separately identifies which cases are
 
 ## When correction is required
 
-A blocking defect prevents acceptance. The request for correction identifies what was expected, what happened, the affected tests and the candidate involved. Development Agent corrects the agreed behavior in the same open Batch after authorization.
+A blocking defect prevents acceptance. The request for correction identifies what was expected, what happened, the affected tests and the candidate involved. KR Developer corrects the agreed behavior in the same open Batch after authorization.
 
 The previous candidate and its results remain available. The new candidate has its own revision and evidence. Acceptance resumes with the failing and affected scenarios, then the tests that the defect had blocked. Fixing the blocker does not automatically pass those tests: they must actually run.
 

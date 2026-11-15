@@ -48,7 +48,16 @@ def relative(root, path, cwd):
 
 
 def covers(entries, rel):
-    return any(rel == entry.rstrip("/") or rel.startswith(entry.rstrip("/") + "/") for entry in entries)
+    path = rel.split("/")
+    for entry in entries:
+        pattern = entry.rstrip("/").split("/")
+        if len(path) < len(pattern) or ("*" in pattern and not entry.endswith("/") and len(path) != len(pattern)):
+            continue
+        if all(
+            wanted == actual or wanted == "*" for wanted, actual in zip(pattern, path)
+        ):
+            return True
+    return False
 
 
 def contains_denied(entries, rel):

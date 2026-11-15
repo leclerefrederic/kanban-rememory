@@ -1,6 +1,6 @@
 # Markdown Kanban
 
-The AI Development Agent creates, writes, moves, and closes every Card. The procedures and commands below are for that agent. The User provides requests, priorities, authorizations, and verdicts through conversation; the agent records them on the board.
+KR Writer prepares and revises Cards in backlog. KR Developer can prepare a Card in the standalone workflow and owns stage changes, execution evidence and closure. The User provides requests, priorities, authorizations, and verdicts through conversation; the agent records them on the board.
 
 | Column | Entry condition |
 | --- | --- |
@@ -16,7 +16,7 @@ The folder determines the stage. The optional card state describes whether work 
 ## Define and execute work
 
 1. Search all columns for duplicates. Reuse the relevant card or define the new task with the requester. Clarify questions that affect scope or decisions.
-2. Once the backlog entry is approved, copy the [template](../templates/kanban-card.md) to `project/kanban/backlog/card-00000001-topic.md`, using the next number after the highest numeric suffix across all stages for CARD and legacy TASK cards. Use exactly eight digits with leading zeros, from `CARD-00000001` to `CARD-99999999`. After `CARD-00009999`, use `CARD-00010000`. Stop and agree on a numbering migration before exceeding the range. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
+2. When the project intake rules let you draft a backlog entry, copy the [template](../templates/kanban-card.md) to `project/kanban/backlog/card-00000001-topic.md`, using the next number after the highest numeric suffix across all stages for CARD and legacy TASK cards. Use exactly eight digits with leading zeros, from `CARD-00000001` to `CARD-99999999`. After `CARD-00009999`, use `CARD-00010000`. Stop and agree on a numbering migration before exceeding the range. Recheck the ID before integrating concurrent contributions. Never reuse a retired ID.
 3. Check prerequisites before starting. Unmet dependencies block affected cards, including through intermediate dependencies. Keep work that has yet to start in the backlog and document the dependency chain.
 4. When execution is authorized and capacity is available, move the card to the first active stage. Keep interrupted work in its current stage and record the blocker and next action.
 5. Verify every criterion before moving a card to Completion. Link the journal and evidence. If user validation is required for closure, keep the card in its current active stage until that validation is recorded. If the work is abandoned, record the reason and move the card to Cancellation.
@@ -72,6 +72,6 @@ The command checks capacity when a card enters an active stage, and requires a n
 
 ## Create a card
 
-Preview a card with `python3 agents/tools/manage-kanban-board.py new "Verify retries" --owner "Billing team"`. After backlog approval, run the same command with `--apply`. The command uses the card template and assigns the next eight-digit `CARD` number across every stage, including Cancellation. The ID shown in a preview can change if another card is created first.
+Preview a card with `python3 agents/tools/manage-kanban-board.py new "Verify retries" --owner "Billing team"`. When the project permits recording the proposed backlog work, run the same command with `--apply`. This does not authorize execution. The command uses the card template and assigns the next eight-digit `CARD` number across every stage, including Cancellation. The ID shown in a preview can change if another card is created first.
 
 The first configured stage is the intake folder by default. Set `intake` in `project/kanban/workflow.json` to use a different configured stage outside active and completed work. Fill in the outcome, scope, and acceptance criteria before starting the card with `move`.

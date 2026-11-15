@@ -19,7 +19,7 @@ def ours(group):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--remove", action="store_true", help="remove the hook and the two agents")
+    parser.add_argument("--remove", action="store_true", help="remove the hook and its named agents")
     parser.add_argument("--apply", action="store_true", help="write the changes; the default is a preview")
     args = parser.parse_args()
     try:

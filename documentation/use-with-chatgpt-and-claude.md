@@ -29,7 +29,7 @@ A hook is a safety net, not the only protection. The role instructions and the B
 
 ## Coordinate from one chat
 
-In a Codex or Claude Code project chat, ask to use the `kanban-rememory-orchestrator` skill. The [KR Orchestrator](../agents/roles/orchestrator.md) frames a Card or Batch, asks for your approval and uses the host's available subagent mechanism for Development. If the host cannot delegate, the session keeps the approved handoff available and explains the blocker.
+Open a normal session in an adopted project. Codex reads `AGENTS.md`; Claude Code reads it via `@AGENTS.md` in `CLAUDE.md`. [KR Orchestrator](../agents/roles/orchestrator.md) starts by default unless a role was explicitly chosen. The Orchestrator frames the Card or Batch, asks for approval and delegates to KR Developer or KR Tester as needed. If the host cannot delegate, the session keeps the approved handoff available and explains the blocker.
 
 ## Where each assistant draws its lines
 
@@ -45,7 +45,7 @@ Some details are not confirmed, in particular whether repository hooks run in th
 
 ## What the Claude Code role check protects
 
-It protects a Claude Code session started as one of the two roles, and only for the file reads, file writes, searches, Git commands and visible shell paths of that role's limits. It does not protect: a session with no named agent, Codex, the chat applications, shell commands that hide the file they touch, other tools, or the check's own settings file, and it lets an action through when it fails. For these the limits are advisory. It was tested with the command line, which gives the session identity to the hook; whether it runs in the Claude Code desktop app is unconfirmed, and so are the Codex questions about the shell environment, sub-agents and a per-session role. The agent procedure lists each limit and each unconfirmed fact.
+It protects a Claude Code session started as the named Writer, Developer or Tester role, and only for the file reads, file writes, searches, Git commands and visible shell paths of that role's limits. It does not protect: a session with no named agent, Codex, the chat applications, shell commands that hide the file they touch, other tools, or the check's own settings file, and it lets an action through when it fails. For these the limits are advisory. It was tested with the command line, which gives the session identity to the hook; whether it runs in the Claude Code desktop app is unconfirmed, and so are the Codex questions about the shell environment, sub-agents and a per-session role. The agent procedure lists each limit and each unconfirmed fact.
 
 ## What this means for you
 

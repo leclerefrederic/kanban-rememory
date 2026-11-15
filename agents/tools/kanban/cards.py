@@ -194,7 +194,7 @@ def create_card(workflow, args):
     if not args.apply:
         target, content = prepare()
         print(f"Preview {target.relative_to(ROOT)}:\n\n{content}")
-        print("Run again with --apply after backlog approval.")
+        print("Run again with --apply once the project intake rules permit recording the backlog Card.")
         return 0
 
     with board_write_lock():

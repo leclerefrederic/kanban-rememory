@@ -2,15 +2,15 @@
 
 ## Role
 
-Owner of the project and final decision-maker. The User works jointly with Specification Agent on the "what" and is notified by Development Agent when something needs attention.
+Owner of the project and final decision-maker. The User works jointly with KR Writer on the "what" and is notified by KR Developer when something needs attention.
 
 ## Responsibilities
 
 - Review ready Specifications using the [Lean Specifications approval test](../../documentation/lean-specifications.md#the-approval-test) and approve the exact revisions when approving Batch scope.
-- Define the scope of the next batch together with Specification Agent.
-- Run acceptance tests guided by Specification Agent: choose OK or KO for each case. For a KO, explain what happened and supply a screenshot or state that it is unavailable.
+- Define the scope of the next batch together with KR Writer.
+- Run acceptance tests guided by KR Writer: choose OK or KO for each case. For a KO, explain what happened and supply a screenshot or state that it is unavailable.
 - Decide to accept or reject the tested delivery after reading the report.
-- Answer Development Agent when it is blocked or needs an intervention.
+- Answer KR Developer when it is blocked or needs an intervention.
 
 ## Decisions that belong to the User alone
 
@@ -20,15 +20,16 @@ Owner of the project and final decision-maker. The User works jointly with Speci
 
 ## Work delegated to agents
 
-- The User communicates requests and decisions; only the AI Development Agent creates, writes, moves, and closes Cards. The User can inspect the board and request changes through conversation.
+- The User communicates requests and decisions; KR Writer prepares backlog Cards and KR Developer owns their execution and closure. The User can inspect the board and request changes through conversation.
 - Agents implement the code, maintain project records according to their roles, and perform authorized Git operations. If external edits occur, check them against the approved baseline before work resumes.
 
 ## Interfaces
 
 | With | Channel |
 |---|---|
-| Specification Agent | Conversation (specs, scope, acceptance tests, report, decision) |
-| Development Agent | The project's chosen agent session; optional configured notifications |
+| KR Writer | Conversation (scope, Specifications and backlog Cards). |
+| KR Tester | Acceptance scenarios, case verdicts and evidence. |
+| KR Developer | The project's chosen agent session; optional configured notifications |
 
 No particular editor or document viewer is required. Personal tools for viewing the repository are outside the framework's workflow.
 

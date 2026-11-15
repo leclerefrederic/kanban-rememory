@@ -15,13 +15,13 @@ See the [project directory template](../templates/project-layout.md). Projects u
 
 A ready Batch groups one or more approved Specifications. Prepare it as `draft` using the [description](../templates/batch-description.md), [tests](../templates/batch-tests.md), and [report](../templates/batch-report.md) templates in a folder such as `project/batches/batch-001/`. Assign the Batch ID on creation. A draft may have an empty selection and may omit the tests or report while being prepared; any records already present need their IDs and matching Batch reference. A selected Specification must be ready or approved. This permits preparation without making the Batch executable.
 
-On explicit scope approval, move the selected revisions to `project/specs/approved/`, complete all three records, and set the Batch to `ready`. In `description.md`, record each selection in the `specifications` list with `id`, `revision`, and repository-relative `path`. The list order sets priority; add execution constraints only when the list cannot express them. The pinned file must carry the same ID and revision. Keep approved revisions and their paths stable. The approval commit records the exact contents. Development Agent runs `validate` for reference consistency and `verify-approval` against the trusted commit before pickup and closure. Historical Batches with a digest retain their original validation.
+On explicit scope approval, move the selected revisions to `project/specs/approved/`, complete all three records, and set the Batch to `ready`. In `description.md`, record each selection in the `specifications` list with `id`, `revision`, and repository-relative `path`. The list order sets priority; add execution constraints only when the list cannot express them. The pinned file must carry the same ID and revision. Keep approved revisions and their paths stable. The approval commit records the exact contents. KR Developer runs `validate` for reference consistency and `verify-approval` against the trusted commit before pickup and closure. Historical Batches with a digest retain their original validation.
 
 Batch records reference Specifications and delivery evidence. Keep Card IDs and links out of Batch records. A Card may reference a Batch or Specification from its own header.
 
-Cards track Development Agent's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. Development Agent references approved Specifications only; the validator also accepts `ready`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
+Cards track KR Developer's tasks. Leave `batch: null` and `specifications: []` for standalone work, or fill either field when relevant. Use a YAML flow list of quoted IDs for `specifications`. KR Developer references approved Specifications only; the validator also accepts `ready`. A Card that names a Batch and Specifications can name only Specifications selected in that Batch. A Batch-linked Card can omit Specifications for work such as preparing the acceptance environment.
 
-Development Agent runs `python3 agents/tools/manage-kanban-board.py validate` to check the mapping. See the [agent roles](../work-in-a-project.md#batch-workflow-roles).
+KR Developer runs `python3 agents/tools/manage-kanban-board.py validate` to check the mapping. See the [agent roles](../work-in-a-project.md#batch-workflow-roles).
 
 For Git approval evidence, pickup coordination, and closure recovery, follow the [Batch operations guide](start-and-close-batches.md).
 
@@ -31,14 +31,14 @@ The state lives in `description.md`. The following transitions are procedural ru
 
 | Transition | Actor | Required condition |
 | --- | --- | --- |
-| New → `draft` | Specification Agent | No other open Batch; assign the Batch ID and prepare scope. |
-| `draft` → `ready` | Specification Agent | Explicit User scope approval, approved Specification revisions, and complete records. Development Agent records the Git approval snapshot before pickup. |
-| `ready` → `in-progress` | Development Agent | Execution authorized, approval verified, ownership acquired, and recorded branch created from the agreed base. |
-| `in-progress` → `delivered` | Development Agent | Technical checks pass; commit, artifact, and startup instructions identify the candidate to test. |
-| `delivered` → `in-progress` | Development Agent | A documented blocking defect and authorized correction within the approved scope; preserve the previous candidate and results. |
-| `delivered` → `validated` | Specification Agent | All required tests pass, no blocking debt remains, and the User explicitly accepts that revision with any nonblocking deferrals. |
-| `delivered` → `rejected` | Specification Agent | The User explicitly rejects that revision; retain defects and outstanding tests. |
-| `validated` or `rejected` → `closed` | Development Agent | Follow the closure procedure, recording the decision and verifying final publication. Retry an interrupted closure before starting anything new. |
+| New → `draft` | KR Writer | No other open Batch; assign the Batch ID and prepare scope. |
+| `draft` → `ready` | KR Writer | Explicit User scope approval, approved Specification revisions, and complete records. KR Developer records the Git approval snapshot before pickup. |
+| `ready` → `in-progress` | KR Developer | Execution authorized, approval verified, ownership acquired, and recorded branch created from the agreed base. |
+| `in-progress` → `delivered` | KR Developer | Technical checks pass; commit, artifact, and startup instructions identify the candidate to test. |
+| `delivered` → `in-progress` | KR Developer | A documented blocking defect and authorized correction within the approved scope; preserve the previous candidate and results. |
+| `delivered` → `validated` | KR Writer | All required tests pass, no blocking debt remains, and the User explicitly accepts that revision with any nonblocking deferrals. |
+| `delivered` → `rejected` | KR Writer | The User explicitly rejects that revision; retain defects and outstanding tests. |
+| `validated` or `rejected` → `closed` | KR Developer | Follow the closure procedure, recording the decision and verifying final publication. Retry an interrupted closure before starting anything new. |
 
 Correction returns to `delivered` with a new candidate. An interruption resumes the existing state and branch; a closed Batch is never reopened. Approval of scope and authorization to execute are distinct, but one explicit User instruction may grant both. See the [worked delivery example](delivery-example.md).
 
@@ -70,6 +70,6 @@ Store shared attachments in `project/specs/resources/active/`. In the Specificat
 
 Include every required resource in the Git approval snapshot. Check that each link resolves to a tracked file in that snapshot. Use the recorded approval commit to open the Specification and its resources together when reconstructing a historical delivery. Change a required resource through a new Specification revision.
 
-When no Specification still needs a file for ongoing or planned work, Specification Agent moves it to `project/specs/resources/archived/` and preserve its filename. Keep approved Specifications unchanged. Historical links resolve within the approval snapshot, which retains the exact file at its original path. For a later Batch reusing an approved revision, Specification Agent restores required resources at their approved paths before execution rather than changing the approved links.
+When no Specification still needs a file for ongoing or planned work, KR Writer moves it to `project/specs/resources/archived/` and preserve its filename. Keep approved Specifications unchanged. Historical links resolve within the approval snapshot, which retains the exact file at its original path. For a later Batch reusing an approved revision, KR Writer restores required resources at their approved paths before execution rather than changing the approved links.
 
 For example, two Specifications may share `resources/active/export-layout-v1.png`. Leave it active while either still needs it. A changed design gets `export-layout-v2.png` and a new Specification revision; do not overwrite v1. When v1 is no longer needed for planned or ongoing work, move it to archived. Keep resource filenames unique across both directories so an archive move never overwrites an earlier file. Use `git show APPROVAL_COMMIT:project/specs/resources/active/export-layout-v1.png` to recover the historical bytes (redirect binary output to a file). Include any required restored resources in the next approval snapshot.

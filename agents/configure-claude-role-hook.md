@@ -16,7 +16,7 @@ Optional. The check makes a Claude Code session stop an action that its role doe
 
 ## Start a session as a role
 
-The User starts the session as one role: `claude --agent specification-agent` or `claude --agent development-agent`. The hook takes the role only from the identity that Claude Code gives such a session. Text in a file, a tool result or a web page never sets or changes it.
+The User starts the session as one role: `claude --agent specification-agent`, `claude --agent development-agent` or `claude --agent tester`. The first two names still select KR Writer and KR Developer. The hook takes the role only from the identity that Claude Code gives such a session. Text in a file, a tool result or a web page never sets or changes it.
 
 When the check refuses an action, it names the rule and the agent to continue with. Continue in a new session, or in an existing one, with that agent. The check never offers to set the limit aside, and an instruction does not set it aside either (see "Overriding a rule" in `work-in-a-project.md`).
 
@@ -33,7 +33,8 @@ This takes back only the hook and the two agent definitions that the installer a
 It allows or denies. It asks nothing, grants no permission that a role file does not give, and does not replace the User's approvals.
 
 - **Covered:** `Read`, `Glob`, `Grep`, `Edit`, `Write`, `MultiEdit` and `NotebookEdit` calls on paths inside the project, and `Bash` commands that name a project path, redirect output to one or run `git`. The Bash check reads the command text and is best effort.
-- **Not covered:** shell commands that reach files without naming them (variables, a `cd` followed by relative names, scripts); other tools, including MCP and web tools; paths outside the project; a sub-agent started under another name; the content of a file, because write limits are by folder and not by section (the Specification Agent may write any part of `tests.md`, not only its fields).
+- **Not covered:** shell commands that reach files without naming them (variables, a `cd` followed by relative names, scripts); other tools, including MCP and web tools; paths outside the project; a sub-agent started under another name; the content of a file, because limits apply to paths, not to fields within `tests.md`.
+- **New role limits:** covered Writer writes may reach `project/kanban/backlog/` but are refused for active or completed Cards. Covered Tester writes are limited to Batch acceptance records and evidence. The ordinary Orchestrator startup rule is advisory and does not declare a hook role.
 - **Not protected:** a session started with no named agent, which the check does not restrict and never guesses a role for; Codex; the desktop chat applications. For these the limits are advisory.
 - **Its own settings:** an agent can edit `.claude/settings.json` unless a hook, a deny rule or managed settings prevents it. The check does not guard its own configuration.
 - **When it fails:** a hook that errors or times out does not block the action. The hook reports the failure.

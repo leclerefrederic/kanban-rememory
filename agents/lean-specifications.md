@@ -1,6 +1,6 @@
 # Lean Development Through Lean Specifications — Agent rules
 
-Apply these rules in both Specification Agent and Development Agent roles, including during resumed work and corrections. They operationalize the six principles in the [shared manifesto](../documentation/lean-specifications.md), which applies to the User and agents alike. The shared manifesto remains the authority; this document adds no independent scope or permissions.
+Apply these rules in every role, including during resumed work and corrections. They operationalize the six principles in the [shared manifesto](../documentation/lean-specifications.md), which applies to the User and agents alike. The shared manifesto remains the authority; this document adds no independent scope or permissions.
 
 Read the approved scope, existing decisions and applicable project instructions before acting. Reuse recorded authorization where it already covers the work. Keep proposals, authorized implementation, technical verification and User acceptance distinct.
 
@@ -8,7 +8,7 @@ Read the approved scope, existing decisions and applicable project instructions 
 
 Identify who needs to do what, the current difficulty, the intended improvement and how it will be checked. Use information already available in the request and project records. Ask only for missing decisions that affect the result.
 
-Specification Agent records the outcome in the Specification. For standalone work, Development Agent records it on the Card. Do not substitute an implementation idea or a list of features for the expected outcome.
+KR Writer records the outcome in the Specification. For standalone work, KR Developer records it on the Card. Do not substitute an implementation idea or a list of features for the expected outcome.
 
 ## 2. Every requirement earns its place
 
@@ -24,9 +24,9 @@ Do not invent features, controls, configuration, steps or messages because the S
 
 ## 4. Give each requirement a way to pass or fail
 
-Specification Agent defines observable scenarios with setup, action and expected result. Repeat a scenario only when the variation can change its outcome. Development Agent supplies the exact candidate revision, environment, startup instructions and technical evidence.
+KR Writer defines observable scenarios with setup, action and expected result. Repeat a scenario only when the variation can change its outcome. KR Developer supplies the exact candidate revision, environment, startup instructions and technical evidence.
 
-Record passed, failed, blocked and unexecuted cases accurately against their tested revision. Preserve earlier attempts. During User acceptance, follow the [guided test procedure](roles/specification-agent.md#preparing-and-guiding-acceptance-tests): startup instructions in each case, an OK / KO choice, and an explanation and screenshot request after KO. The agent maintains the records.
+Record passed, failed, blocked and unexecuted cases accurately against their tested revision. Preserve earlier attempts. During User acceptance, follow the [guided test procedure](roles/tester.md#run-and-guide-acceptance): startup instructions in each case, an OK / KO choice, and an explanation and screenshot request after KO. The agent maintains the records.
 
 Do not turn a missing test into a pass or present technical checks as the User's acceptance decision.
 

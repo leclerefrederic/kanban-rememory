@@ -57,7 +57,7 @@ On Windows, replace `python3` with `py -3`. `test` without `--send` displays the
 
 Telegram only alerts the User. The chat stays the place for answers, permissions and acceptance decisions, a Telegram reply changes nothing, and the tool adds no reminder or scheduler.
 
-From the project root, send through the wrapper described in [Commands for Development Agents](#commands-for-development-agents). Give the task, a stable ID, what is waiting or the verified result, and the conversation to resume. Write `--text` and `--label` in the User's language; the icon keeps the two alerts distinguishable. Add `--link` only if the environment provides a direct link, and never invent one. For example:
+From the project root, send through the wrapper described in [Commands for KR Developers](#commands-for-kr-developers). Give the task, a stable ID, what is waiting or the verified result, and the conversation to resume. Write `--text` and `--label` in the User's language; the icon keeps the two alerts distinguishable. Add `--link` only if the environment provides a direct link, and never invent one. For example:
 
 ```sh
 python3 agents/tools/configure-telegram.py run --send -- attention --task "Export report" --id export-format --text "Choose the file format." --chat-name "Claude Code · Export report"
@@ -92,7 +92,7 @@ Never tell the User that they were notified unless the tool printed `confirmed d
 
 See the [Telegram Bot API](https://core.telegram.org/bots/api).
 
-## Commands for Development Agents
+## Commands for KR Developers
 
 Use `configure-telegram.py run` for each send: it reads the saved file and passes settings to a child process. It overrides any stale `TELEGRAM_*` values for that child only. Neither the parent shell nor the application needs to be restarted. It never prints the token or puts it in command arguments.
 

@@ -34,7 +34,7 @@ None required for this change.
 
 ## Ready Batch
 
-File: `project/batches/batch-001/description.md`. This is the state after scope approval and before Development Agent pickup.
+File: `project/batches/batch-001/description.md`. This is the state after scope approval and before KR Developer pickup.
 
 ```markdown
 ---
@@ -54,11 +54,11 @@ Deliver the approved CSV preservation behavior and verify both acceptance cases.
 Use the existing export format and test fixture. Delivery is accepted at verified merge to main.
 ```
 
-The selection order is the mission priority. Development Agent tracks implementation independently on Cards that may reference `Batch-001` and `SPEC-001`. Batch records do not contain Card references.
+The selection order is the mission priority. KR Developer tracks implementation independently on Cards that may reference `Batch-001` and `SPEC-001`. Batch records do not contain Card references.
 
 ## Acceptance tests
 
-File: `project/batches/batch-001/tests.md`. Prepare the scenarios before development. Before `delivered`, Development Agent replaces the candidate placeholders with the exact tested commit, build, and executable startup instructions.
+File: `project/batches/batch-001/tests.md`. Prepare the scenarios before development. Before `delivered`, KR Developer replaces the candidate placeholders with the exact tested commit, build, and executable startup instructions.
 
 ```markdown
 ---
@@ -88,7 +88,7 @@ Each case repeats its startup instructions inside the verdict question. After re
 
 ## Report and handoff
 
-File: `project/batches/batch-001/report.md`. Specification Agent records the User's actual approval. Development Agent fills technical handoff fields after creating the approval commit; it must not insert that hash into the pinned description.
+File: `project/batches/batch-001/report.md`. KR Writer records the User's actual approval. KR Developer fills technical handoff fields after creating the approval commit; it must not insert that hash into the pinned description.
 
 ```markdown
 ---

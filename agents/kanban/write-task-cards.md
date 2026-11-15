@@ -1,6 +1,6 @@
 # Task cards
 
-This guide is for the AI Development Agent, which alone creates and maintains Cards. The User supplies requests and decisions through conversation. The agent records those inputs and the execution evidence; the User can read the board without maintaining it.
+Use this guide to prepare a backlog Card as KR Writer or in the direct KR Developer workflow. KR Developer maintains execution evidence and controls stage changes. The User supplies requests and decisions through conversation and can read the board without maintaining it.
 
 A card tracks one executable task with a verifiable outcome. Examples include fixing a bug, adding a test, migrating a database, and investigating an alert with a documented finding as the outcome. A requirement may lead to several cards. Split a task when parts can be executed and verified independently.
 

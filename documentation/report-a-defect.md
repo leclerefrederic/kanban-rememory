@@ -22,7 +22,7 @@ The [Batch acceptance guide](test-and-accept-a-batch.md) explains severity, corr
 
 Identify the earlier delivery when possible. Its report remains historical evidence. In a project using Batches, the agent prepares the corrective Specification and proposed delivery, carrying forward the original defect reference and any required tests still due. A new report records the verified resolution without rewriting the closed source report.
 
-The defect describes what is wrong and what must be restored. Development Agent's Cards track the work needed to fix it independently. Rewriting the defect as a task does not resolve the debt.
+The defect describes what is wrong and what must be restored. KR Developer's Cards track the work needed to fix it independently. Rewriting the defect as a task does not resolve the debt.
 
 ## Distinguish a correction from a new idea
 

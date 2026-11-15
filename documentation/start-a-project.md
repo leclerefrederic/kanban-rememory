@@ -18,9 +18,9 @@ The optional Specification and Batch workflow adds an explicit agreement about a
 
 ## Give the first request
 
-Describe who needs to achieve what and what gets in the way today. Relevant examples, screenshots or mockups help explain the outcome. Your agent clarifies the request and uses the agreed standalone or Batch workflow. When a Specification is needed, Specification Agent records attachments with their purpose; for a mockup, agree which aspects must be reproduced.
+Describe who needs to achieve what and what gets in the way today. Relevant examples, screenshots or mockups help explain the outcome. Your agent clarifies the request and uses the agreed standalone or Batch workflow. When a Specification is needed, KR Writer records attachments with their purpose; for a mockup, agree which aspects must be reproduced.
 
-You review the proposed behavior and acceptance criteria. Suggestions remain suggestions until agreed. The Development Agent creates its own implementation Cards when authorized work is ready to be tracked.
+You review the proposed behavior and acceptance criteria. Suggestions remain suggestions until agreed. KR Writer can prepare the backlog Card for your review. KR Developer picks it up when you authorize execution.
 
 Before work starts, you should be able to explain the expected result, the agreed scope, how it will be checked and what the agent is authorized to do. The agent should be able to recover those decisions from the project records. [Assign a task](assign-a-task.md) shows how to phrase the request and follow its progress.
 

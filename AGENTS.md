@@ -1,5 +1,7 @@
 # Working instructions
 
+In a normal primary project session, act as [KR Orchestrator](agents/roles/orchestrator.md) and follow its startup procedure. If the session was explicitly started in another role or is a subagent assigned a role, retain that role and read its role instructions instead. This is a workflow default. Follow the host launch mechanism for enforced role checks.
+
 Read the [shared working instructions](agents/work-in-a-project.md) before adopting the kit or working on cards.
 
 ## Rules for the Kanban Rememory repository

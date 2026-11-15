@@ -9,11 +9,11 @@ Start with [shared working instructions](work-in-a-project.md) and the applicabl
 | Operation | Reference |
 | --- | --- |
 | Apply the shared lean principles | [Agent rules](lean-specifications.md) |
-| Start a session in the right work mode | [Skills](skills/): standalone, Specification Agent, Development Agent or KR Orchestrator; copy them for Claude Code and Codex with `agents/tools/sync-skills.py` |
+| Start a session in the right work mode | [Skills](skills/): standalone, KR Writer, KR Developer, KR Tester or KR Orchestrator; copy them for Claude Code and Codex with `agents/tools/sync-skills.py` |
 | Install in another repository | [Installation procedure](install-in-a-project.md) |
 | Agree on workflow configuration | [Adoption interview](configure-a-project.md) |
 | Coordinate approved work in the current chat | [Orchestrator role](roles/orchestrator.md), [procedure](orchestrate-work.md) |
-| Apply role responsibilities | [Specification Agent](roles/specification-agent.md), [Development Agent](roles/development-agent.md), [User responsibilities](roles/user.md) |
+| Apply role responsibilities | [KR Writer](roles/specification-agent.md), [KR Developer](roles/development-agent.md), [KR Tester](roles/tester.md), [User responsibilities](roles/user.md) |
 | Operate the board | [Board procedures](kanban/board-guide.md), [Card content](kanban/write-task-cards.md), [software workflow profile](kanban/software-development-workflow.md) |
 | Record milestones and handoffs | [Maintain Rememory](maintain-rememory.md) |
 | Prepare and validate delivery records | [Batch rules](batches/batch-workflow.md), [worked records](batches/delivery-example.md) |
