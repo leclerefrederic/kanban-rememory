@@ -6,9 +6,9 @@ This guide describes a delivery using Specifications and a Batch. For standalone
 
 Explain the desired outcome in the current project chat. In the normal workflow, KR Orchestrator handles KR Writer duties to prepare the Specification and observable acceptance criteria, then coordinates the handoff. You can clarify or revise the proposal while it is being prepared; explicitly selected roles keep their assignments.
 
-A Batch selects one or more exact Specification revisions and records their priority. You approve that scope and authorize execution. Once approved, the Batch baseline stays fixed. Correcting an implementation restores agreed behavior; changing that behavior requires a new approved Specification revision and a delivery plan that preserves the active baseline.
+A Batch selects one or more ready Specifications and records their priority. When you approve the scope, the Specifications move to approved and their contents stay fixed through development and correction. A new approved Specification is needed for any later change in behavior.
 
-Retired proposals remain in the workspace's `specifications/retired/` directory, or `specs/retired/` in an existing legacy workspace, with the reason and a link to any replacement. Batch selection excludes them.
+Retired Specifications remain in the workspace's `specifications/retired/` directory, or `specs/retired/` in an existing legacy workspace, for reference. Batch selection excludes them.
 
 The mission order expresses priority. KR Developer may adjust the technical execution order to respect dependencies in the code.
 
@@ -46,7 +46,7 @@ If the project enabled the optional publication check, it verifies the guard evi
 
 On rejection, the candidate code and its automated tests are archived. A separate closing record preserves the Specifications, findings, debt and outstanding acceptance tests without adding rejected implementation to the accepted baseline. The previous main history is preserved.
 
-Unchanged approved Specifications can be selected again for another Batch. Their earlier defects and outstanding tests remain relevant: a successor carries those obligations forward. A rejected delivery is therefore still useful evidence for the next attempt.
+Closing a Batch retires its Specifications, whether you accepted or rejected the delivery. A later Batch uses new Specification IDs and carries unresolved obligations forward from the earlier reports.
 
 ## Interruptions and handoffs
 

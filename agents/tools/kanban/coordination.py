@@ -195,6 +195,8 @@ class Coordination:
                 self.require_owner(owner, delivery)
                 if current["base_revision"] != base_revision:
                     raise ValueError("Resume with the recorded base revision.")
+                if approval is not None and current.get("approval") != approval:
+                    raise ValueError("Resume with the recorded Batch approval commit.")
                 return current
             for path in self.directory.glob("module-*.json"):
                 other = json.loads(path.read_text(encoding="utf-8"))
@@ -211,6 +213,8 @@ class Coordination:
                 "base_revision": base_revision,
                 "checkpoint": "picked up",
             }
+            if approval is not None:
+                state["approval"] = approval
             replace_json(self.module_file, state)
             return state
 

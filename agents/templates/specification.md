@@ -1,7 +1,6 @@
 ---
 type: specification
 id: null
-revision: "1"
 ---
 # Specification
 

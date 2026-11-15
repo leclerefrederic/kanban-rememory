@@ -74,7 +74,7 @@ def archived_specification_resource(source, target, project=PROJECT, root=ROOT):
     except ValueError:
         return False
     active = specifications / "resources/active"
-    if source.parent != specifications / "approved" or not target.is_relative_to(active):
+    if source.parent not in (specifications / "approved", specifications / "retired") or not target.is_relative_to(active):
         return False
     archived = specifications / "resources/archived" / target.relative_to(active)
     if not archived.is_file():
@@ -184,6 +184,18 @@ def validate(workflow, project=PROJECT, workspaces=(), root=ROOT, *, context=Non
                         findings.append(f"{name}: Card cannot link to a Batch in a different scope: {href}")
                 if not target.exists() and path.is_relative_to(records / "batches"):
                     target = target.with_name(target.name.lower())
+                if not target.exists():
+                    resolved = target.resolve()
+                    for workspace in (project, *workspaces):
+                        try:
+                            approved = specification_root(workspace) / "approved"
+                        except ValueError:
+                            continue
+                        if resolved.parent == approved and re.fullmatch(r"spec-[0-9]+\.md", target.name):
+                            retired = approved.parent / "retired" / target.name
+                            if retired.is_file():
+                                target = retired
+                            break
                 if not target.exists() and archived_specification_resource(path, target.resolve(), records, root):
                     continue
                 reference = (name.as_posix(), href)

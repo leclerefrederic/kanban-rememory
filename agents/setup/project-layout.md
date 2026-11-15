@@ -42,4 +42,4 @@ project/
       evidence/                   Create with the first attachment
 ```
 
-Spec state is its folder; a ready Batch pins exact approved revisions. Existing workspaces using `specs/` retain that name and their frozen paths. IDs are `SPEC-001`, `Batch-001`; paths remain lowercase. Cards reference Batch/Spec IDs, never the reverse. Local guards belong in the shared Git directory. Each adopting project starts with its own workflow, Cards, Specs, Batches and dated records.
+A ready Batch pins the approved Specifications by their stable IDs and paths. Specs travel from draft to ready to approved, then retire when their Batch closes. Existing workspaces using `specs/` retain that name and their frozen paths. IDs are `SPEC-001`, `Batch-001`; paths remain lowercase. Cards reference Batch/Spec IDs, never the reverse. Local guards belong in the shared Git directory. Each adopting project starts with its own workflow, Cards, Specs, Batches and dated records.

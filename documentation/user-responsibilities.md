@@ -4,7 +4,7 @@ You own the project and make its product and delivery decisions. In a normal pro
 
 ## Decide what should be delivered
 
-Explain the desired outcome, priorities and constraints. Review the proposed scope using the [Lean Specifications approval test](lean-specifications.md#the-approval-test). For a Batch, approve the exact Specification revisions and their priority.
+Explain the desired outcome, priorities and constraints. Review the proposed scope using the [Lean Specifications approval test](lean-specifications.md#the-approval-test). For a Batch, approve the exact Specifications and their priority.
 
 Make the intended next step clear: preparing a proposal, approving its scope, authorizing execution and publishing are distinct. One instruction can grant several permissions together, and recorded standing authorization remains usable. Changes to the agreed workflow or role definitions also need your approval.
 

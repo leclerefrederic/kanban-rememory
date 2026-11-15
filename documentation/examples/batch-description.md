@@ -1,21 +1,21 @@
 ---
 type: batch
 id: "Batch-101"
-specifications: [{"id":"SPEC-101","revision":"1","path":"project/specifications/approved/spec-101-r1.md"}]
+specifications: [{"id":"SPEC-101","path":"project/specifications/approved/spec-101.md"}]
 status: closed
 ---
 
 # Deliver reliable booking exports
 
-> Fictional example, shown after accepted closure. In the example project, this file is `project/batches/batch-101/description.md`. The path in its header identifies the approved Specification in that fictional project.
+> Fictional example, shown after accepted closure. In the example project, this file is `project/batches/batch-101/description.md`. The header retains the approved path captured at approval. The closed delivery preserves the Specification under `retired/`.
 
 ## Objective
 
-Deliver [SPEC-101 revision 1](specification.md): preserve accented names and names containing commas in the existing CSV export.
+Deliver [SPEC-101](specification.md): preserve accented names and names containing commas in the existing CSV export.
 
 ## Execution constraints
 
-The selection contains one Specification, so there is no competing mission priority. Keep its approved revision unchanged throughout implementation and correction.
+The selection contains one Specification, so there is no competing mission priority. Keep its approved Specification unchanged throughout implementation and correction.
 
 Use the existing export action. Both [acceptance cases](batch-tests.md) must pass on the final candidate before the User accepts delivery. The agreed delivery point is verified merge and publication to `main`; production deployment is outside this Batch.
 

@@ -161,14 +161,20 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.run_tool(self.root, "manage-kanban-board", "history", "a/CARD-00000009", expected=1)
         self.assertEqual({path: path.read_bytes() for path in original}, original)
 
-    def write_batch(self, module):
+    def write_batch(self, module, *, numbered=True):
         workspace = self.root / "project/modules" / module
-        spec = workspace / "specs/approved/spec-001-r1.md"
+        filename = "spec-001-r1.md" if numbered else "spec-001.md"
+        spec = workspace / "specs/approved" / filename
         spec.parent.mkdir(parents=True)
-        spec.write_text('---\ntype: specification\nid: "SPEC-001"\nrevision: "1"\n---\n')
+        revision = 'revision: "1"\n' if numbered else ""
+        spec.write_text(f'---\ntype: specification\nid: "SPEC-001"\n{revision}---\n')
+        (workspace / "specs/retired").mkdir()
+        (workspace / "specs/retired/.gitkeep").touch()
         record = workspace / "batches/batch-001"
         record.mkdir(parents=True)
-        pins = [{"id":"SPEC-001", "revision":"1", "path":spec.relative_to(self.root).as_posix()}]
+        pins = [{"id": "SPEC-001", "path": spec.relative_to(self.root).as_posix()}]
+        if numbered:
+            pins[0]["revision"] = "1"
         (record / "description.md").write_text(
             f'---\ntype: batch\nid: "{BATCH}"\nspecifications: {json.dumps(pins)}\nstatus: ready\n---\n',
         )
@@ -178,9 +184,9 @@ class ModuleDeliveryTests(unittest.TestCase):
             )
         return record.relative_to(self.root)
 
-    def initialize_deliveries(self):
+    def initialize_deliveries(self, *, numbered=True):
         self.setup_modules("--apply")
-        paths = {module: self.write_batch(module) for module in ("a", "b")}
+        paths = {module: self.write_batch(module, numbered=numbered) for module in ("a", "b")}
         revision = self.commit(self.root, "Approve fixture batches")
         self.git(self.root, "push", "origin", "main")
         for module in paths:
@@ -440,8 +446,36 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.control("b", "finish", BATCH, "--owner", "b", "--revision", b_closing)
         self.assertEqual(self.control("a", "status").strip(), "null")
 
+    def test_simple_batch_retires_without_changing_its_approval_pin(self):
+        self.run_tool(self.root, "manage-kanban-board", "init", "--template", "standard",
+                      "--with-batches", "--apply")
+        workspace = self.root / "project"
+        original = workspace / "specifications/approved/spec-001.md"
+        retired = workspace / "specifications/retired" / original.name
+        original.write_text('---\ntype: specification\nid: "SPEC-001"\n---\n')
+        expected = original.read_bytes()
+        batch = workspace / "batches/batch-001"
+        batch.mkdir()
+        description = batch / "description.md"
+        pins = [{"id": "SPEC-001", "path": original.relative_to(self.root).as_posix()}]
+        source = f'---\ntype: batch\nid: "{BATCH}"\nspecifications: {json.dumps(pins)}\nstatus: ready\n---\n'
+        description.write_text(source)
+        for kind in ("tests", "report"):
+            (batch / f"{kind}.md").write_text(
+                f'---\ntype: {kind}\nid: "{BATCH}-{kind.title()}"\nbatch: "{BATCH}"\n---\n',
+            )
+        approval = self.commit(self.root, "Approve simple project fixture")
+        args = (self.root, "manage-kanban-board", "retire-specifications", BATCH, approval)
+        self.assertIn("decided Batch", self.run_tool(*args, expected=1))
+        description.write_text(source.replace("status: ready", "status: validated"))
+        self.run_tool(*args)
+        self.assertFalse(original.exists())
+        self.assertEqual(retired.read_bytes(), expected)
+        description.write_text(source.replace("status: ready", "status: closed"))
+        self.run_tool(self.root, "manage-kanban-board", "verify-approval", BATCH, approval)
+
     def test_interrupt_and_resume_accepted_and_rejected_publication(self):
-        revision, paths = self.initialize_deliveries()
+        revision, paths = self.initialize_deliveries(numbered=False)
         self.git(self.root, "config", "core.hooksPath", "agents/tools/git-hooks")
         candidates = {}
         for module in paths:
@@ -461,7 +495,23 @@ class ModuleDeliveryTests(unittest.TestCase):
             if result == "accepted":
                 self.git(integration, "merge", "--no-ff", "-m", "Integrate", candidate)
             description = integration / paths[module] / "description.md"
-            description.write_text(description.read_text().replace("status: ready", "status: closed"))
+            status = "validated" if result == "accepted" else "rejected"
+            source = description.read_text()
+            description.write_text(source.replace("status: ready", f"status: {status}"))
+            original = integration / paths[module].parent.parent / "specs/approved/spec-001.md"
+            expected = original.read_bytes()
+            retired = original.parent.parent / "retired" / original.name
+            retire = ("closure", "retire", BATCH, "--owner", module, "--integration-checkout", integration)
+            if result == "accepted":
+                original.write_bytes(expected + b"Edited\n")
+                self.assertIn("exact approved Specification", self.control(module, *retire, expected=1))
+                self.assertFalse(retired.exists())
+                original.write_bytes(expected)
+            self.control(module, *retire)
+            self.control(module, *retire)
+            self.assertFalse(original.exists())
+            self.assertEqual(retired.read_bytes(), expected)
+            description.write_text(source.replace("status: ready", "status: closed"))
             with (integration / paths[module] / "report.md").open("a") as stream:
                 stream.write(f'\n## User decision\n\n- Decision: {result} `{candidate}`.\n')
             closing = self.commit(integration, f"Close {module}", "-m", f"Batch-Closure: {module}/{BATCH}")

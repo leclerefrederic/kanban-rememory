@@ -1,12 +1,11 @@
 ---
 type: specification
 id: "SPEC-101"
-revision: "1"
 ---
 
 # Preserve booking names in CSV exports
 
-> Fictional example, written by KR Writer. In the example project, this approved revision lives at `project/specifications/approved/spec-101-r1.md`. It describes the agreed behavior. The tests and report record what was delivered.
+> Fictional example, written by KR Writer. In the example project, this Specification lives at `project/specifications/approved/spec-101.md` during delivery and moves to `retired/` when the Batch closes. It describes the agreed behavior. The tests and report record what was delivered.
 
 ## Expected outcome
 
@@ -25,6 +24,6 @@ Correct name encoding and quoting in the existing CSV export. Keep the existing 
 
 None required. The two sample names above are sufficient test data; no real customer data is needed.
 
-This approved revision stays unchanged during correction. Restoring either criterion does not add scope.
+This approved Specification stays unchanged during correction. Restoring either criterion does not add scope.
 
 Return to the [example reading order](../index.md#a-complete-example).

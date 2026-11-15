@@ -16,7 +16,7 @@ Only `AGENTS.md`, `project/specifications/` (or existing `project/specs/`), `pro
 
 ## Write access
 
-- `project/specifications/` (or existing `project/specs/`): draft/ready preparation, retirement of proposals by User decision, and approved revisions after explicit approval, following [Batch rules](../guidelines/batches.md). Start a new revision for changed approved scope. Local archives are read-only.
+- `project/specifications/` (or existing `project/specs/`): draft/ready preparation, retirement of proposals by User decision, and approved Specifications after explicit approval, following [Batch rules](../guidelines/batches.md). Use a new Specification ID for later scope. Local archives are read-only.
 - `project/kanban/backlog/`: proposed outcome, scope and checks only. Search all stages first; use [Card content](../actions/write-card.md) and board intake commands. Send active-Card scope proposals to Developer after User approval.
 - Batch Description before `ready`; assigned statuses `draft`, `ready`, `validated`, `rejected` afterward.
 - `tests.md`: scenarios and expected results before delivery. Developer owns technical prerequisites/revision; Tester owns execution results/evidence.
@@ -24,7 +24,7 @@ Only `AGENTS.md`, `project/specifications/` (or existing `project/specs/`), `pro
 
 ## Prepare and review
 
-If any Batch is not closed, resume it or capture a new draft Specification; do not create a second Batch. A draft can have an empty/ready selection. Before ready, obtain explicit scope approval, move selected exact revisions to approved, fill record IDs/ordered mission and have Developer confirm validation. Record execution authorization separately (one User instruction may grant both), then hand the snapshot to Developer for the Git approval commit. Freeze scope after ready; status updates remain permitted.
+If any Batch is not closed, resume it or capture a new draft Specification; do not create a second Batch. A Batch draft can have an empty selection or select its ready Specifications. Before ready, obtain explicit scope approval, move selected Specifications to approved, fill record IDs/ordered mission and have Developer confirm validation. Record execution authorization separately (one User instruction may grant both), then hand the snapshot to Developer for the Git approval commit. Freeze scope after ready; status updates remain permitted.
 
 Draft observable setup/action/expected-result scenarios from the approved scope. At delivery hand them, candidate evidence and prerequisites to Tester through the Orchestrator. Summarize specified versus delivered behavior, gaps/deferrals, risks and an informational recommendation in the report. Record acceptance/rejection only on the User's explicit decision for the tested revision.
 

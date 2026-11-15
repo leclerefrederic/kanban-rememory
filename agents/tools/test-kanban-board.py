@@ -72,6 +72,7 @@ INSTALL_FILES = (
     'agents/roles/tester.md',
     'agents/tools/manage-kanban-board.py',
     'agents/tools/manage-module-delivery.py',
+    'agents/tools/notify-telegram.py',
 )
 
 
@@ -699,6 +700,53 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board("validate")
 
 
+    def test_unnumbered_specification_belongs_to_one_batch_and_remains_verifiable(self):
+        self.run_board("init", "--template", "short", "--apply", "--with-batches")
+        records = self.root / "project/specifications"
+        spec = records / "ready/spec-001.md"
+        resource = records / "resources/active/contract.txt"
+        resource.write_text("expected contract")
+        spec.write_text('---\ntype: specification\nid: "SPEC-001"\n---\n'
+                        '## Resources\n\n- [Contract](../resources/active/contract.txt)\n')
+        batch = self.root / "project/batches/batch-001"
+        batch.mkdir()
+        description = batch / "description.md"
+        pin = {"id": "SPEC-001", "path": spec.relative_to(self.root).as_posix()}
+        draft = (KIT / "agents/templates/batch-description.md").read_text().replace(
+            "id: null", 'id: "Batch-001"').replace("specifications: []", "specifications: " + json.dumps([pin]))
+        description.write_text(draft)
+        self.run_board("validate")
+        competing = batch.with_name("batch-002")
+        competing.mkdir()
+        second = competing / "description.md"
+        second.write_text(draft.replace("Batch-001", "Batch-002"))
+        self.assertIn("already belongs to Batch Batch-001", self.run_board("validate", expected=1))
+        second.unlink()
+
+        self.populate_lot_templates(batch)
+        approved = records / "approved" / spec.name
+        spec.rename(approved)
+        ready = draft.replace("status: draft", "status: ready").replace("/ready/", "/approved/")
+        description.write_text(ready)
+        approval = self.commit_fixture("Approve a Specification without a revision")
+        self.run_board("verify-approval", "Batch-001", approval)
+        resource.write_text("tampered")
+        self.assertIn("Approval mismatch", self.run_board("verify-approval", "Batch-001", approval, expected=1))
+        resource.write_text("expected contract")
+        description.write_text(ready.replace("status: ready", "status: in-progress"))
+        self.run_board("verify-approval", "Batch-001", approval)
+
+        retired = records / "retired" / spec.name
+        description.write_text(ready.replace("status: ready", "status: closed"))
+        self.assertIn("matching retired ID and path", self.run_board("validate", expected=1))
+        approved.rename(retired)
+        report = batch / "report.md"
+        report.write_text(report.read_text() + "\n[Specification](../../specifications/approved/spec-001.md)\n")
+        self.run_board("validate")
+        self.run_board("verify-approval", "Batch-001", approval)
+        second.write_text(draft.replace("Batch-001", "Batch-002").replace("/ready/", "/retired/"))
+        self.assertIn("its own ready path", self.run_board("validate", expected=1))
+
     def test_draft_batch_preparation_keeps_ready_requirements(self):
         self.run_board("init", "--template", "short", "--apply")
         batch = self.root / "project/batches/batch-001"
@@ -796,7 +844,7 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board("init", "--template", "short", "--apply")
         self.run_board("validate")
         mapping = {
-            "documentation/examples/specification.md": "project/specifications/approved/spec-101-r1.md",
+            "documentation/examples/specification.md": "project/specifications/retired/spec-101.md",
             "documentation/examples/batch-description.md": "project/batches/batch-101/description.md",
             "documentation/examples/batch-tests.md": "project/batches/batch-101/tests.md",
             "documentation/examples/batch-report.md": "project/batches/batch-101/report.md",
@@ -1064,10 +1112,10 @@ class KanbanBoardTests(unittest.TestCase):
         environment.pop("TELEGRAM_BOT_TOKEN", None)
         for identifier in ("Batch-001", "batch-001", "BATCH-001", "bad-id"):
             with self.subTest(identifier=identifier):
-                result = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"),
+                result = subprocess.run([sys.executable, str(self.root / "agents/tools/notify-telegram.py"),
                                          "delivered", "--batch", identifier, "--revision", "a" * 40,
                                          "--text", "Candidate ready.", "--next-action", "Start guided tests.",
-                                         "--chat-name", "Actual app · Acceptance"], env=environment,
+                                         "--chat-name", "Actual app · Acceptance"], cwd=self.root, env=environment,
                                         capture_output=True, text=True)
                 if identifier == "bad-id":
                     self.assertNotEqual(result.returncode, 0)
@@ -1293,7 +1341,7 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertEqual(len(sent), 2)
         self.assertIn("revision bbbbbbb", sent[1])
         self.assertTrue(sent[1].startswith("🧪 Ready to test"))
-        refused = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"), "delivered",
+        refused = subprocess.run([sys.executable, str(self.root / "agents/tools/notify-telegram.py"), "delivered",
                                   "--batch", "Batch-001"], env={**os.environ, "TELEGRAM_CHAT_ID": "42",
                                   "TELEGRAM_EVENTS": "delivered"}, capture_output=True, text=True)
         self.assertNotEqual(refused.returncode, 0)
@@ -1405,8 +1453,8 @@ class KanbanBoardTests(unittest.TestCase):
 
     def test_alert_command_reports_state_and_validates_input(self):
         def run(*args, **environment):
-            return subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"), *args],
-                                  env={**{k: v for k, v in os.environ.items() if not k.startswith("TELEGRAM_")},
+            return subprocess.run([sys.executable, str(self.root / "agents/tools/notify-telegram.py"), *args],
+                                  cwd=self.root, env={**{k: v for k, v in os.environ.items() if not k.startswith("TELEGRAM_")},
                                        **environment}, capture_output=True, text=True)
 
         full = ("attention", "--task", "Task", "--id", "r1", "--text", "Need you.", "--chat-name", "Chat",

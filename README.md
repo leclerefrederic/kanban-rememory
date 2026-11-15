@@ -36,7 +36,7 @@ Start with **Cards and Rememory**. Add the optional Specification and Batch modu
 | **Card** | An executable task, its outcome, scope, dependencies and completion evidence. It can reference a Specification or Batch. |
 | **Rememory** | A concise journal of decisions, verified milestones, blockers and the next authorized action. |
 | **Specification** | Intended behavior, acceptance criteria, constraints and any binding mockups or resources. |
-| **Batch** | A delivery selecting exact approved Specification revisions, with priorities, tests, a report and your final decision. |
+| **Batch** | A delivery selecting exact approved Specifications, with priorities, tests, a report and your final decision. |
 | **Tests and report** | The tested candidate, results, defects, outstanding checks, decisions and closure evidence for that Batch. |
 
 **A Batch groups Specifications. Cards track execution independently.** A Card can point to a Batch; Batch records do not contain Cards. Stable IDs connect the records, Git preserves their history, and Rememory explains the decisions and next steps.

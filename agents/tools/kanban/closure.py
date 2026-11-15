@@ -9,6 +9,7 @@ import subprocess
 from .accepted_content import StaleAcceptance, verify_accepted_content
 from .coordination import exclusive, replace_json
 from .files import header_value
+from .specification_retirement import retire_batch_specifications, verify_retirement
 
 
 FULL_REVISION = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})")
@@ -85,6 +86,10 @@ class Closure:
         published = self.git("show", f"{closing}:{path}")
         if header_value(published, "id") != self.delivery or header_value(published, "status") != "closed":
             raise ValueError("Closing commit is missing the qualified closed Batch record.")
+        verify_retirement(
+            self.coordination.root, self.coordination.workspace.relative_to(self.coordination.primary),
+            Path(path), published, record.get("approval"), closing,
+        )
         if self.ancestor(candidate, closing) != (record["result"] == "accepted"):
             raise ValueError("Closing history must include the accepted candidate or exclude the rejected candidate.")
         # A closing commit says what was decided; the published report remains the decision source.
@@ -105,6 +110,33 @@ class Closure:
             (self.coordination.directory / "integration.json").unlink()
             raise StaleAcceptance(f"{error} Integration was released. This module remains occupied.") from error
 
+    def retire(self, integration_checkout):
+        with self.while_integrating() as integration:
+            control = self.coordination
+            checkout = Path(integration_checkout).resolve()
+            if checkout in (control.root, control.primary):
+                raise ValueError("Retire Specifications in the separate integration worktree.")
+            checkout_root = subprocess.check_output(
+                ["git", "rev-parse", "--show-toplevel"], cwd=checkout, text=True,
+            ).strip()
+            if Path(checkout_root).resolve() != checkout:
+                raise ValueError("Supply the integration worktree root.")
+            common = control.git("rev-parse", "--path-format=absolute", "--git-common-dir")
+            actual = subprocess.check_output(
+                ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                cwd=checkout, text=True,
+            ).strip()
+            if Path(actual).resolve() != Path(common).resolve():
+                raise ValueError("Use an integration worktree of this clone.")
+            head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=checkout, text=True).strip()
+            if not self.ancestor(integration["main_revision"], head):
+                raise ValueError("The integration worktree must preserve the recorded main revision.")
+            state = control.require_owner(self.owner, self.delivery)
+            description = control.description(self.delivery).relative_to(control.primary)
+            return retire_batch_specifications(
+                checkout, control.workspace.relative_to(control.primary), description, state.get("approval"),
+            )
+
     def prepare(self, closing, candidate, result):
         with self.while_integrating() as integration:
             record = {
@@ -112,6 +144,9 @@ class Closure:
                 "owner": self.owner, "closing": closing, "candidate": candidate, "result": result,
                 "main_revision": integration["main_revision"],
             }
+            approval = self.coordination.require_owner(self.owner, self.delivery).get("approval")
+            if approval is not None:
+                record["approval"] = approval
             if integration.get("verified_revision") != closing:
                 raise ValueError("Verify the exact combined closing revision before preparing publication.")
             self.validate_for_publication(record)

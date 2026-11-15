@@ -10,7 +10,7 @@ batch: "Batch-101"
 
 ## Handoff
 
-- Scope approval: User approved [SPEC-101 revision 1](specification.md) on 2026-01-12 at 09:00 Europe/Paris.
+- Scope approval: User approved [SPEC-101](specification.md) on 2026-01-12 at 09:00 Europe/Paris.
 - Execution authorization: User authorized development of [Batch-101](batch-description.md) in the same instruction.
 - Approval commit and ref: `approval`, `refs/heads/batch-approval/batch-101`.
 - Base main commit: `base`.

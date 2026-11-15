@@ -9,6 +9,7 @@ import sys
 from kanban.accepted_content import verify_accepted_content
 from kanban.files import header_value
 from kanban.project import parse_manifest
+from kanban.specification_retirement import verify_retirement
 
 
 BATCH_DIR = re.compile(r"batch-[0-9]+")
@@ -102,7 +103,7 @@ def coordination_record(path):
     return record
 
 
-def verify_module_closure(root, common, local_sha, remote_sha, identity):
+def verify_module_closure(root, common, local_sha, remote_sha, identity, tree, workspace):
     project_id, module, batch = identity
     delivery = f"Batch-{batch[6:]}"
     directory = common / "kanban-rememory" / "projects" / project_id
@@ -128,6 +129,9 @@ def verify_module_closure(root, common, local_sha, remote_sha, identity):
     expected = 0 if evidence["result"] == "accepted" else 1
     if ancestry.returncode != expected:
         raise ValueError(f"Candidate ancestry does not match the decision for {module}/{delivery}.")
+    description = workspace / "batches" / batch / "description.md"
+    verify_retirement(root, workspace, description, regular_object(tree, description).decode("utf-8"),
+                      evidence.get("approval"), local_sha)
     if evidence["result"] == "accepted":
         verify_accepted_content(root, candidate, local_sha)
 
@@ -187,7 +191,16 @@ def main():
         for identity, status in statuses(local_tree, local_project).items():
             if status == "closed" and before.get(identity) != "closed":
                 if identity[1] is not None:
-                    verify_module_closure(root, common, local_sha, remote_sha, identity)
+                    verify_module_closure(root, common, local_sha, remote_sha, identity,
+                                          local_tree, local_project[1][identity[1]])
+                else:
+                    batch = identity[2]
+                    workspace = PurePosixPath("project")
+                    description = workspace / "batches" / batch / "description.md"
+                    approval = git("rev-parse", "--verify", f"refs/heads/batch-approval/{batch}", check=False)
+                    verify_retirement(root, workspace, description,
+                                      regular_object(local_tree, description).decode("utf-8"),
+                                      approval.decode().strip() if approval else None, local_sha)
                 verify_artifact_guard(common, root, guard, local_sha, identity)
 
 

@@ -8,7 +8,7 @@ batch: null
 
 ## Handoff
 
-Scope approval; execution authorization; approved revisions; approval commit/ref; base commit; working branch; worktree; guard path when applicable.
+Scope approval; execution authorization; approved Specifications; approval commit/ref; base commit; working branch; worktree; guard path when applicable.
 
 ## Delivery summary and gaps
 

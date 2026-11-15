@@ -34,8 +34,9 @@ def main():
     milestone.add_argument("--evidence", help="Evidence path relative to the control checkout for local notes")
     milestone.add_argument("--published", action="store_true", help="Record the verified publication in the project journal")
     closure = commands.add_parser("closure")
-    closure.add_argument("action", choices=("prepare", "publish"))
+    closure.add_argument("action", choices=("retire", "prepare", "publish"))
     closure.add_argument("--closing")
+    closure.add_argument("--integration-checkout", help="Separate worktree preparing the closing commit")
     closure.add_argument("--candidate")
     closure.add_argument("--result", choices=("accepted", "rejected"))
     run = commands.add_parser("run-check")
@@ -79,7 +80,11 @@ def main():
                 state = coordination.publish_card(args.owner, args.delivery, args.closing)
             elif args.command == "closure":
                 action = Closure(coordination, args.owner, args.delivery)
-                if args.action == "prepare":
+                if args.action == "retire":
+                    if not args.integration_checkout:
+                        raise ValueError("Supply the separate integration checkout for retirement.")
+                    state = action.retire(args.integration_checkout)
+                elif args.action == "prepare":
                     if not all((args.closing, args.candidate, args.result)):
                         raise ValueError("Prepare closure with closing commit, candidate and User decision.")
                     state = action.prepare(args.closing, args.candidate, args.result)

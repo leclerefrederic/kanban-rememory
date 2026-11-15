@@ -56,6 +56,13 @@ def project_reference(path, project=PROJECT, root=ROOT):
     return root / relative
 
 
+def retired_pin(reference, revision, status):
+    """Resolve a closed, unnumbered Batch pin without editing its recorded path."""
+    if revision is None and status == "closed" and reference.parent.name == "approved":
+        return reference.parent.parent / "retired" / reference.name
+    return reference
+
+
 def batch_slug(identifier):
     return re.sub(r"^lot-", "batch-", identifier.lower())
 
@@ -75,24 +82,42 @@ def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
     fiches = set()
     approved = {}
     eligible = {}
+    retired = {}
+    seen_ids = {}
     try:
         specifications = specification_root(project)
     except ValueError as error:
         return [str(error)]
-    for state in ("ready", "approved", "frozen"):
+    for state in ("ready", "approved", "frozen", "retired"):
         for path in (specifications / state).glob("*.md"):
             content = path.read_bytes()
             source = content.decode("utf-8")
             fiche_id = header_value(source, "id") or field(source, "Fiche ID")
-            revision = str(header_value(source, "revision") or field(source, "Revision"))
-            if not fiche_id:
+            revision = header_value(source, "revision") or field(source, "Revision") or None
+            revision = str(revision) if revision is not None else None
+            if not isinstance(fiche_id, str) or not fiche_id:
                 continue
             fiches.add(fiche_id)
-            eligible[path.relative_to(root).as_posix()] = (fiche_id, revision, sha256(content).hexdigest())
-            if state != "ready":
-                approved[path.relative_to(root).as_posix()] = eligible[path.relative_to(root).as_posix()]
+            record = (fiche_id, revision, sha256(content).hexdigest())
+            relative = path.relative_to(root).as_posix()
+            if state == "retired":
+                retired[relative] = record
+            else:
+                eligible[relative] = record
+            if fiche_id in seen_ids and (revision is None or seen_ids[fiche_id] is None):
+                report(path, f"Duplicate Specification ID: {fiche_id}")
+            seen_ids[fiche_id] = revision
+            if revision is None and (
+                header_value(source, "type") != "specification"
+                or not re.fullmatch(r"SPEC-[0-9]{3,}", fiche_id)
+                or path.name != f"{fiche_id.lower()}.md"
+            ):
+                report(path, "Unnumbered Specification filename must match its stable SPEC ID.")
+            if state in ("approved", "frozen"):
+                approved[relative] = record
 
     lots = {}
+    owners = {}
     for path in batch_descriptions(project):
         lot_id = header_value(path.read_text(encoding="utf-8"), "id") or header_value(path.read_text(encoding="utf-8"), "lot") or path.parent.name
         if not isinstance(lot_id, str) or batch_slug(lot_id) != path.parent.name.lower() and lot_id.lower() != path.parent.name.lower():
@@ -133,20 +158,35 @@ def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
         for parts in fiche_entries(source):
             if len(parts) == 3:
                 parts = [*parts, None]
-            if (len(parts) != 4 or any(not isinstance(part, str) or not part for part in parts[:3])
+            if (len(parts) != 4 or any(not isinstance(parts[i], str) or not parts[i] for i in (0, 2))
+                    or (parts[1] is not None and (not isinstance(parts[1], str) or not parts[1]))
                     or (parts[3] is not None and
                         (not isinstance(parts[3], str) or not re.fullmatch(r"[0-9a-f]{64}", parts[3])))):
                 report(path, "Specification entry requires an ID, revision, and path. Legacy digests must be valid.")
                 continue
             try:
-                reference = project_reference(parts[2], project, root).relative_to(root).as_posix()
+                path_ref = project_reference(parts[2], project, root)
+                if parts[1] is None:
+                    required_state = "ready" if draft else "approved"
+                    if (path_ref.parent != specifications / required_state
+                            or path_ref.name != f"{parts[0].lower()}.md"
+                            or path_ref != root / parts[2] or path_ref.resolve() != path_ref
+                            or Path(parts[2]).is_absolute() or parts[3] is not None):
+                        report(path, f"An unnumbered Specification must pin its own {required_state} path.")
+                        continue
+                    owner = owners.setdefault(parts[0], lot_id)
+                    if owner != lot_id:
+                        report(path, f"Specification {parts[0]} already belongs to Batch {owner}.")
+                reference = retired_pin(path_ref, parts[1], status).relative_to(root).as_posix()
             except ValueError as error:
                 report(path, str(error))
                 continue
-            pinned = (eligible if draft else approved).get(reference)
+            records = retired if parts[1] is None and status == "closed" else eligible if draft else approved
+            pinned = records.get(reference)
             if not pinned or pinned[:2] != tuple(parts[:2]):
-                state = "ready or approved" if draft else "approved"
-                report(path, f"Specification entry must pin a matching {state} ID, revision, and path.")
+                state = "retired" if records is retired else "ready or approved" if draft else "approved"
+                identity = "ID and path" if parts[1] is None else "ID, revision, and path"
+                report(path, f"Specification entry must pin a matching {state} {identity}.")
                 continue
             if parts[3] is not None and pinned[2] != parts[3]:
                 report(path, f"Approved specification content changed: {parts[2]}")
@@ -174,7 +214,7 @@ def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
         if lot_id and lot_id not in lots:
             report(path, f"Unknown batch: {lot_id}")
         for fiche_id in fiche_ids:
-            if not fiche_id:
+            if not isinstance(fiche_id, str) or not fiche_id:
                 continue
             if fiche_id not in fiches:
                 report(path, f"Specification is not ready or approved: {fiche_id}")
@@ -269,7 +309,7 @@ def verify_approval(lot_id, revision, project=PROJECT, root=ROOT):
                 raise ValueError(f"Approval mismatch: {target.relative_to(root)}")
 
     for entry in fiche_entries(approved):
-        fiche = project_reference(entry[2], project, root)
+        fiche = retired_pin(project_reference(entry[2], project, root), entry[1], status)
         original = root / entry[2]
         recorded_fiche = approved_bytes(original)
         if fiche.read_bytes() != recorded_fiche:

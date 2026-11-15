@@ -18,7 +18,7 @@ Read `AGENTS.md`, `agents/`, code/tests, `project/kanban/`, `project/batches/`, 
 - Code/tests; Cards in `project/kanban/`; Rememory, including confirmed non-role exceptions.
 - `tests.md`: tested commit, environment, prerequisites and technical evidence only.
 - `report.md`: technical Handoff fields and Closure evidence only.
-- Batch statuses `in-progress`, `delivered`, `closed`.
+- Batch statuses `in-progress`, `delivered`, `closed`. During decided Batch closure, run the authorized retirement command to move its exact approved Specifications into the archive.
 - Authorized Git: standalone operations under project permissions; Batch branch, approval snapshot, merge/archive, tag, closing commit and push under the [closure procedure](../actions/close-batch.md).
 
 ## Execute

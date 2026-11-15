@@ -18,7 +18,7 @@ Each agent reads and writes only what its role needs. KR Writer prepares backlog
 
 ## What the records mean
 
-A **Specification** describes an outcome, the agreed behavior and how to check it. It can refer to a mockup or another resource. A draft is still being prepared; a ready Specification can be proposed for approval; an approved revision records the exact scope selected for a Batch. Changes to approved behavior require a new revision and agreement.
+A **Specification** describes an outcome, the agreed behavior and how to check it. It can refer to a mockup or another resource. Each Specification serves one Batch. A draft is still being prepared. The ready Specification is selected for scope review. Approval fixes its contents through development and correction. Batch closure retires it. Later scope gets a new Specification ID.
 
 A **Batch** is a delivery agreement covering one or more approved Specifications. It records priorities, tests and a report. Its approved scope stays fixed during execution. A new idea can be recorded for later work without expanding the active delivery.
 

@@ -1,6 +1,7 @@
 """Initialize, validate, display, create, or move cards on a Markdown Kanban board."""
 
 import argparse
+import re
 from contextlib import nullcontext
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,7 @@ from kanban.coordination import Coordination, exclusive
 from kanban.files import CARD_ID, ROOT, check_module_records
 from kanban.project import PROJECT_SCOPE, coordination_root, invocation_module, load_project, primary_worktree
 from kanban.specifications import specification_root
+from kanban.specification_retirement import retire_batch_specifications
 from kanban.validation import validate
 from kanban.workflow import TEMPLATES, initialize, load_workflow
 
@@ -64,6 +66,9 @@ def main():
     approval = commands.add_parser("verify-approval")
     approval.add_argument("batch_id")
     approval.add_argument("revision", help="Full commit ID from the trusted approval record")
+    retirement = commands.add_parser("retire-specifications")
+    retirement.add_argument("batch_id")
+    retirement.add_argument("approval", help="Full commit ID from the trusted approval record")
     new = commands.add_parser("new")
     new.add_argument("title")
     new.add_argument("--owner", required=True)
@@ -88,7 +93,7 @@ def main():
     board.add_argument("--timezone", help="IANA time zone for age")
     history = commands.add_parser("history", help="Find a frozen Card by its historical reference")
     history.add_argument("reference")
-    for command in (validation, approval, new, move, reassign, init, board, history):
+    for command in (validation, approval, retirement, new, move, reassign, init, board, history):
         command.add_argument("--scope", "--module", dest="scope", help="Module ID or @project")
     args = parser.parse_args()
     if args.scope and args.global_scope and args.scope != args.global_scope:
@@ -131,6 +136,17 @@ def main():
                 raise ValueError("Set up Specifications and Batches in each selected module workspace.")
             return initialize(args, workspace, root)
         workflow = load_workflow(workspace)
+        if args.command == "retire-specifications":
+            if context:
+                raise ValueError("Use qualified closure retire for a module Batch.")
+            if not re.fullmatch(r"Batch-[0-9]{3,}", args.batch_id):
+                raise ValueError("Supply a Batch ID such as Batch-001.")
+            description = Path("project/batches") / args.batch_id.lower() / "description.md"
+            with board_write_lock(workspace):
+                paths = retire_batch_specifications(root, Path("project"), description, args.approval)
+            for path in paths:
+                print(path)
+            return 0
         if args.command == "verify-approval":
             if context and (scope is None or scope == PROJECT_SCOPE):
                 raise ValueError("Select the Batch's module scope explicitly.")

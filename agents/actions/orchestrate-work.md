@@ -4,13 +4,13 @@ Use the [Orchestrator role](../roles/orchestrator.md), inherited [Writer limits]
 
 ## Frame and approve
 
-Read applicable records and reuse an existing Card/Spec/Batch/handoff. Without a board, route approved adoption through [installation](../setup/install.md). For clear standalone outcomes, prepare backlog scope/checks and propose execution. For changed behavior, draft a Specification; for a shared candidate/decision, propose a Batch with exact revisions, mission order and constraints. Keep suggestions outside approved scope.
+Read applicable records and reuse an existing Card/Spec/Batch/handoff. Without a board, route approved adoption through [installation](../setup/install.md). For clear standalone outcomes, prepare backlog scope/checks and propose execution. For changed behavior, draft a Specification; for a shared candidate/decision, propose a Batch with exact Specifications, mission order and constraints. Keep suggestions outside approved scope.
 
 Before execution show outcome, exact scope, checks and Git target: project-permitted main or isolated branch for a Card, dedicated branch for a Batch. Obtain explicit scope approval and start authority; one answer to a concrete proposal can grant both. Draft/review requests do not authorize implementation. If “continue” is ambiguous in a Specification discussion, clarify the action. For shorthand with inferred scope/revision/branch, restate those as a question and wait; for a simulation, ask and stop. Reuse already explicit authority for the same work. Corrections restore approved behavior; material scope changes need approval.
 
 ## Give the KR Developer the handoff
 
-For a Batch, Writer records exact approved scope, revisions, approval/execution authority, ordered mission and ready status; Developer creates/verifies the Git approval snapshot. For standalone work hand off the existing Card ID; Developer can create one in its direct workflow.
+For a Batch, Writer records exact approved Specifications, approval/execution authority, ordered mission and ready status; Developer creates/verifies the Git approval snapshot. For standalone work hand off the existing Card ID; Developer can create one in its direct workflow.
 
 Send one complete handoff: project/path and rules; authorized Git target/isolation; Card/Batch and exact outcome/scope/checks; User authority and next permitted step; separate publication/deployment permission if required; owner/branch/checkpoint/blocker; original chat application/reference for notifications. Require exact revision, checks/results and gaps on return.
 
