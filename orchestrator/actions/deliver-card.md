@@ -33,6 +33,10 @@ Every tool call resends the whole context, so cost grows with context size times
 
 Do not change a user's personal host settings without their agreement.
 
+## Test only what changes
+
+Run the checks that cover what the Card modifies: the tests of a tool only when its code changes, none for documentation or Card-only changes beyond `validate`. Add no test for behavior that an existing test or `validate` already covers. The closing commit adds only Card and journal files, so verify it with `validate` alone.
+
 ## Command sequence
 
 Run delivery commands from the delivery worktree. Board moves write the Card in the primary checkout. `OWNER` is the recorded session ID.
@@ -47,12 +51,12 @@ D checkpoint CARD-ID --owner OWNER "LABEL"            # at each verified milesto
 # implement, commit on the branch, run checks
 D integration begin CARD-ID --owner OWNER
 # integration worktree at main: merge the branch
-D run-check CARD-ID --owner OWNER --integration-checkout PATH -- CHECKS
+D run-check CARD-ID --owner OWNER --integration-checkout PATH -- CHECKS   # only what the change touches
 # ask for approval of that revision; after approval:
 B move CARD-ID completion --owner-token OWNER         # all criteria checked
 # in the integration worktree, commit the completed Card file and any
 # uncommitted journal files from the primary checkout: CLOSING
-D run-check CARD-ID --owner OWNER --integration-checkout PATH -- CHECKS
+D run-check CARD-ID --owner OWNER --integration-checkout PATH -- python3 orchestrator/tools/manage-kanban-board.py validate
 D publish-card CARD-ID --owner OWNER --closing CLOSING
 D milestone published CARD-ID --owner OWNER --summary "ONE LINE" --revision CLOSING --published
 D integration release CARD-ID --owner OWNER
