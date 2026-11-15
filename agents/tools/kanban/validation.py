@@ -17,6 +17,10 @@ HISTORICAL_CARD_REFERENCES = {
 }
 # Exact links retained in frozen records after CARD-00000142 removed the redirects.
 HISTORICAL_RETIRED_LINKS = {
+    ('project/kanban/completion/card-00000078-align-the-documentation-and-tools-with-the-delivery-workflow.md',
+     '../../../agents/runner/build-and-run.md'),
+    ('project/kanban/completion/card-00000086-group-companion-app-sources-and-builds-under-apps.md',
+     '../../../agents/runner/build-and-run.md'),
     ('project/batches/batch-001/tests.md',
      '../../../agents/batches/resume-a-batch.md'),
     ('project/kanban/completion/card-00000003-software-development.md',
