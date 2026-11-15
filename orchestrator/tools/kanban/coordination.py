@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from .files import CARD_ID, acceptance_checks, board_cards, check_local_records, header_value
 from .project import coordination_root, load_project, primary_worktree
+from .report import report
 
 
 class BusyError(ValueError):
@@ -179,6 +180,7 @@ class Coordination:
                 "worktree": str(self.root),
                 "base_revision": base_revision,
                 "checkpoint": "picked up",
+                "started": datetime.now(ZoneInfo(self.project.workflow["timezone"])).isoformat(timespec="seconds"),
             }
             replace_json(self.module_file, state)
             return state
@@ -326,6 +328,15 @@ class Coordination:
             first = first or self.primary / relative
         return first
 
+    def performance(self, claim):
+        workflow = self.project.workflow
+        done = {CARD_ID.match(path.stem)[1].upper(): path.read_text(encoding="utf-8")
+                for path in self.scope_cards(workflow["completed"])}
+        texts = [(card, done[card]) for card in self.cards(claim)]
+        return report(datetime.fromisoformat(claim["started"]),
+                      datetime.now(ZoneInfo(workflow["timezone"])), texts,
+                      workflow["active"], workflow["completed"], {self.primary, self.root})
+
     def publication_identity(self, delivery, revision):
         return f"{self.project.id}/{self.module}/{delivery}/published/{revision}"
 
@@ -371,6 +382,8 @@ class Coordination:
                 verb = "Published revision" if published else "Revision"
                 phase = self.cards(claim)
                 extra = f"Phase Cards: {', '.join(phase)}.\n\n" if len(phase) > 1 else ""
+                if published and claim.get("started"):
+                    extra += self.performance(claim) + "\n\n"
                 entry = (f"## {reference}\n\n{summary}\n\n{extra}"
                          f"{verb}: `{revision}`. [Reference record](<{relative}>).")
                 add_milestone(directory, day, timezone, event_identity, entry)

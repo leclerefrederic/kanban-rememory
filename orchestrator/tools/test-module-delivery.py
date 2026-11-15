@@ -1,13 +1,16 @@
 """Verify project setup, Card delivery coordination and check isolation with local Git only."""
 
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 
 KIT = Path(__file__).resolve().parents[2]
@@ -19,6 +22,10 @@ class ModuleDeliveryTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         self.base = Path(directory.name).resolve()
+        for name in ("KR_CLAUDE_HOME", "KR_CODEX_HOME"):  # never read the real session logs
+            patch = unittest.mock.patch.dict(os.environ, {name: str(self.base / name)})
+            patch.start()
+            self.addCleanup(patch.stop)
         self.root = self.base / "control"
         self.root.mkdir()
         self.git(self.root, "init", "-q", "-b", "main")
@@ -142,6 +149,7 @@ class ModuleDeliveryTests(unittest.TestCase):
                          "--summary", "Done.", "--revision", closing, "--published")
         journal = "".join(path.read_text() for path in (self.root / "project/rememory").glob("????-??-??.md"))
         self.assertEqual(journal.count(f"published/{closing}"), 1)
+        self.assertRegex(journal, r"Duration: (<1|\d+) min \(CARD-00000001 (<1|\d+) min\)\. Tokens \(Claude Code\): unavailable")
         self.assertIn(f"](<../modules/a/completion/{completed.name}>)", journal)
         self.control("delivery-a", "a", "finish", CARD, "--owner", "session-1", "--revision", closing)
         self.assertEqual(self.control("delivery-a", "a", "status").strip(), "null")
@@ -165,6 +173,44 @@ class ModuleDeliveryTests(unittest.TestCase):
             self.run_tool(delivery, "manage-kanban-board", "move", card, "completion", "--owner-token", "s")
         self.assertIn(second, self.control("phase-a", "a", "status"))
 
+
+    def test_report_sums_durations_and_host_tokens_for_the_phase_window(self):
+        sys.path.insert(0, str(KIT / "orchestrator/tools"))
+        from kanban import report
+        start, end = datetime.fromisoformat("2026-11-15T10:00:00+01:00"), datetime.fromisoformat("2026-11-15T11:30:00+01:00")
+        history = ("- 2026-11-15T10:05:00+01:00 — Stage moved from `backlog` to `development`.\n"
+                   "- 2026-11-15T10:20:00+01:00 — Stage moved from `development` to `completion`.\n")
+        self.assertEqual(report.card_duration(history, ["development"], "completion"), "15 min")
+        self.assertEqual(report.minutes(start, end), "1 h 30 min")
+        work = self.base / "work"
+        directory = self.base / "KR_CLAUDE_HOME/projects" / "".join(c if c.isalnum() else "-" for c in str(work))
+        directory.mkdir(parents=True)
+        usage = lambda n: {"input_tokens": n, "cache_creation_input_tokens": 2 * n,
+                           "cache_read_input_tokens": 3 * n, "output_tokens": 4 * n}
+        rows = [{"timestamp": "2026-11-15T08:59:59Z", "message": {"id": "old", "usage": usage(100)}},
+                {"timestamp": "2026-11-15T09:10:00Z", "message": {"id": "m1", "usage": usage(1)}},
+                {"timestamp": "2026-11-15T09:10:01Z", "message": {"id": "m1", "usage": usage(1)}},
+                {"timestamp": "2026-11-15T09:20:00Z", "message": {"id": "m2", "usage": usage(2)}},
+                {"timestamp": "2026-11-15T12:00:00Z", "message": {"id": "late", "usage": usage(100)}}]
+        (directory / "s.jsonl").write_text("\n".join(map(json.dumps, rows)) + "\nnot json\n")
+        self.assertEqual(report.claude_tokens({work}, start, end),
+                         {"input_tokens": 3, "cache_creation_input_tokens": 6,
+                          "cache_read_input_tokens": 9, "output_tokens": 12})
+        self.assertIsNone(report.claude_tokens({self.base / "elsewhere"}, start, end))
+        rollout = self.base / "KR_CODEX_HOME/sessions/2026/11/15/rollout-x.jsonl"
+        rollout.parent.mkdir(parents=True)
+        count = lambda at, i, c, o: {"timestamp": at, "type": "event_msg", "payload": {"type": "token_count", "info": {
+            "total_token_usage": {"input_tokens": i, "cached_input_tokens": c, "output_tokens": o}}}}
+        rows = [{"timestamp": "2026-11-15T08:00:00Z", "type": "session_meta", "payload": {"cwd": str(work)}},
+                count("2026-11-15T08:30:00Z", 100, 50, 10), count("2026-11-15T09:30:00Z", 300, 150, 40),
+                count("2026-11-15T12:00:00Z", 900, 450, 90)]
+        rollout.write_text("\n".join(map(json.dumps, rows)) + "\n")
+        self.assertEqual(report.codex_tokens({work}, start, end),
+                         {"input_tokens": 200, "cached_input_tokens": 100, "output_tokens": 30})
+        text = report.report(start, end, [("CARD-1", history)], ["development"], "completion", {work})
+        self.assertIn("Duration: 1 h 30 min (CARD-1 15 min).", text)
+        self.assertIn("Tokens (Claude Code): input 3, cache write 6, cache read 9, output 12.", text)
+        self.assertIn("Tokens (Codex): input 200, cached input 100, output 30.", text)
 
     def test_claims_race_and_integration_is_serialized(self):
         revision = self.prepare("a", "b")
