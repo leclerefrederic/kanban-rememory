@@ -34,3 +34,7 @@ Demande de l’utilisateur du 2026-11-16, release = phase. La demande autorise l
 ## History
 
 - 2026-11-16T00:15:45+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:19:20+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T00:19:20+01:00 — Merge approved for the verified candidate `2104776ffc3736ca64b0e19afd4bd0947277a81f`: “Oui, fusionne”.
