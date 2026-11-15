@@ -8,3 +8,7 @@
 /graphify-out/
 .obsidian/
 Obsidian/
+
+# Python caches and Claude Code phase worktrees
+__pycache__/
+.claude/worktrees/

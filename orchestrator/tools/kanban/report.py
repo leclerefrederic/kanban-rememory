@@ -1,4 +1,4 @@
-"""Phase performance report: durations from Card History, token totals from host session logs."""
+"""Phase performance line: durations from the Card History, token totals from host session logs."""
 
 from datetime import datetime
 import json
@@ -6,7 +6,11 @@ import os
 from pathlib import Path
 import re
 
-MOVE = re.compile(r"^(?:- )?(\S+) — Stage moved from `[^`]+` to `([^`]+)`", re.M)
+from .markdown import moves
+
+CLAUDE_FIELDS = (("input", "input_tokens"), ("cache write", "cache_creation_input_tokens"),
+                 ("cache read", "cache_read_input_tokens"), ("output", "output_tokens"))
+CODEX_FIELDS = (("input", "input_tokens"), ("cached input", "cached_input_tokens"), ("output", "output_tokens"))
 
 
 def minutes(start, end):
@@ -15,10 +19,10 @@ def minutes(start, end):
 
 
 def card_duration(card_text, active, completed):
-    """Time between the first move into an active stage and the move to completion."""
-    moves = [(datetime.fromisoformat(at), stage) for at, stage in MOVE.findall(card_text)]
-    began = next((at for at, stage in moves if stage in active), None)
-    done = next((at for at, stage in moves if stage == completed), None)
+    """From the first move into an active stage to the move into the completed stage."""
+    recorded = moves(card_text)
+    began = next((at for at, stage in recorded if stage in active), None)
+    done = next((at for at, stage in recorded if stage == completed), None)
     return minutes(began, done) if began and done else None
 
 
@@ -42,30 +46,28 @@ def moment(value):
 
 
 def claude_tokens(roots, start, end):
-    """Sum per-message usage in Claude Code transcripts of the given working directories."""
+    """Per-message usage in the Claude Code transcripts of these working directories."""
     home = Path(os.environ.get("KR_CLAUDE_HOME", Path.home() / ".claude")) / "projects"
     seen = {}
     for root in roots:
         for log in (home / re.sub(r"[^A-Za-z0-9]", "-", str(root))).glob("*.jsonl"):
             for entry in lines(log):
-                message = entry.get("message")
-                when = moment(entry.get("timestamp"))
+                message, when = entry.get("message"), moment(entry.get("timestamp"))
                 if isinstance(message, dict) and isinstance(message.get("usage"), dict) and when and start <= when <= end:
                     seen[message.get("id") or (log.name, entry.get("uuid"))] = message["usage"]
     if not seen:
         return None
-    keys = ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "output_tokens")
-    return {key: sum(usage.get(key, 0) for usage in seen.values()) for key in keys}
+    return {key: sum(usage.get(key, 0) for usage in seen.values()) for _, key in CLAUDE_FIELDS}
 
 
 def codex_tokens(roots, start, end):
-    """Difference of the cumulative token counters of Codex rollouts started in these directories."""
+    """Growth of the cumulative token counters of Codex rollouts started in these directories."""
     home = Path(os.environ.get("KR_CODEX_HOME", Path.home() / ".codex")) / "sessions"
     wanted = {str(root) for root in roots}
-    total = {"input_tokens": 0, "cached_input_tokens": 0, "output_tokens": 0}
+    total = {key: 0 for _, key in CODEX_FIELDS}
     found = False
     for log in home.glob("*/*/*/rollout-*.jsonl"):
-        before, inside, cwd = None, None, None
+        before = inside = cwd = None
         for entry in lines(log):
             payload = entry.get("payload") or {}
             if entry.get("type") == "session_meta":
@@ -84,11 +86,6 @@ def codex_tokens(roots, start, end):
     return total if found else None
 
 
-CLAUDE_FIELDS = (("input", "input_tokens"), ("cache write", "cache_creation_input_tokens"),
-                 ("cache read", "cache_read_input_tokens"), ("output", "output_tokens"))
-CODEX_FIELDS = (("input", "input_tokens"), ("cached input", "cached_input_tokens"), ("output", "output_tokens"))
-
-
 def tokens_text(name, usage, fields):
     if not usage:
         return f"Tokens ({name}): unavailable."
@@ -97,7 +94,7 @@ def tokens_text(name, usage, fields):
 
 def report(started, end, card_texts, active, completed, roots):
     """One journal paragraph: phase and Card durations, then the token totals."""
-    cards = "; ".join(f"{card} {card_duration(text, active, completed) or 'n/a'}" for card, text in card_texts)
-    return (f"Duration: {minutes(started, end)} ({cards}). "
+    durations = "; ".join(f"{card} {card_duration(text, active, completed) or 'n/a'}" for card, text in card_texts)
+    return (f"Duration: {minutes(started, end)} ({durations}). "
             f"{tokens_text('Claude Code', claude_tokens(roots, started, end), CLAUDE_FIELDS)} "
             f"{tokens_text('Codex', codex_tokens(roots, started, end), CODEX_FIELDS)}")

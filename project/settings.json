@@ -1,40 +1,11 @@
 {
-  "schema_version": 1,
-  "board_layout": "module",
-  "project": {
-    "id": "kanban-rememory",
-    "name": "Kanban Rememory"
-  },
-  "shared": {
-    "memory": "project/rememory",
-    "sources": [
-      "orchestrator",
-      "documentation"
-    ]
-  },
-  "modules": {
-    "configuration": {
-      "workspace": "project/modules/configuration"
-    },
-    "acceptance": {
-      "workspace": "project/modules/acceptance"
-    },
-    "orchestrator": {
-      "workspace": "project/modules/orchestrator"
-    },
-    "notifications": {
-      "workspace": "project/modules/notifications"
-    },
-    "misc": {
-      "workspace": "project/modules/misc"
-    }
-  },
-  "execution": {
-    "active_deliveries_per_module": 1,
-    "branch_required": true,
-    "worktree_required": true,
-    "concurrent_integrations": 1
-  },
+  "schema_version": 2,
+  "name": "Kanban Rememory",
+  "modules": [
+    "misc",
+    "notifications",
+    "orchestrator"
+  ],
   "workflow": {
     "stages": [
       "backlog",

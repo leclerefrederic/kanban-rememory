@@ -1,1 +1,1 @@
-"""Implementation of the Kanban command-line tool."""
+"""Kanban Rememory: boards, delivery phase and journal."""

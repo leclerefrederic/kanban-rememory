@@ -1,199 +1,172 @@
-"""Resolve the project settings and its module workspaces."""
+"""Project settings, the fixed record layout and the Git locations the tools use."""
 
 from dataclasses import dataclass
+from datetime import datetime
 import json
 import os
-from pathlib import Path, PureWindowsPath
+from pathlib import Path
 import re
 import subprocess
-from typing import Dict
+import tempfile
+from zoneinfo import ZoneInfo
 
-from .files import header_value
-
-
-IDENTIFIER = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
-MISC = "misc"
 SETTINGS = Path("project/settings.json")
-EXECUTION = {
-    "active_deliveries_per_module": 1,
-    "branch_required": True,
-    "worktree_required": True,
-    "concurrent_integrations": 1,
-}
+MODULES = Path("project/modules")
+JOURNAL = Path("project/rememory")
+MISC = "misc"
+KEYS = ("schema_version", "name", "modules", "workflow", "last_card_id")
+MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
+STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
 @dataclass(frozen=True)
 class Project:
     root: Path
-    id: str
     name: str
-    memory: Path
-    sources: tuple
-    modules: Dict[str, Path]
+    modules: tuple
     workflow: dict
-    last_card_id: int = 0
+    last_card_id: int
 
-    def validate_scope(self, scope: str) -> str:
-        if scope not in self.modules:
-            raise ValueError(f"Unknown module: {scope!r}.")
-        return scope
+    def board(self, module):
+        if module not in self.modules:
+            raise ValueError(f"Unknown module: {module!r}.")
+        return self.root / MODULES / module
 
-    def workspace(self, scope: str) -> Path:
-        return self.modules[self.validate_scope(scope)]
+    @property
+    def journal(self):
+        return self.root / JOURNAL
 
-    def resources(self, scope: str, task_id: str) -> Path:
-        return self.workspace(scope) / "resources" / task_id.lower()
+    @property
+    def frozen(self):
+        """Stages a Card never leaves: their records are history."""
+        return {stage for stage in self.workflow["stages"] if not self.workflow["transitions"].get(stage)}
 
-    def journal(self) -> Path:
-        return local_directory(self.root, self.memory)
-
-    def card_scope(self, path: Path) -> str:
-        if path.is_symlink() or not path.is_file():
-            raise ValueError(f"Not a regular Card record: {path}.")
-        source = path.read_text(encoding="utf-8")
-        lines = source.splitlines()
-        declared = (sum(line.partition(":")[0] == "module" for line in lines[1:lines.index("---", 1)])
-                    if lines[:1] == ["---"] and "---" in lines[1:] else 0)
-        if declared != 1:
-            raise ValueError(f"Expected one module field in Card: {path}.")
-        return self.validate_scope(header_value(source, "module"))
-
-    def check_boards(self) -> None:
-        for workspace in self.modules.values():
-            for stage in (*self.workflow["stages"], "resources"):
-                directory = local_directory(self.root, workspace / stage)
-                if directory.is_symlink() or any(path.is_symlink() for path in directory.rglob("*")):
-                    raise ValueError(f"Module Card record contains a symbolic link: {directory}.")
-
-    def select_module(self, module=None) -> str:
-        if module is None:
-            if len(self.modules) == 1:
-                return next(iter(self.modules))
-            raise ValueError(f"Choose a module explicitly: {', '.join(sorted(self.modules))}.")
-        return self.validate_scope(module)
+    def now(self):
+        return datetime.now(ZoneInfo(self.workflow["timezone"]))
 
 
-def local_directory(root, path):
-    if (not path.is_relative_to(root) or path.resolve() != path
-            or (path.exists() and not path.is_dir())):
-        raise ValueError(f"Not a local record directory: {path}.")
-    return path
+def git(root, *args):
+    return subprocess.check_output(["git", *args], cwd=root, text=True).strip()
 
 
-def unique_object(items):
+def common_directory(root):
+    """The Git directory shared by every worktree of the clone."""
+    return Path(git(root, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+
+
+def linked_worktree(root):
+    own, common = git(root, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir").splitlines()
+    return own != common
+
+
+def load_project(root):
+    settings = root / SETTINGS
+    if settings.is_symlink() or not settings.is_file():
+        raise ValueError("Create project/settings.json first: see orchestrator/install.md.")
+    return parse_settings(root, settings.read_bytes())
+
+
+def unique_keys(pairs):
     result = {}
-    for key, value in items:
+    for key, value in pairs:
         if key in result:
             raise ValueError(f"Duplicate settings key: {key}.")
         result[key] = value
     return result
 
 
-def object_fields(value, expected, label):
-    if not isinstance(value, dict) or set(value) != set(expected):
-        raise ValueError(f"{label} must contain: {', '.join(expected)}.")
-    return value
-
-
-def identifier(value, label):
-    if not isinstance(value, str) or not IDENTIFIER.fullmatch(value):
-        raise ValueError(f"{label} must be a lowercase identifier.")
-    return value
-
-
-def repo_path(root, value, label):
-    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
-        raise ValueError(f"{label} must be a nonempty repository-relative path.")
-    path = Path(value)
-    windows = PureWindowsPath(value)
-    if path.is_absolute() or windows.drive or ".." in path.parts:
-        raise ValueError(f"{label} must be a repository-relative path without '..'.")
-    resolved = (root / path).resolve()
-    if (resolved == root or not resolved.is_relative_to(root)
-            or (root / ".git") in (resolved, *resolved.parents)):
-        raise ValueError(f"{label} resolves outside an allowed project directory.")
-    return resolved
-
-
-def overlaps(first, second):
-    return first.is_relative_to(second) or second.is_relative_to(first)
-
-
-def load_project(root):
-    root = Path(root).resolve()
-    settings = root / SETTINGS
-    try:
-        if settings.is_symlink() or not settings.is_file():
-            raise ValueError("Create project/settings.json with the module setup first.")
-        source = settings.read_bytes()
-    except OSError as error:
-        raise ValueError(f"Invalid project settings: {error}") from error
-    return parse_settings(root, source)
-
-
 def parse_settings(root, source):
-    """Validate settings bytes from a checkout or a proposed file."""
-    from .workflow import check_workflow
-
     try:
-        data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_object)
-        object_fields(data, ("schema_version", "board_layout", "project", "shared", "modules",
-                             "execution", "workflow", "last_card_id"), "Settings")
-        if data["board_layout"] != "module":
-            raise ValueError("board_layout must be module.")
-        if type(data["schema_version"]) is not int or data["schema_version"] != 1:
-            raise ValueError("Unsupported schema_version; expected 1.")
-        project = object_fields(data["project"], ("id", "name"), "project")
-        project_id = identifier(project["id"], "project.id")
-        if not isinstance(project["name"], str) or not project["name"].strip():
-            raise ValueError("project.name must be a nonempty display name.")
-        shared = object_fields(data["shared"], ("memory", "sources"), "shared")
-        memory = repo_path(root, shared["memory"], "shared.memory")
-        if not isinstance(shared["sources"], list):
-            raise ValueError("shared.sources must be a list.")
-        sources = tuple(repo_path(root, path, "shared.sources") for path in shared["sources"])
-        execution = object_fields(data["execution"], EXECUTION, "execution")
-        for name, expected in EXECUTION.items():
-            actual = execution[name]
-            if type(actual) is not type(expected) or actual != expected:
-                raise ValueError(f"Unsupported execution.{name}; expected {json.dumps(expected)}.")
-        modules = {}
-        if not isinstance(data["modules"], dict) or not data["modules"]:
-            raise ValueError("modules must define at least one module.")
-        for name, value in data["modules"].items():
-            identifier(name, "Module ID")
-            definition = object_fields(value, ("workspace",), f"modules.{name}")
-            workspace = repo_path(root, definition["workspace"], f"modules.{name}.workspace")
-            if overlaps(workspace, memory) or any(overlaps(workspace, other) for other in modules.values()):
-                raise ValueError(f"Overlapping workspace or memory directory: modules.{name}.")
-            modules[name] = workspace
+        data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_keys)
+        if not isinstance(data, dict) or set(data) != set(KEYS):
+            raise ValueError(f"Settings must contain exactly: {', '.join(KEYS)}.")
+        if type(data["schema_version"]) is not int or data["schema_version"] != 2:
+            raise ValueError("Unsupported schema_version; expected 2. See orchestrator/install.md to upgrade.")
+        name = data["name"]
+        if not isinstance(name, str) or not name.strip() or "\n" in name or "\r" in name:
+            raise ValueError("name must be a single-line display name.")
+        modules = data["modules"]
+        if (not isinstance(modules, list) or len(set(modules)) != len(modules)
+                or not all(isinstance(module, str) and MODULE.fullmatch(module) for module in modules)):
+            raise ValueError("modules must list unique lowercase module IDs.")
         if MISC not in modules:
-            raise ValueError(f"Settings require a {MISC} module.")
-        floor = data["last_card_id"]
-        if type(floor) is not int or not 0 <= floor <= 99999999:
+            raise ValueError(f"modules must include {MISC}.")
+        last = data["last_card_id"]
+        if type(last) is not int or not 0 <= last <= 99999999:
             raise ValueError("last_card_id must be an integer from 0 to 99999999.")
-        return Project(root, project_id, project["name"], memory, sources, modules,
-                       check_workflow(data["workflow"]), floor)
-    except (OSError, ValueError, RuntimeError) as error:
-        raise ValueError(f"Invalid project settings: {error}") from error
+        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), last)
+    except ValueError as error:
+        raise ValueError(f"Invalid project settings: {error}") from None
 
 
-def primary_worktree(root):
-    """Locate the primary checkout for this local Git clone."""
-    output = subprocess.check_output(
-        ["git", "worktree", "list", "--porcelain", "-z"], cwd=root,
-    )
-    record = output.split(b"\0", 1)[0]
-    if not record.startswith(b"worktree "):
-        raise ValueError("Could not locate the primary worktree.")
-    primary = Path(os.fsdecode(record[len(b"worktree "):])).resolve()
-    if not primary.is_dir() or not (primary / ".git").exists():
-        raise ValueError("Board tools require a primary worktree in this clone.")
-    return primary
+def check_workflow(workflow):
+    if not isinstance(workflow, dict):
+        raise ValueError("workflow must contain an object.")
+    stages = workflow.get("stages")
+    if (not isinstance(stages, list) or not stages or len(stages) != len(set(stages)) or "resources" in stages
+            or not all(isinstance(stage, str) and STAGE.fullmatch(stage) for stage in stages)):
+        raise ValueError("stages must contain unique folder names other than resources.")
+    active, completed = workflow.get("active"), workflow.get("completed")
+    if (not isinstance(active, list) or not active or any(stage not in stages for stage in active)
+            or completed not in stages or completed in active):
+        raise ValueError("Define active stages and a distinct completed stage.")
+    transitions = workflow.get("transitions")
+    if not isinstance(transitions, dict) or any(
+            source not in stages or not isinstance(targets, list)
+            or any(target not in stages or target == source for target in targets)
+            for source, targets in transitions.items()):
+        raise ValueError("transitions must map stages to lists of other stages.")
+    limit = workflow.get("wip_limit")
+    if type(limit) is not int or limit < 1:
+        raise ValueError("wip_limit must be a positive integer.")
+    timezone = workflow.get("timezone")
+    try:
+        ZoneInfo(timezone)
+    except (KeyError, OSError, TypeError, ValueError):
+        raise ValueError(f"Unknown time zone: {timezone}") from None
+    return workflow
 
 
-def coordination_root(root):
-    common = subprocess.check_output(
-        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=root, text=True,
-    ).strip()
-    return Path(common) / "kanban-rememory"
+def check_new_workflow(workflow):
+    """A new board needs the stages the tools rely on; existing boards keep their approved stages."""
+    if missing := {"backlog", "development", "completion", "cancellation"}.difference(workflow["stages"]):
+        raise ValueError(f"Missing required stages: {', '.join(sorted(missing))}.")
+    if (workflow["stages"][0] != "backlog" or workflow["active"][0] != "development"
+            or workflow["completed"] != "completion"
+            or {"backlog", "cancellation"}.intersection(workflow["active"])
+            or workflow["transitions"].get("cancellation")):
+        raise ValueError("Use backlog for intake, development as the first active stage, "
+                         "completion for delivery and cancellation as a terminal stage.")
+
+
+def init(root, proposal, apply):
+    """Create the settings and the empty boards from an approved proposal, once."""
+    settings = root / SETTINGS
+    if settings.exists() or settings.is_symlink():
+        raise ValueError("Project settings already exist; an upgrade needs an approved migration.")
+    source = proposal.read_bytes()  # validate and write the same bytes
+    project = parse_settings(root, source)
+    check_new_workflow(project.workflow)
+    paths = [project.journal] + [project.board(module) / stage for module in project.modules
+                                 for stage in (*project.workflow["stages"], "resources")]
+    for path in paths:
+        if path.resolve() != path or (path.exists() and not path.is_dir()):
+            raise ValueError(f"Not a local directory: {path.relative_to(root)}.")
+    print(f"{project.name}: {', '.join(project.modules)}")
+    for path in paths:
+        print(path.relative_to(root))
+    if not apply:
+        print("Preview only. Run again with --apply after approval.")
+        return 0
+    for path in paths:
+        path.mkdir(parents=True, exist_ok=True)
+        if not any(path.iterdir()):
+            (path / ".gitkeep").touch()
+    with tempfile.NamedTemporaryFile(dir=settings.parent, prefix=".settings-", delete=False) as pending:
+        pending.write(source)
+    try:
+        os.link(pending.name, settings)  # refuses to replace a settings file created meanwhile
+    finally:
+        os.unlink(pending.name)
+    print("Project modules are ready.")
+    return 0
