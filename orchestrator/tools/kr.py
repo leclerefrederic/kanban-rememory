@@ -8,7 +8,7 @@ import sys
 
 from kanban import board
 from kanban.phase import Phase
-from kanban.project import init, load_project
+from kanban.project import git, init, load_project
 from kanban.validation import validate
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -41,6 +41,7 @@ def main(argv=None, root=ROOT):
     sub = parser.add_subparsers(dest="command", required=True)
     show = sub.add_parser("show", help="the active phase and the boards")
     show.add_argument("--module")
+    sub.add_parser("versions", help="the published release tags, newest first, and the current version")
     sub.add_parser("validate", help="check the records and documents of this checkout")
     path = sub.add_parser("path", help="the current file of a Card")
     path.add_argument("card", type=card)
@@ -78,6 +79,11 @@ def main(argv=None, root=ROOT):
             if args.module:
                 project.board(args.module)
             return board.show(project, args.module, phase.state(), phase.next_action())
+        if args.command == "versions":
+            print(f"Current version: {project.version}")
+            print(git(root, "for-each-ref", "--sort=-version:refname", "--format=%(refname:short) | %(creatordate:short) | "
+                      "%(contents:subject)", "refs/tags/v*") or "No release tag yet.")
+            return 0
         if args.command == "validate":
             return validate(project)
         if args.command == "path":

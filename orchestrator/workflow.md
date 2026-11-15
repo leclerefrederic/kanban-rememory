@@ -48,6 +48,8 @@ kr publish --summary "One line" --approval "The user's words" --notify "Chat nam
 
 ## Recover
 
+`kr versions` lists the published release tags, newest first, and the current version.
+
 - `kr show` names the active phase and its branch. Before taking it over, confirm that the previous session has stopped, then resume on that branch.
 - When `origin/main` has moved, merge it, check again and ask for approval again.
 - When records disagree, stop the dependent work and report what disagrees.

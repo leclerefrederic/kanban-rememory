@@ -17,9 +17,9 @@ Demande de l’utilisateur du 2026-11-16 (voir la Card du lanceur `kr`). Lecture
 
 ## Acceptance criteria
 
-- [ ] `kr versions` affiche une ligne par tag `vX.Y.Z` : tag, date, sujet.
-- [ ] La version courante de `settings.json` est affichée ; sans tag, un message l’indique.
-- [ ] Un test de `test-kr.py` le couvre ; `workflow.md` ou `guide.md` mentionne la commande ; `validate` passe.
+- [x] `kr versions` affiche une ligne par tag `vX.Y.Z` : tag, date, sujet.
+- [x] La version courante de `settings.json` est affichée ; sans tag, un message l’indique.
+- [x] Un test de `test-kr.py` le couvre ; `workflow.md` ou `guide.md` mentionne la commande ; `validate` passe.
 
 ## Execution and evidence
 
@@ -29,3 +29,7 @@ Demande de l’utilisateur du 2026-11-16 (voir la Card du lanceur `kr`). Lecture
 ## History
 
 - 2026-11-16 — Créée à la demande de l’utilisateur.
+
+- 2026-11-16T00:25:51+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:26:14+01:00 — Stage moved from `development` to `completion`.

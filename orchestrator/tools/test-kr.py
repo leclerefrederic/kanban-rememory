@@ -205,6 +205,7 @@ class KrTests(unittest.TestCase):
                          ("main", closing))
         self.assertNotIn("claude/phase-1", self.git(root, "branch", "--list"))
         self.assertIn("Phase: none", self.kr(root, "show"))
+        self.assertRegex(self.kr(root, "versions"), r"Current version: 0\.1\.0\nv0\.1\.0 \| \d{4}-\d\d-\d\d \| Close ")
 
     def test_phase_on_main_commits_there_and_publishes_without_a_tag(self):
         self.kr(self.root, "new", "Direct", "--module", "a")
