@@ -12,6 +12,7 @@ from kanban.cards import board_write_lock, create_card, find_card, move_card, re
 from kanban.coordination import Coordination, exclusive
 from kanban.files import CARD_ID, ROOT, check_module_records
 from kanban.project import PROJECT_SCOPE, coordination_root, invocation_module, load_project, primary_worktree
+from kanban.specifications import specification_root
 from kanban.validation import validate
 from kanban.workflow import TEMPLATES, initialize, load_workflow
 
@@ -80,6 +81,7 @@ def main():
     source.add_argument("--config", type=Path, help="Approved custom workflow JSON")
     init.add_argument("--wip-limit", type=int, help="Template WIP limit (default: 1)")
     init.add_argument("--timezone", help="Template IANA time zone (default: UTC)")
+    init.add_argument("--with-batches", action="store_true", help="Set up project Specifications and Batches")
     init.add_argument("--apply", action="store_true", help="Apply the approved preview")
     board = commands.add_parser("show")
     board.add_argument("--wip-limit", type=int, help="WIP limit per scope for this display")
@@ -120,9 +122,13 @@ def main():
             return historical_path(project, args.reference, scope)
         if context:
             context.check_legacy_boards()
+        if args.command in {"init", "new", "move", "reassign"}:
+            specification_root(workspace if scope is None else project.scope_workspace(scope))
         if args.command == "init":
             if scope is not None and scope != PROJECT_SCOPE:
                 raise ValueError("The workflow is shared. Configure it in project scope.")
+            if context and args.with_batches:
+                raise ValueError("Set up Specifications and Batches in each selected module workspace.")
             return initialize(args, workspace, root)
         workflow = load_workflow(workspace)
         if args.command == "verify-approval":
@@ -142,6 +148,7 @@ def main():
                 raise ValueError("Reassignment requires explicit @project scope on the shared board.")
             task_id = args.task_id.upper()
             target_scope = project.validate_scope(args.to_scope)
+            specification_root(project.scope_workspace(target_scope))
             directory = coordination_root(root) / "projects" / project.id
 
             def is_claimed(current_scope):

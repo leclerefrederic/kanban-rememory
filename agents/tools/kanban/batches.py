@@ -6,6 +6,7 @@ import re
 import subprocess
 
 from .files import CARD_ID, PROJECT, ROOT, field, header_value, markdown_lines
+from .specifications import SPECIFICATION_NAMES, specification_root
 
 
 def relationship(source, key):
@@ -36,17 +37,18 @@ def fiche_entries(source):
 
 def project_reference(path, project=PROJECT, root=ROOT):
     relative = Path(path)
+    specifications = specification_root(project)
     if project != root / "project":
         root_relative = (root / relative).resolve()
-        if not root_relative.is_relative_to(project / "specs"):
+        if not root_relative.is_relative_to(specifications):
             raise ValueError("A Batch must pin a repository-relative Specification path in its own module.")
         if relative.is_absolute() or ".." in relative.parts or root / relative != root_relative:
             raise ValueError("A Batch Specification path must be local and cannot contain aliases.")
         return root_relative
-    if relative.parts and relative.parts[0] == "specs":
+    if relative.parts and relative.parts[0] in SPECIFICATION_NAMES:
         relative = Path("project") / path.lower()
     if relative.parts[:3] == ("project", "specs", "frozen"):
-        migrated = project / "specs/approved" / relative.name
+        migrated = specifications / "approved" / relative.name
         if relative.name == "fiche-001-r1.md" and not migrated.is_file():
             migrated = migrated.with_name("spec-001-r1.md")
         if migrated.is_file():
@@ -73,8 +75,12 @@ def validate_lot_mapping(card_paths, project=PROJECT, root=ROOT):
     fiches = set()
     approved = {}
     eligible = {}
+    try:
+        specifications = specification_root(project)
+    except ValueError as error:
+        return [str(error)]
     for state in ("ready", "approved", "frozen"):
-        for path in (project / "specs" / state).glob("*.md"):
+        for path in (specifications / state).glob("*.md"):
             content = path.read_bytes()
             source = content.decode("utf-8")
             fiche_id = header_value(source, "id") or field(source, "Fiche ID")
@@ -244,19 +250,21 @@ def verify_approval(lot_id, revision, project=PROJECT, root=ROOT):
     findings = validate_lot_mapping((), project, root)
     if findings:
         raise ValueError("\n".join(findings))
+    resources = specification_root(project) / "resources"
+
     def check_resources(fiche, source):
         section = re.search(r"(?ms)^## Resources[ \t]*$(.*?)(?=^## |\Z)", source)
         for link in re.findall(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", section.group(1) if section else ""):
             if re.match(r"[a-z][a-z0-9+.-]*:", link, re.IGNORECASE):
                 continue
             target = (fiche.parent / link).resolve()
-            if not target.is_relative_to(project / "specs/resources"):
+            if not target.is_relative_to(resources):
                 continue  # Other linked files are references to living documents, not frozen resources.
             recorded = approved_bytes(target)
-            active = project / "specs/resources/active"
+            active = resources / "active"
             candidates = [target]
             if target.is_relative_to(active):
-                candidates.append(project / "specs/resources/archived" / target.relative_to(active))
+                candidates.append(resources / "archived" / target.relative_to(active))
             if not any(path.is_file() and path.read_bytes() == recorded for path in candidates):
                 raise ValueError(f"Approval mismatch: {target.relative_to(root)}")
 

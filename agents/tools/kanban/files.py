@@ -6,6 +6,8 @@ from pathlib import Path
 import re
 import subprocess
 
+from .specifications import SPECIFICATION_NAMES, specification_root
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -93,7 +95,8 @@ def markdown_files(scope=None, root=ROOT):
 
 def check_module_records(project):
     """Refuse linked record paths before any module operation."""
-    for name in ("kanban", "specs", "batches", "lots", "Lots", "rememory"):
+    specification_root(project)
+    for name in ("kanban", *SPECIFICATION_NAMES, "batches", "lots", "Lots", "rememory"):
         directory = project / name
         if directory.is_symlink():
             raise ValueError(f"Module record path is a symbolic link: {directory}.")

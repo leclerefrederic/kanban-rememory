@@ -7,6 +7,7 @@ import subprocess
 
 from .files import CARD_ID, header_value
 from .project import PROJECT_SCOPE, parse_manifest
+from .specifications import SPECIFICATION_NAMES
 from .workflow import check_workflow
 
 
@@ -88,5 +89,5 @@ def tracking_record(path, memory, modules, sources):
             return path.suffix == ".md" or (len(parts) >= 3 and parts[1] == "evidence")
         if directory in {"kanban", "rememory"}:
             return path.suffix == ".md"
-        return directory == "specs" and path.suffix == ".md" and parts[:1] != ["resources"]
+        return directory in SPECIFICATION_NAMES and path.suffix == ".md" and parts[:1] != ["resources"]
     return False

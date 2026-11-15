@@ -1,8 +1,10 @@
 # Add the Batch module
 
-Optional. Install after the core board and approved project permissions. The bundled Batch instructions are reference material until the project chooses this workflow.
+Optional. Confirm project permissions and include it in the approved setup.
 
-Create the Specification state/resources and Batch directories in [layout](project-layout.md), including `project/specs/retired/` for proposals withdrawn from active work. The canonical blank `specification.md`, `batch-description.md`, `batch-tests.md`, `batch-report.md` templates and instructions already ship with the core static package. Copy `agents/tools/guard-batch-work.py` for artifact protection; optionally copy `check-batch-publication.py` and `agents/tools/git-hooks/` for automatic closure checks. Their `kanban/` package dependency comes from core.
+Use `--with-batches` in the preview and application of [single-project setup](configure-workflow.md#apply-and-verify) or [initial module setup](project-modules.md). To enable Batches later in an existing module, create the approved [record directories](project-layout.md) in its workspace without rerunning module activation. New workspaces use `specifications/`. Preserve an existing `specs/` layout, including frozen records. Resolve an ambiguous workspace containing both names before applying changes.
+
+The blank templates ship with the core package. Copy `agents/tools/guard-batch-work.py` for artifact protection. For optional automatic closure checks copy `check-batch-publication.py` and `agents/tools/git-hooks/`. The core `kanban/` package provides their dependencies.
 
 The shared role instructions define Writer, Developer and Tester responsibilities. Skills are an optional explicit entry. Verify a fresh role session identifies its observed Batch state and next permitted action. Writer prepares scope and records; Developer verifies approval/pickup and Git; Tester owns delivered acceptance observations. [Batch rules](../guidelines/batches.md) define states/data; [develop](../actions/develop-batch.md) and [close](../actions/close-batch.md) define execution. No Batch is created just to activate this option.
 

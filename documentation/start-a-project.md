@@ -25,7 +25,7 @@ The agent presents the setup for approval, applies it and checks that it is cons
 
 Cards and Rememory are the basic workflow. They give an agent a task record, evidence and a handoff for standalone work.
 
-The optional Specification and Batch workflow adds an explicit agreement about a delivery and its acceptance. Use it when you want to review the intended behavior before development and decide on a complete delivery afterward. The agent helps you choose the appropriate approach for the request.
+The optional Specification and Batch workflow adds an explicit agreement about a delivery and its acceptance. Use it when you want to review the intended behavior before development and decide on a complete delivery afterward. When selected, setup previews the `specifications/` and `batches/` directories before creating them. Upgrades preserve an existing `specs/` directory.
 
 ## Give the first request
 

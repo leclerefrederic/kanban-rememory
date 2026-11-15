@@ -5,6 +5,7 @@ import re
 from zoneinfo import ZoneInfo
 
 from .files import PROJECT, ROOT
+from .specifications import specification_directories
 
 
 def check_workflow(workflow):
@@ -110,18 +111,22 @@ def initialize(args, project=PROJECT, root=ROOT):
         if outside:
             raise ValueError(f"Existing cards outside the proposed stages: {', '.join(sorted(outside))}")
 
+    records = specification_directories(project) if args.with_batches else ()
+    for path in records:
+        if path.resolve() != path or (path.exists() and not path.is_dir()):
+            raise ValueError(f"Batch record path is not a local directory: {path.relative_to(root)}")
     print(json.dumps(workflow, indent=2))
-    for stage in stages:
-        if not stage.exists():
-            print(f"Create {stage.relative_to(root)}/")
+    for path in (*stages, *records):
+        if not path.exists():
+            print(f"Create {path.relative_to(root)}/")
     if not args.apply:
         print("Preview only. Run again with --apply after approval.")
         return 0
 
-    for stage in stages:
-        stage.mkdir(parents=True, exist_ok=True)
-        if not any(stage.iterdir()):
-            (stage / ".gitkeep").touch(exist_ok=True)
+    for path in (*stages, *records):
+        path.mkdir(parents=True, exist_ok=True)
+        if not any(path.iterdir()):
+            (path / ".gitkeep").touch(exist_ok=True)
     try:
         with config.open("x", encoding="utf-8") as file:
             json.dump(workflow, file, indent=2)

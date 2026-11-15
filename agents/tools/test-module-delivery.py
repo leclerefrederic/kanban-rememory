@@ -77,6 +77,23 @@ class ModuleDeliveryTests(unittest.TestCase):
                             "--summary", f"Published {delivery} for {module}.",
                             "--revision", revision, "--published", expected=expected)
 
+    def test_setup_batch_option_creates_canonical_and_reuses_legacy(self):
+        module_a = self.root / "project/modules/a"
+        module_b = self.root / "project/modules/b"
+        (module_b / "specs/approved").mkdir(parents=True)
+        preview = self.setup_modules("--with-batches")
+        self.assertIn("project/modules/a/specifications/resources/active", preview)
+        self.assertIn("project/modules/b/specs/resources/active", preview)
+        self.assertFalse(module_a.exists())
+        self.assertFalse((self.root / "project.json").exists())
+        self.setup_modules("--with-batches", "--apply")
+        self.assertTrue((module_a / "specifications/draft").is_dir())
+        self.assertTrue((module_b / "specs/retired").is_dir())
+        self.assertFalse((module_b / "specifications").exists())
+        for module in (module_a, module_b):
+            self.assertTrue((module / "batches").is_dir())
+        self.run_tool(self.root, "manage-kanban-board", "validate")
+
     def test_activation_refuses_active_work_and_preserves_history(self):
         board = self.root / "project/kanban"
         for stage in ("backlog", "development", "completion", "cancellation"):

@@ -38,7 +38,7 @@ python3 agents/tools/manage-kanban-board.py init --config approved-workflow.json
 
 Fields: ordered `stages`, WIP-counted `active`, delivery `completed`, positive `wip_limit`, IANA `timezone`, and approved `transitions` mapping each source stage to destination lists. If the preview matches approval, rerun the same command with `--apply`; no second approval is required for an unchanged proposal. Otherwise stop and resolve the discrepancy first.
 
-The tool creates folders, empty-folder `.gitkeep` files and `project/kanban/workflow.json`. If existing configuration differs or Cards fall outside proposed stages, agree a migration before moving them. Preserve filenames/IDs and affected references.
+The tool creates folders, empty-folder `.gitkeep` files and `project/kanban/workflow.json`. For approved [Specification and Batch setup](batches.md), add `--with-batches` to both the preview and application commands. If existing configuration differs or Cards fall outside proposed stages, agree a migration before moving them. Preserve filenames/IDs and affected references.
 
 Record transition/evidence rules in the project's guide/instructions, and ownership/Git permissions in `AGENTS.md`. Create the approved journal folder; do not copy the daily template into it. Run:
 

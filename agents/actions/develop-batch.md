@@ -16,7 +16,7 @@ python3 agents/tools/manage-kanban-board.py validate
 python3 agents/tools/manage-kanban-board.py verify-approval Batch-001 FULL_TRUSTED_APPROVAL_COMMIT
 ```
 
-`verify-approval` compares ready Description, pinned Spec bytes and linked files under `project/specs/resources/` in each Resources section. Other linked files are references. An identically archived resource matches. Obtain the commit independently from trusted approval records, not files being checked. Keep approval evidence after closure.
+`verify-approval` compares ready Description, pinned Spec bytes and linked files under the workspace's `specifications/resources/` or its existing legacy `specs/resources/` in each Resources section. Other linked files are references. An identically archived resource matches. Obtain the commit independently from trusted approval records, not files being checked. Keep approval evidence after closure.
 
 5. Create the recorded Batch branch from the agreed main revision if needed, then set in-progress. If it exists after interruption, verify its origin and resume it. Release the lock when the operation ends. Commit product and automated tests on this branch using existing test layout; never commit Batch records there. Respect mission order and technical dependencies.
 

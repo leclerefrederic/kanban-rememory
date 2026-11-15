@@ -11,6 +11,7 @@ import tempfile
 from kanban.batches import batch_descriptions
 from kanban.files import ROOT, cards, header_value
 from kanban.project import primary_worktree, read_manifest
+from kanban.specifications import specification_directories, specification_root
 from kanban.workflow import check_workflow
 
 
@@ -49,12 +50,16 @@ def check_legacy_work():
             raise ValueError("Close existing active Batches before activating modules.")
 
 
-def plan(manifest, workflow):
+def plan(manifest, workflow, with_batches=False):
     manifest.check_legacy_boards()
     board = manifest.board / "kanban"
     paths = [manifest.memory, board, *(board / stage for stage in workflow["stages"])]
     for workspace in manifest.modules.values():
         paths.append(workspace / "rememory")
+        if with_batches:
+            paths.extend(specification_directories(workspace))
+        else:
+            specification_root(workspace)
     for path in paths:
         if path.resolve() != path or (path.exists() and not path.is_dir()):
             raise ValueError(f"Not a local directory: {path.relative_to(ROOT)}.")
@@ -84,7 +89,7 @@ def configure(args):
         manifest = read_manifest(ROOT, snapshot)
         workflow = check_workflow(json.loads(args.workflow.read_text(encoding="utf-8")))
         check_legacy_work()
-        paths = plan(manifest, workflow)
+        paths = plan(manifest, workflow, args.with_batches)
         print(f"{manifest.name}: {', '.join(manifest.modules)}")
         print(json.dumps(workflow, indent=2))
         for path in paths:
@@ -96,7 +101,8 @@ def configure(args):
             if target.exists() or target.is_symlink():
                 raise ValueError("A project manifest appeared after preview.")
             check_legacy_work()
-            plan(manifest, workflow)
+            if plan(manifest, workflow, args.with_batches) != paths:
+                raise ValueError("The installation paths changed. Review the setup preview again.")
             for path in paths:
                 path.mkdir(parents=True, exist_ok=True)
                 if not any(path.iterdir()):
@@ -120,6 +126,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("manifest", type=Path, help="Proposed manifest")
     parser.add_argument("--workflow", type=Path, required=True, help="Approved workflow JSON")
+    parser.add_argument("--with-batches", action="store_true", help="Set up Specifications and Batches in each module")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     try:

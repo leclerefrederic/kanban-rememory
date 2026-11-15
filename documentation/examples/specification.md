@@ -6,7 +6,7 @@ revision: "1"
 
 # Preserve booking names in CSV exports
 
-> Fictional example, written by KR Writer. In the example project, this approved revision lives at `project/specs/approved/spec-101-r1.md`. It describes the agreed behavior; the tests and report record what was actually delivered.
+> Fictional example, written by KR Writer. In the example project, this approved revision lives at `project/specifications/approved/spec-101-r1.md`. It describes the agreed behavior. The tests and report record what was delivered.
 
 ## Expected outcome
 

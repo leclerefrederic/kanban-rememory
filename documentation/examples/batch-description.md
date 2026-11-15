@@ -1,7 +1,7 @@
 ---
 type: batch
 id: "Batch-101"
-specifications: [{"id":"SPEC-101","revision":"1","path":"project/specs/approved/spec-101-r1.md"}]
+specifications: [{"id":"SPEC-101","revision":"1","path":"project/specifications/approved/spec-101-r1.md"}]
 status: closed
 ---
 

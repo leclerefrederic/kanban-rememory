@@ -316,23 +316,43 @@ class MigrationTests(unittest.TestCase):
             self.assertFalse(allowed(role, "Write", "tracking/b/kanban/backlog/card-1.md"))
             self.assertFalse(allowed(role, "Write", "project/kanban/backlog/card-1.md"))
             self.assertFalse(allowed(role, "Write", "project.json"))
-        self.assertTrue(allowed("writer", "Write", "tracking/a/specs/draft/spec.md"))
+        for name in ("specifications", "specs"):
+            with self.subTest(specification_folder=name):
+                self.assertTrue(allowed("writer", "Write", f"tracking/a/{name}/draft/spec.md"))
+                self.assertFalse(allowed("writer", "Write", f"tracking/b/{name}/draft/spec.md"))
+                self.assertFalse(allowed("writer", "Write", f"project/{name}/draft/spec.md"))
+                self.assertTrue(allowed("developer", "Read", f"tracking/a/{name}/approved/spec.md"))
+                self.assertFalse(allowed("developer", "Read", f"tracking/a/{name}/draft/spec.md"))
+                self.assertFalse(allowed("developer", "Write", f"tracking/a/{name}/approved/spec.md"))
+                self.assertFalse(allowed("tester", "Read", f"tracking/a/{name}/ready/spec.md"))
+                self.assertIsNotNone(hook.decide(roles, "developer", self.root, "Bash",
+                                                {"command": f"cat tracking/a/{name}/draft/spec.md"},
+                                                str(self.root), scope, chosen))
         self.assertFalse(allowed("writer", "Write", "tracking/a/kanban/backlog/card-1.md"))
         self.assertFalse(allowed("writer", "Write", "tracking/a/kanban/development/card-1.md"))
         self.assertFalse(allowed("writer", "Write", "src/shared.py"))
         self.assertTrue(allowed("developer", "Write", "src/shared.py"))
         self.assertTrue(allowed("developer", "Write", "tracking/global/2026-11-15.md"))
-        self.assertTrue(allowed("developer", "Read", "tracking/a/specs/approved/spec.md"))
-        self.assertFalse(allowed("developer", "Read", "tracking/a/specs/draft/spec.md"))
-        self.assertFalse(allowed("developer", "Write", "tracking/a/specs/approved/spec.md"))
         self.assertTrue(allowed("tester", "Write", "tracking/a/batches/batch-001/tests.md"))
         self.assertFalse(allowed("tester", "Write", "tracking/a/batches/batch-001/description.md"))
-        self.assertFalse(allowed("tester", "Read", "tracking/a/specs/ready/spec.md"))
-        self.assertIsNotNone(hook.decide(roles, "developer", self.root, "Bash",
-                                        {"command": "cat tracking/a/specs/draft/spec.md"},
-                                        str(self.root), scope, chosen))
         self.assertIsNotNone(hook.decide(roles, "developer", self.root, "Grep", {"path": "tracking"},
                                         str(self.root), scope, chosen))
+
+    def test_project_specification_paths_keep_role_limits(self):
+        hook = self.role_hook()
+        roles = hook.load_roles(self.root)
+
+        def allowed(role, verb, key, path):
+            return hook.decide(roles, role, self.root, verb, {key: path}, str(self.root)) is None
+
+        for name in ("specifications", "specs"):
+            with self.subTest(specification_folder=name):
+                project = f"project/{name}"
+                self.assertTrue(allowed("writer", "Write", "file_path", f"{project}/draft/spec.md"))
+                self.assertTrue(allowed("developer", "Read", "file_path", f"{project}/approved/spec.md"))
+                self.assertFalse(allowed("developer", "Read", "file_path", f"{project}/draft/spec.md"))
+                self.assertFalse(allowed("tester", "Read", "file_path", f"{project}/ready/spec.md"))
+                self.assertFalse(allowed("developer", "Write", "file_path", f"{project}/approved/spec.md"))
 
     def test_hook_checks_normal_module_invocation(self):
         self.module_manifest()

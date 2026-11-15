@@ -9,6 +9,7 @@ from .batches import relationship, validate_lot_mapping
 from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, anchors,
                     check_module_records, markdown_files, markdown_lines)
 from .project import PROJECT_SCOPE
+from .specifications import SPECIFICATION_NAMES, specification_root
 
 
 # Preserve the exact historical references recorded before this policy.
@@ -66,10 +67,16 @@ BATCH_CARD_ID = re.compile(r"\b(?:CARD|TASK)-([0-9]{8})\b", re.IGNORECASE)
 
 
 def archived_specification_resource(source, target, project=PROJECT, root=ROOT):
-    active = project / "specs/resources/active"
-    if source.parent != project / "specs/approved" or not target.is_relative_to(active):
+    if source.parent not in {project / name / "approved" for name in SPECIFICATION_NAMES}:
         return False
-    archived = project / "specs/resources/archived" / target.relative_to(active)
+    try:
+        specifications = specification_root(project)
+    except ValueError:
+        return False
+    active = specifications / "resources/active"
+    if source.parent != specifications / "approved" or not target.is_relative_to(active):
+        return False
+    archived = specifications / "resources/archived" / target.relative_to(active)
     if not archived.is_file():
         return False
     spec_path = source.relative_to(root).as_posix()

@@ -1,7 +1,7 @@
 ---
 role: "writer"
-read: {"allow": ["AGENTS.md", "project/specs/", "project/batches/", "project/rememory/", "project/kanban/", "agents/", "documentation/"]}
-write: {"allow": ["project/specs/", "project/batches/", "project/kanban/backlog/"]}
+read: {"allow": ["AGENTS.md", "project/specifications/", "project/specs/", "project/batches/", "project/rememory/", "project/kanban/", "agents/", "documentation/"]}
+write: {"allow": ["project/specifications/", "project/specs/", "project/batches/", "project/kanban/backlog/"]}
 git: "forbidden"
 ---
 # Actor: KR Writer
@@ -12,11 +12,11 @@ For scoped work, read `project.json`, relevant global Rememory and the assigned 
 
 ## Read access
 
-Only `AGENTS.md`, `project/specs/`, `project/batches/`, `project/rememory/`, `project/kanban/`, instructions/templates under `agents/` and `documentation/`. Product code and Git are outside this role; Developer supplies technical evidence through records. Request evidence from the permitted role if more is needed.
+Only `AGENTS.md`, `project/specifications/` (or existing `project/specs/`), `project/batches/`, `project/rememory/`, `project/kanban/`, instructions/templates under `agents/` and `documentation/`. Product code and Git are outside this role; Developer supplies technical evidence through records. Request evidence from the permitted role if more is needed.
 
 ## Write access
 
-- `project/specs/`: draft/ready preparation, retirement of proposals by User decision, and approved revisions after explicit approval, following [Batch rules](../guidelines/batches.md). Start a new revision for changed approved scope.
+- `project/specifications/` (or existing `project/specs/`): draft/ready preparation, retirement of proposals by User decision, and approved revisions after explicit approval, following [Batch rules](../guidelines/batches.md). Start a new revision for changed approved scope. Local archives are read-only.
 - `project/kanban/backlog/`: proposed outcome, scope and checks only. Search all stages first; use [Card content](../actions/write-card.md) and board intake commands. Send active-Card scope proposals to Developer after User approval.
 - Batch Description before `ready`; assigned statuses `draft`, `ready`, `validated`, `rejected` afterward.
 - `tests.md`: scenarios and expected results before delivery. Developer owns technical prerequisites/revision; Tester owns execution results/evidence.

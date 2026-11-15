@@ -14,6 +14,7 @@ import sys
 
 from kanban.files import CARD_ID, header_value
 from kanban.project import PROJECT_SCOPE, load_project, primary_worktree
+from kanban.specifications import SPECIFICATION_NAMES, specification_root
 from kanban.workflow import load_workflow
 
 ROLE_ALIASES = {"development-agent": "developer", "specification-agent": "writer"}
@@ -110,6 +111,8 @@ def module_policy_path(project, module, kind, rel, directory, in_control):
                 return None
             if kind == "write" and path.is_relative_to(workspace / "kanban"):
                 return None
+            if kind == "write":
+                validate_specification_write(workspace, path)
             return (Path("project") / path.relative_to(workspace)).as_posix()
         if directory and workspace.is_relative_to(path):
             return None
@@ -118,9 +121,16 @@ def module_policy_path(project, module, kind, rel, directory, in_control):
             return None
         return (Path("project/rememory") / path.relative_to(project.memory)).as_posix()
     if kind == "write" and any(covers([f"project/{group}/"], rel)
-                               for group in ("kanban", "specs", "batches", "rememory")):
+                               for group in ("kanban", *SPECIFICATION_NAMES, "batches", "rememory")):
         return None
     return rel
+
+
+def validate_specification_write(workspace, path):
+    if any(path.is_relative_to(workspace / name) for name in SPECIFICATION_NAMES):
+        chosen = specification_root(workspace)
+        if chosen.exists() and not path.is_relative_to(chosen):
+            raise ValueError(f"Use the existing Specification directory: {chosen}.")
 
 
 def card_header(source):
@@ -347,6 +357,8 @@ def violation(role, root, tool, tool_input, cwd, project=None, module=None):
                     )
                 else:
                     policy_path = module_policy_path(project, module, kind, rel, directory, in_control)
+            elif kind == "write":
+                validate_specification_write(root / "project", root / rel)
             if policy_path is None:
                 return kind, f"{label} outside the selected scope's permitted records"
             if policy_path == "project.json" and kind == "read" and project:

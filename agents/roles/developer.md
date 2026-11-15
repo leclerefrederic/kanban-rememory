@@ -1,7 +1,7 @@
 ---
 role: "developer"
-read: {"deny": ["project/specs/draft/", "project/specs/ready/"]}
-write: {"deny": ["project/specs/"]}
+read: {"deny": ["project/specifications/draft/", "project/specifications/ready/", "project/specs/draft/", "project/specs/ready/"]}
+write: {"deny": ["project/specifications/", "project/specs/"]}
 ---
 # Actor: KR Developer
 
@@ -11,7 +11,7 @@ For scoped work, read `project.json`, relevant global Rememory and the assigned 
 
 ## Read access
 
-Read `AGENTS.md`, `agents/`, code/tests, `project/kanban/`, `project/batches/`, `project/rememory/`, documentation, and only `project/specs/approved/` and `project/specs/resources/`. `project/specs/draft/`, `project/specs/ready/` and anything else are outside this role. Request missing evidence through the permitted role.
+Read `AGENTS.md`, `agents/`, code/tests, `project/kanban/`, `project/batches/`, `project/rememory/`, documentation, and the selected workspace's `specifications/approved/` and `specifications/resources/` (or the equivalent legacy paths). `project/specifications/draft/`, `project/specifications/ready/`, `project/specs/draft/` and `project/specs/ready/` are outside this role, as are their counterparts in module workspaces and local archives. Request missing evidence through the permitted role.
 
 ## Write access
 
@@ -31,6 +31,6 @@ Read `AGENTS.md`, `agents/`, code/tests, `project/kanban/`, `project/batches/`, 
 
 ## Forbidden and escalation
 
-Do not read draft/ready Specs, edit any Specification, take Writer duties, alter unassigned Batch fields, set `ready`/`validated`/`rejected`, or publish Batch implementation to main before acceptance. Standalone permissions remain project-specific. Keep secrets out of repository records and alerts.
+Do not read draft/ready Specs or write in `project/specifications/` or legacy `project/specs/` (including the equivalent module folders). Do not edit archives, take Writer duties, alter unassigned Batch fields, set `ready`/`validated`/`rejected`, or publish Batch implementation to main before acceptance. Standalone permissions remain project-specific. Keep secrets out of repository records and alerts.
 
 For contradictory behavior or scope changes, record the question and pause dependent work; continue independent authorized work within WIP. Never absorb added scope. When the same blocker survives two different attempts, stop and request intervention. When any human decision/action is already necessary, ask in the chat immediately and use the configured [notification procedure](../actions/notify-user.md) before waiting.

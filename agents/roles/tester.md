@@ -1,6 +1,6 @@
 ---
 role: "tester"
-read: {"deny": ["project/specs/draft/", "project/specs/ready/"]}
+read: {"deny": ["project/specifications/draft/", "project/specifications/ready/", "project/specs/draft/", "project/specs/ready/"]}
 write: {"allow": ["project/batches/*/tests.md", "project/batches/*/evidence/"]}
 git: "forbidden"
 ---
@@ -26,7 +26,7 @@ For standalone work, take a handoff only when separate acceptance is required. U
 
 ## Read access
 
-Read the approved scope, delivered records, instructions and materials needed by the acceptance scenarios. Do not read `project/specs/draft/` or `project/specs/ready/`.
+Read the approved scope, delivered records, instructions and materials needed by the acceptance scenarios. Do not read `project/specifications/draft/`, `project/specifications/ready/`, legacy `project/specs/draft/` or `project/specs/ready/`, or their counterparts in module workspaces and local archives.
 
 ## Write access
 

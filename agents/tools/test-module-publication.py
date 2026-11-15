@@ -196,9 +196,20 @@ class ModulePublicationTests(unittest.TestCase):
             )
 
         self.write_status("a", "closed")
+        specs = self.root / "work/a/specifications"
+        approved = specs / "approved/spec-001-r1.md"
+        approved.parent.mkdir(parents=True)
+        approved.write_text("# Specification\n")
         records_only = self.commit("Close records")
         unchanged = verify(records_only)
         self.assertEqual(unchanged.returncode, 0, unchanged.stderr)
+        resource = specs / "resources/active/mockup.md"
+        resource.parent.mkdir(parents=True)
+        resource.write_text("Product requirement attachment\n")
+        resource_changed = verify(self.commit("Change Specification resource"))
+        self.assertEqual(resource_changed.returncode, 1)
+        self.assertIn("specifications/resources/active/mockup.md", resource_changed.stderr)
+        resource.unlink()
         (self.root / "README.md").write_text("Combined product changed")
         changed = verify(self.commit("Change product"))
         self.assertEqual(changed.returncode, 1)

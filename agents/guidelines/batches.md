@@ -33,7 +33,7 @@ Correction delivers a new candidate; interruption resumes the same state/branch.
 
 ## Resources
 
-Store required attachments under `project/specs/resources/active/`; link each in the Spec's Resources section with its purpose. Existing repo files can be references; binding external files must be placed in this resource folder for approval protection. Include required resources in the approval commit and verify tracked links there. Changes need a new Spec revision.
+Store required attachments in the workspace's `specifications/resources/active/` and link each from the Spec's Resources section with its purpose. Use an existing legacy `specs/` directory at its original path. Existing repo files can be references; binding external files belong in this resource folder for approval protection. Include required resources in the approval commit and verify tracked links there. Changes need a new Spec revision.
 
 Writer archives a resource only when no ongoing/planned Spec needs it: move to `resources/archived/`, preserve filename and avoid collisions across both directories. Do not edit approved links. The approval snapshot retains exact historical bytes. Before reusing a Spec, restore required resources to their approved paths and include them in the next snapshot. Use the trusted snapshot to retrieve historical binary bytes.
 

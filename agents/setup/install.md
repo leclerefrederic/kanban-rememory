@@ -31,7 +31,9 @@ In a normal primary project session, act as [KR Orchestrator](agents/roles/orche
 Record the approved project ownership, journal conventions and Git permissions there. For Claude Code merge `@AGENTS.md` into root `CLAUDE.md`; Codex reads `AGENTS.md`. [Layout](project-layout.md) describes the resulting structure.
 
 - **Single-project:** run the [workflow preview/application](configure-workflow.md#apply-and-verify) for `project/kanban/` and create the agreed journal folder. Leave the root manifest absent.
-- **Multi-module:** run the [module setup preview/application](project-modules.md) with the proposed manifest and agreed workflow JSON. Set up the project board and journal and each module journal through that procedure.
+- **Multi-module:** run the [module setup preview/application](project-modules.md) with the proposed manifest and agreed workflow JSON. It creates the project board, project journal and module journals.
+
+Include `--with-batches` in the chosen setup command when the approved setup includes Specifications and Batches.
 
 For a new setup, apply the preview when it matches the approved proposal. Stop on a discrepancy or changed scope. For upgrades without an approved migration, verify the installed layout. Record configuration and actual validation results in Rememory.
 

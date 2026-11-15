@@ -222,8 +222,8 @@ class KanbanBoardTests(unittest.TestCase):
     def test_module_batch_pins_its_own_specification_revision(self):
         a, b = self.initialize_modules()
 
-        def write_batch(space, revision):
-            spec = space / f"specs/approved/spec-001-r{revision}.md"
+        def write_batch(space, revision, directory):
+            spec = space / directory / f"approved/spec-001-r{revision}.md"
             spec.parent.mkdir(parents=True)
             spec.write_text(f'---\ntype: specification\nid: "SPEC-001"\nrevision: "{revision}"\n---\n')
             record = space / "batches/batch-001"
@@ -239,8 +239,8 @@ class KanbanBoardTests(unittest.TestCase):
                 )
             return description
 
-        write_batch(a, "1")
-        b_description = write_batch(b, "2")
+        write_batch(a, "1", "specs")
+        b_description = write_batch(b, "2", "specifications")
         revision = self.commit_fixture("Record both module approvals")
         for module in ("a", "b"):
             self.run_board("verify-approval", f"{module}/Batch-001", revision)
@@ -251,7 +251,7 @@ class KanbanBoardTests(unittest.TestCase):
         card.write_text(card.read_text().replace('batch: "b/Batch-001"', 'batch: "Batch-001"'))
         self.run_board("validate")
         original = b_description.read_text()
-        b_description.write_text(original.replace("modules/b/specs", "modules/a/specs").replace("spec-001-r2", "spec-001-r1"))
+        b_description.write_text(original.replace("modules/b/specifications", "modules/a/specs").replace("spec-001-r2", "spec-001-r1"))
         self.assertIn("in its own module", self.run_board("validate", expected=1))
         self.run_board("validate", "--scope", "a")
 
@@ -584,14 +584,15 @@ class KanbanBoardTests(unittest.TestCase):
         description.write_text(approved)
         self.run_board(*command)
 
-    def populate_lot_templates(self, lot):
+    def populate_lot_templates(self, lot, directory="specs"):
         templates = KIT / "agents/templates"
         for name in ("description.md", "tests.md", "report.md"):
             source = (templates / f"batch-{name}").read_text()
             document_id = "Batch-001" if name == "description.md" else f"Batch-001-{Path(name).stem.title()}"
             source = source.replace("id: null", f'id: "{document_id}"').replace("batch: null", 'batch: "Batch-001"')
             source = source.replace("status: draft", "status: ready").replace(
-                "specifications: []", 'specifications: [{"id":"SPEC-001","revision":"1","path":"project/specs/approved/spec-001-r1.md"}]'
+                "specifications: []", 'specifications: [{"id":"SPEC-001","revision":"1","path":"project/'
+                + directory + '/approved/spec-001-r1.md"}]'
             )
             (lot / name).write_text(source)
 
@@ -618,8 +619,14 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
 
     def test_verify_approval_compares_required_resources(self):
+        self.check_approval_resources("specs")
+
+    def test_verify_approval_compares_canonical_resources(self):
+        self.check_approval_resources("specifications")
+
+    def check_approval_resources(self, directory):
         self.run_board("init", "--template", "short", "--apply")
-        specs = self.root / "project/specs"
+        specs = self.root / "project" / directory
         (specs / "approved").mkdir(parents=True)
         (specs / "resources/active").mkdir(parents=True)
         (specs / "resources/archived").mkdir(parents=True)
@@ -630,12 +637,12 @@ class KanbanBoardTests(unittest.TestCase):
         living.write_text("first version\n")
         (specs / "approved/spec-001-r1.md").write_text(
             "- Fiche ID: SPEC-001\n- Revision: 1\n\n## Resources\n\n"
-            "[Mockup](../resources/active/mockup.png) and [site](https://example.invalid/x.png) and [top](#top) "
+            "[Mockup](../resources/active/mockup.png) and [site](https://example.invalid/x.png) and [top](#resources) "
             "and [role](../../../agents/roles/living.md)\n"
-            "\n## Notes\n\n[ignored](../resources/active/missing.png)\n")
+            "\n## Notes\n\n[Living reference](../../../agents/roles/living.md)\n")
         lot = self.root / "project/batches/batch-001"
         lot.mkdir(parents=True)
-        self.populate_lot_templates(lot)
+        self.populate_lot_templates(lot, directory)
         subprocess.run(["git", "add", "project"], cwd=self.root, check=True)
         subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
                         "commit", "-qm", "Approve"], cwd=self.root, check=True)
@@ -645,13 +652,14 @@ class KanbanBoardTests(unittest.TestCase):
         living.write_text("a later version\n")  # A linked reference outside the resource folder may change.
         self.run_board(*command)
         mockup.write_bytes(b"another mockup")
-        self.assertIn("Approval mismatch: project/specs/resources/active/mockup.png",
+        self.assertIn(f"Approval mismatch: project/{directory}/resources/active/mockup.png",
                       self.run_board(*command, expected=1))
         mockup.write_bytes(b"approved mockup")
         self.run_board(*command)
         (specs / "resources/archived/mockup.png").write_bytes(b"approved mockup")
         mockup.unlink()
         self.run_board(*command)  # Moved to the archive with the same bytes.
+        self.run_board("validate")
         (specs / "resources/archived/mockup.png").write_bytes(b"replaced")
         self.assertIn("Approval mismatch", self.run_board(*command, expected=1))
 
@@ -765,13 +773,30 @@ class KanbanBoardTests(unittest.TestCase):
                 description.write_text(original + "\nChanged approved mission\n")
                 self.assertIn("Approval mismatch", self.run_board("verify-approval", "batch-001", revision, expected=1))
 
+    def test_single_project_batch_option_and_ambiguous_layout(self):
+        self.run_board("init", "--template", "short", "--apply")
+        records = self.root / "project"
+        canonical = records / "specifications"
+        self.assertFalse(canonical.exists())
+        self.assertFalse((records / "batches").exists())
+        options = ("init", "--template", "short", "--with-batches")
+        self.assertIn("project/specifications/resources/active", self.run_board(*options))
+        self.assertFalse(canonical.exists())
+        self.run_board(*options, "--apply")
+        self.assertTrue((canonical / "retired").is_dir())
+        self.assertTrue((records / "batches").is_dir())
+        (records / "specs").mkdir()
+        for command in (options + ("--apply",), ("validate",), ("new", "Do not write", "--owner", "Fixture", "--apply")):
+            self.assertIn("Ambiguous Specification directories", self.run_board(*command, expected=1))
+        self.assertEqual(list((self.board / "backlog").glob("*.md")), [])
+
     def test_batch_module_installation_and_worked_example(self):
         # Static instructions/templates already ship with core; this option adds the guard.
         shutil.copy(KIT / "agents/tools/guard-batch-work.py", self.root / "agents/tools")
         self.run_board("init", "--template", "short", "--apply")
         self.run_board("validate")
         mapping = {
-            "documentation/examples/specification.md": "project/specs/approved/spec-101-r1.md",
+            "documentation/examples/specification.md": "project/specifications/approved/spec-101-r1.md",
             "documentation/examples/batch-description.md": "project/batches/batch-101/description.md",
             "documentation/examples/batch-tests.md": "project/batches/batch-101/tests.md",
             "documentation/examples/batch-report.md": "project/batches/batch-101/report.md",
