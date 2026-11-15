@@ -58,7 +58,7 @@ Start with Cards and Rememory. Add the optional Specification and Batch module w
 
 ## How the work runs
 
-Open a normal Codex or Claude Code project chat. [KR Orchestrator](agents/roles/orchestrator.md) starts by default and keeps decisions and handoffs in that chat. Explicitly selected roles and assigned subagents retain their roles. **KR Writer** drafts Specifications and backlog Cards. **KR Developer** implements, runs technical checks and handles authorized Git operations. [KR Tester](agents/roles/tester.md) runs and guides acceptance for the delivered revision.
+Open a normal Codex or Claude Code project chat. [KR Orchestrator](agents/roles/orchestrator.md) starts by default and keeps decisions and handoffs in that chat. Explicitly selected roles and assigned subagents retain their roles. **KR Writer** drafts Specifications and backlog Cards. **KR Developer** implements, runs technical checks and handles authorized Git operations. [KR Tester](agents/roles/tester.md) runs and guides acceptance for the delivered revision. The role skills are `kr-orchestrator`, `kr-writer`, `kr-developer`, and `kr-tester`.
 
 With the Batch module, the delivery loop looks like this:
 

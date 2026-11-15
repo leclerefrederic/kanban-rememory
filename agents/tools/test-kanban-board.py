@@ -597,11 +597,11 @@ class KanbanBoardTests(unittest.TestCase):
     def test_skills_are_valid_and_reference_existing_files(self):
         skills = sorted((KIT / "agents/skills").glob("*/SKILL.md"))
         expected = {
-            "kanban-rememory-development-agent", "kanban-rememory-orchestrator",
-            "kanban-rememory-specification-agent", "kanban-rememory-standalone", "kanban-rememory-tester",
+            "kr-developer", "kr-orchestrator",
+            "kr-writer", "kanban-rememory-standalone", "kr-tester",
         }
         self.assertEqual({skill.parent.name for skill in skills}, expected)
-        orchestrator = KIT / "agents/skills/kanban-rememory-orchestrator/SKILL.md"
+        orchestrator = KIT / "agents/skills/kr-orchestrator/SKILL.md"
         self.assertIn("`agents/roles/orchestrator.md`", orchestrator.read_text())
         for skill in skills:
             with self.subTest(skill=skill.parent.name):
@@ -641,6 +641,33 @@ class KanbanBoardTests(unittest.TestCase):
         self.assertIn(".agents/skills/kanban-rememory-standalone", sync("--check", expected=1))
         self.assertIn("updated 1 skill folder(s)", sync("--target", "codex"))
         self.assertEqual((own / "SKILL.md").read_text(), "mine\n")
+
+        # Simulate earlier installations using the exact pre-rename skill bytes.
+        old_names = {
+            "kanban-rememory-orchestrator": "kr-orchestrator",
+            "kanban-rememory-specification-agent": "kr-writer",
+            "kanban-rememory-development-agent": "kr-developer",
+            "kanban-rememory-tester": "kr-tester",
+        }
+        target = self.root / ".agents/skills"
+        for old, new in old_names.items():
+            legacy = target / old
+            legacy.mkdir()
+            current = (target / new / "SKILL.md").read_bytes()
+            original = current.replace(f"name: {new}\n".encode(), f"name: {old}\n".encode(), 1)
+            (legacy / "SKILL.md").write_bytes(original)
+
+        customized = self.root / ".claude/skills/kanban-rememory-tester"
+        customized.mkdir()
+        (customized / "SKILL.md").write_text("project-specific tester\n")
+        compatibility_check = sync("--check", expected=1)
+        self.assertIn("retire legacy copy", compatibility_check)
+        self.assertTrue(all((target / name).is_dir() for name in old_names))
+        self.assertIn("updated 4 skill folder(s)", sync("--target", "codex"))
+        self.assertTrue(all(not (target / name).exists() for name in old_names))
+        self.assertTrue(all((target / name / "SKILL.md").is_file() for name in old_names.values()))
+        self.assertIn("Kept customized legacy skill", sync("--check"))
+        self.assertEqual((customized / "SKILL.md").read_text(), "project-specific tester\n")
 
     def test_installed_skills_match_the_kit(self):
         result = subprocess.run([sys.executable, str(KIT / "agents/tools/sync-skills.py"), "--check"],

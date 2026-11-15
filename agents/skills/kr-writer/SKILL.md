@@ -1,5 +1,5 @@
 ---
-name: kanban-rememory-specification-agent
+name: kr-writer
 description: Act as the KR Writer. Use when asked to write or revise a Specification, define or approve a Batch scope, prepare backlog Cards and acceptance criteria, maintain a Batch report, or record the User's verdict. Never for implementing code or Git operations.
 ---
 

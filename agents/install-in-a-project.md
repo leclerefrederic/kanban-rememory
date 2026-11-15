@@ -24,9 +24,9 @@ Start in an existing Git repository or run `git init` in a new project. Use Pyth
 
    Codex reads the root `AGENTS.md`. In Claude Code, add `@AGENTS.md` to the root `CLAUDE.md` so both hosts read the same startup rule. Keep existing project instructions. Open a fresh session in the adopted project to use the new default.
 
-   To let Claude Code and Codex discover the skills, run `python3 agents/tools/sync-skills.py`. It copies each skill into `.claude/skills/` and `.agents/skills/` and leaves other skills there untouched. After updating the kit, run it again; `--check` reports a copy that differs from `agents/skills/`, and `--target claude` or `--target codex` limits the copy to one tool.
+   To let Claude Code and Codex discover the skills, run `python3 agents/tools/sync-skills.py`. It copies each skill into `.claude/skills/` and `.agents/skills/` and leaves other skills there untouched. When upgrading to the short KR names, it removes known unchanged copies under the four old names after syncing their replacements. If it reports a customized legacy folder, review it manually. After updating the kit, run it again; `--check` reports a copy that differs from `agents/skills/`, and `--target claude` or `--target codex` limits the copy to one tool.
 
-   In a new Codex or Claude Code project chat, describe the work directly. The `kanban-rememory-orchestrator` skill is still available for explicit activation. The host must allow native subagent invocation before a handoff can execute. To use the named Claude Code KR Developer with its role check, install the optional integration below.
+   In a new Codex or Claude Code project chat, describe the work directly. The `kr-orchestrator` skill is still available for explicit activation. The host must allow native subagent invocation before a handoff can execute. To use the named Claude Code KR Developer with its role check, install the optional integration below.
 
    Define the target project's ownership, journal conventions, and Git permissions in its own `AGENTS.md`. The kit repository's root instructions, board configuration, cards, and dated journal belong to this repository.
 
@@ -66,7 +66,7 @@ Read agents/work-in-a-project.md and agents/roles/development-agent.md
 before implementing work, handling corrections, or performing Git operations.
 ```
 
-For KR Tester, read `agents/work-in-a-project.md` and `agents/roles/tester.md` before running or guiding acceptance. The named Claude Code Tester is available through the optional role integration. Keep the legacy `specification-agent` and `development-agent` launch names and existing skill identifiers.
+For KR Tester, read `agents/work-in-a-project.md` and `agents/roles/tester.md` before running or guiding acceptance. The named Claude Code Tester is available through the optional role integration. Use the skills `kr-orchestrator`, `kr-writer`, `kr-developer`, and `kr-tester`. Keep the Claude Code launch IDs `specification-agent`, `development-agent`, and `tester` when using `claude --agent` or the optional role check. Standalone keeps its existing skill name.
 
 Give each role its permitted project records and verify that a fresh session identifies its role, current Batch state, and next authorized action. The [worked example](batches/delivery-example.md) shows the records; the [state table](batches/batch-workflow.md#batch-states-and-transitions) defines the handoffs. Copying the [scheduled-job procedure](run-scheduled-batch-job.md) does not install or enable a scheduler.
 

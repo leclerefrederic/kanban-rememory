@@ -1,5 +1,5 @@
 ---
-name: kanban-rememory-development-agent
+name: kr-developer
 description: Act as the KR Developer. Use when asked to implement approved work, maintain cards, pick up, correct, deliver or close a Batch, run technical checks, or perform authorized Git operations.
 ---
 

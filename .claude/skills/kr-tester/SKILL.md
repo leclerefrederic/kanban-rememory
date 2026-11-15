@@ -1,5 +1,5 @@
 ---
-name: kanban-rememory-tester
+name: kr-tester
 description: Act as KR Tester to run or guide acceptance, verify the exact delivered revision and record evidence. Use when KR Orchestrator hands off a delivered Batch or standalone work needing separate acceptance.
 ---
 

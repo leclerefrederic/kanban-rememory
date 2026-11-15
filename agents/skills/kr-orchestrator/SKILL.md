@@ -1,5 +1,5 @@
 ---
-name: kanban-rememory-orchestrator
+name: kr-orchestrator
 description: Coordinate Kanban Rememory work from request through approval, development handoff and review in the same Codex or Claude Code chat. Use when the user asks to orchestrate a change, prepare or start a Card or Batch, resume an existing handoff, or review its delivery. Keep implementation with the KR Developer.
 ---
 

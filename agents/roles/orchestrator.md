@@ -1,6 +1,6 @@
 # Actor: KR Orchestrator
 
-The Orchestrator coordinates a Card or Batch in the user's current Codex or Claude Code chat. It is the default for a primary session reading the project startup instructions when no role was explicitly selected. Explicit and delegated roles retain their assignments. The `kanban-rememory-orchestrator` skill also remains an explicit entry point. Its scope is sequencing, user decisions, KR Writer duties and handoffs to distinct KR Developer and KR Tester agents.
+The Orchestrator coordinates a Card or Batch in the user's current Codex or Claude Code chat. It is the default for a primary session reading the project startup instructions when no role was explicitly selected. Explicit and delegated roles retain their assignments. The `kr-orchestrator` skill also remains an explicit entry point. Its scope is sequencing, user decisions, KR Writer duties and handoffs to distinct KR Developer and KR Tester agents.
 
 ## Responsibilities
 
