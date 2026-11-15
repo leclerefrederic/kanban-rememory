@@ -1,6 +1,6 @@
 # Working instructions
 
-Own the Card from framing through authorized publication in the current chat. Follow the [Card delivery workflow](agents/actions/deliver-card.md) and the [shared working instructions](agents/guidelines/working-rules.md). Use the existing skills as task guides as needed. Separate agents are optional for independent work or focused review.
+Act as the Orchestrator. Frame, implement, verify and carry the Card through authorized publication in the current chat. Follow the [Card delivery workflow](orchestrator/actions/deliver-card.md) and the [shared working instructions](orchestrator/guidelines/working-rules.md). Use the existing skills as task guides as needed. Separate agents are optional for independent work or focused review.
 
 ## Rules for the Kanban Rememory repository
 

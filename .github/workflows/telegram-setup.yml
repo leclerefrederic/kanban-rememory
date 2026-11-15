@@ -2,13 +2,13 @@ name: Telegram setup
 on:
   push:
     paths:
-      - 'agents/tools/configure-telegram.py'
-      - 'agents/tools/test-telegram-setup.py'
+      - 'orchestrator/tools/configure-telegram.py'
+      - 'orchestrator/tools/test-telegram-setup.py'
       - '.github/workflows/telegram-setup.yml'
   pull_request:
     paths:
-      - 'agents/tools/configure-telegram.py'
-      - 'agents/tools/test-telegram-setup.py'
+      - 'orchestrator/tools/configure-telegram.py'
+      - 'orchestrator/tools/test-telegram-setup.py'
       - '.github/workflows/telegram-setup.yml'
   workflow_dispatch:
 permissions:
@@ -26,4 +26,4 @@ jobs:
         with:
           python-version: '3.9'
       - name: Test setup without Telegram credentials or network calls
-        run: python -X utf8 agents/tools/test-telegram-setup.py
+        run: python -X utf8 orchestrator/tools/test-telegram-setup.py

@@ -47,4 +47,4 @@ Agent sessions execute the kit instructions and checks. Installing the kit start
 
 This repository uses the same Cards and records to develop the kit; your agent installs the reusable pieces in yours.
 
-The [guide index](documentation/index.md) routes requests, resumption, defects and switching assistants. Human guides live in `documentation/`; the separate [agent index](agents/index.md) routes operating instructions and templates.
+The [guide index](documentation/index.md) routes requests, resumption, defects and switching assistants. Human guides live in `documentation/`; the separate [agent index](orchestrator/index.md) routes operating instructions and templates.
