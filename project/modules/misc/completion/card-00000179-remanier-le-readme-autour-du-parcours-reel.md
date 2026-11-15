@@ -24,3 +24,7 @@ L’utilisateur demande de réécrire le README, de créer cette carte et de com
 ## History
 
 - 2026-11-16T00:46:02+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:46:43+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T00:46:43+01:00 — Merge approved for the verified candidate `55210d0fb271361057c133f76a60484837e348ad`: “Vas-y ma gueule, je valide 55210d0. Clôture la carte et pousse sur origin/main.”.
