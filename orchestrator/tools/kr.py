@@ -52,7 +52,7 @@ def main():
     move.add_argument("stage")
     start = sub.add_parser("start", help="open the phase with a Card, or add its next Card")
     start.add_argument("card", type=card)
-    sub.add_parser("check", help="validate, then run each command given after --, on the clean worktree")
+    sub.add_parser("check", help="validate, then run each command given after --, on the clean phase branch")
     close = sub.add_parser("close", help="after approval: complete the Cards, record the approval and the journal")
     close.add_argument("--summary", required=True, help="one line for the journal")
     close.add_argument("--approval", required=True, help="the user's approval, quoted")

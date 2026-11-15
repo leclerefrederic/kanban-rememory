@@ -9,6 +9,5 @@
 .obsidian/
 Obsidian/
 
-# Python caches and Claude Code phase worktrees
+# Python caches
 __pycache__/
-.claude/worktrees/

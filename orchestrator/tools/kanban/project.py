@@ -50,13 +50,8 @@ def git(root, *args):
 
 
 def common_directory(root):
-    """The Git directory shared by every worktree of the clone."""
+    """The clone's Git directory, where the phase state lives."""
     return Path(git(root, "rev-parse", "--path-format=absolute", "--git-common-dir"))
-
-
-def linked_worktree(root):
-    own, common = git(root, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir").splitlines()
-    return own != common
 
 
 def load_project(root):

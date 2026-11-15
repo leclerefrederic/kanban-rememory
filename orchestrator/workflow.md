@@ -6,7 +6,7 @@ The Orchestrator carries each Card from request to verified publication in the c
 
 1. **Records.** Each module has a Kanban in `project/modules/<module>/`: one folder per stage, and `resources/<card-id>/` for attachments. A Card is one file with a stable ID, and its folder is its stage. Work without a natural owner, including cross-module work that ships together, goes to `misc` with an `affected_modules` list. `project/settings.json` holds the modules and the workflow. `project/rememory/` is the journal, one file per date.
 2. **Intake.** Search with `kr show` and `kr path` before creating a Card. Reuse an existing Card and its authorization. Take the oldest eligible backlog Card unless one records an agreed priority. Unmet prerequisites keep a Card in backlog.
-3. **Phase.** Execute only in a phase: one branch `<host>/phase-<number>` and one worktree, delivering one or more Cards of one module with one merge approval. One phase runs at a time. Never change deliverables on `main`. Creating a backlog Card is not execution: do it on `main` outside a phase, and in the phase worktree during one. `kr` refuses records written elsewhere.
+3. **Phase.** Execute only in a phase: one branch `<host>/phase-<number>` of the checkout, delivering one or more Cards of one module with one merge approval. One agent runs one phase at a time. Never change deliverables on `main`. Creating a backlog Card is not execution: do it on `main` outside a phase, and on the phase branch during one. `kr` refuses records written elsewhere.
 4. **Capacity.** WIP counts started, unfinished Cards, blocked ones included. A blocked Card stays in its stage with the date, the cause and the condition that clears it.
 5. **Scope.** Apply [the lean principles](../documentation/lean-specifications.md). Ask about ambiguous user-visible behavior instead of inventing it. Record a scope change on the Card before implementing it. Keep suggestions separate. Stop once the criteria are verified.
 6. **History.** Completed and cancelled Cards never change. A correction or a rollback is a successor Card that refers to the original.
@@ -27,27 +27,25 @@ The tool writes stage moves and the approval in History. Age and durations come 
 
 ```sh
 kr show                                   # the phase and the boards
-git worktree add -b claude/phase-168 .claude/worktrees/phase-168 main
-kr start CARD-ID                          # in the worktree: opens the phase, Card in development
+git switch -c claude/phase-170 main
+kr start CARD-ID                          # opens the phase, Card in development
 # implement and commit
 kr check -- python3 orchestrator/tools/test-kr.py
 # ask the user to approve the verified revision
 kr close --summary "One line" --approval "The user's words"
 git add project && git commit -m "Close CARD-ID"
-kr publish
-# from the primary checkout:
-git merge --ff-only origin/main && git worktree remove PATH && git branch -d BRANCH
+kr publish                                # pushes, then main is up to date and the branch is gone
 ```
 
-- **Start.** `start` refuses the primary checkout, `main`, a second phase and a full WIP. For a further Card of the phase: `kr move CARD-ID completion`, commit, then `kr start NEXT-ID`.
-- **Check.** `check` needs a clean worktree that contains `origin/main`: merge it first. It runs `validate`, lists the CI workflows of `.github/workflows`, then each command given after its own `--`. It records the verified revision only when everything passes. A failure or a new commit cancels the verification, so run every required check in one call. Run the acceptance cases you can verify. Guide the user through those that need them and record the verdict.
+- **Start.** `start` refuses `main`, a second phase and a full WIP. For a further Card of the phase: `kr move CARD-ID completion`, commit, then `kr start NEXT-ID`.
+- **Check.** `check` needs a clean checkout that contains `origin/main`: merge it first. It runs `validate`, lists the CI workflows of `.github/workflows`, then each command given after its own `--`. It records the verified revision only when everything passes. A failure or a new commit cancels the verification, so run every required check in one call. Run the acceptance cases you can verify. Guide the user through those that need them and record the verdict.
 - **Approval.** Show the user the verified revision, what was checked and what merging or pushing triggers: read the listed workflows, none means nothing runs. The Card stays in Development until the user approves that exact revision. A changed candidate needs a new check and a new approval.
 - **Close.** `close` needs HEAD to be the verified revision and every criterion checked. It moves the phase Cards to completion and writes the approval on each. It also writes the journal milestone with the durations and token totals.
-- **Publish.** `publish` accepts only a closing commit on the verified revision that changes Cards and the journal. It pushes that commit to `origin/main` as a fast-forward and ends the phase. Rerun it after an interruption. The Card is delivered once publication, and any agreed deployment, is verified.
+- **Publish.** `publish` accepts only a closing commit on the verified revision that changes Cards and the journal. It pushes that commit to `origin/main` as a fast-forward, ends the phase, fast-forwards `main` and deletes the branch. Rerun it after an interruption. The Card is delivered once publication, and any agreed deployment, is verified.
 
 ## Recover
 
-- `kr show` names the active phase and its worktree. Before taking it over, confirm that the previous session has stopped, then resume in that worktree.
+- `kr show` names the active phase and its branch. Before taking it over, confirm that the previous session has stopped, then resume on that branch.
 - When `origin/main` has moved, merge it, check again and ask for approval again.
 - When records disagree, stop the dependent work and report what disagrees.
 

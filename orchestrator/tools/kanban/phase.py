@@ -1,4 +1,4 @@
-"""One phase at a time: a branch and a worktree that deliver Cards of one module with one approval."""
+"""One phase at a time: a branch of the checkout that delivers Cards of one module with one approval."""
 
 from datetime import datetime
 import json
@@ -9,7 +9,7 @@ import tempfile
 
 from .board import add_history, find_card, local, move
 from .markdown import unchecked
-from .project import JOURNAL, MODULES, common_directory, git, linked_worktree
+from .project import JOURNAL, MODULES, common_directory, git
 from .report import report
 from .validation import validate
 
@@ -73,17 +73,16 @@ class Phase:
             raise ValueError("Check out the phase branch: HEAD is detached.") from None
 
     def here(self):
-        """The active phase, provided this command runs in its worktree and branch."""
+        """The active phase, provided HEAD is on its branch."""
         state = self.state()
         if state is None:
-            raise ValueError("No active phase: run start CARD-ID in a dedicated worktree.")
-        if state["worktree"] != str(self.root) or state["branch"] != self.branch():
-            raise ValueError(f"The active phase runs in {state['worktree']} on {state['branch']}: "
-                             "work on the records there.")
+            raise ValueError("No active phase: run start CARD-ID on a dedicated branch.")
+        if state["branch"] != self.branch():
+            raise ValueError(f"The active phase runs on {state['branch']}: switch to it to change the records.")
         return state
 
     def guard_write(self):
-        """During a phase, the records change only in its worktree."""
+        """During a phase, the records change only on its branch."""
         if self.state() is not None:
             self.here()
 
@@ -102,9 +101,9 @@ class Phase:
         previous = self.state()
         if previous is None:
             branch = self.branch()
-            if branch == "main" or not linked_worktree(self.root):
-                raise ValueError("Start a phase in a dedicated worktree and branch, never on main.")
-            state = {"module": module, "cards": [task_id], "branch": branch, "worktree": str(self.root),
+            if branch == "main":
+                raise ValueError("Start a phase on a dedicated branch, never on main.")
+            state = {"module": module, "cards": [task_id], "branch": branch,
                      "started": self.project.now().isoformat(timespec="seconds"), "verified": None}
         else:
             self.here()
@@ -123,7 +122,7 @@ class Phase:
         return 0
 
     def check(self, commands):
-        """Validate, then run each command, on the clean phase worktree; record the verified revision."""
+        """Validate, then run each command, on the clean phase branch; record the verified revision."""
         state = self.here()
         state["verified"] = None
         self.save(state)
@@ -190,7 +189,7 @@ class Phase:
         return 0
 
     def publish(self):
-        """Push the closing commit to origin/main and end the phase."""
+        """Push the closing commit to origin/main, end the phase and return to an up-to-date main."""
         state = self.here()
         require_clean(self.root)
         head, verified = git(self.root, "rev-parse", "HEAD"), state["verified"]
@@ -219,7 +218,12 @@ class Phase:
             if origin_main(self.root) != head:
                 raise ValueError("Could not confirm the publication on origin/main.")
         self.file.unlink()
-        print(f"Published {head} on origin/main; the phase is over.")
-        print(f"From the primary checkout: git merge --ff-only origin/main, "
-              f"git worktree remove {self.root}, git branch -d {state['branch']}")
+        git(self.root, "switch", "--quiet", "main")
+        try:
+            git(self.root, "merge", "--quiet", "--ff-only", head)
+        except subprocess.CalledProcessError:
+            raise ValueError(f"Published {head}, but main does not fast-forward to it: reconcile main, "
+                             f"then delete {state['branch']}.") from None
+        git(self.root, "branch", "--quiet", "--delete", state["branch"])
+        print(f"Published {head} on origin/main; main is up to date and the phase is over.")
         return 0

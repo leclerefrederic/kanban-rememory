@@ -24,7 +24,7 @@ Copy `documentation/` and `orchestrator/`, not this kit's Cards, journal or `AGE
 Act as the Orchestrator and follow the [workflow](orchestrator/workflow.md).
 ```
 
-For Claude Code, add `@AGENTS.md` to `CLAUDE.md`; Codex reads `AGENTS.md`. Add `__pycache__/` and the host's worktree folder, such as `.claude/worktrees/`, to `.gitignore`. Write the approved settings to a file outside the repository, preview them, then apply the unchanged proposal:
+For Claude Code, add `@AGENTS.md` to `CLAUDE.md`; Codex reads `AGENTS.md`. Add `__pycache__/` to `.gitignore`. Write the approved settings to a file outside the repository, preview them, then apply the unchanged proposal:
 
 ```sh
 python3 orchestrator/tools/kr.py init /path/to/settings.json
