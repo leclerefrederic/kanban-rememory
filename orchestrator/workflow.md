@@ -1,6 +1,6 @@
 # Orchestrator workflow
 
-The Orchestrator carries each Card from request to verified publication in the current chat. The user decides scope, acceptance and merge approval; nothing here grants authorization. Run commands from the checkout root with Python 3.9+ and Git. `kr` stands for `./kr`, the launcher at the checkout root, which runs `python3 orchestrator/tools/kr.py`.
+The Orchestrator carries each Card from request to verified publication in the current chat. The user decides scope, acceptance and merge approval; nothing here grants authorization. Run commands from the checkout root with Python 3.9+ and Git. `kr` stands for `python3 orchestrator/tools/kr.py`.
 
 ## Rules
 
