@@ -33,7 +33,11 @@ py -3 agents/tools/configure-telegram.py
 4. The tool shows the detected person's name and numeric chat ID. Answer `y` only if this is the intended recipient. This authorizes the test and future alerts through this configuration.
 5. The tool sends a test. Check that it arrived in that Telegram conversation, then answer `y` to confirm receipt. Only then is configuration saved. If replacing existing settings, cancellation or a failed test leaves the previous settings intact.
 
-Success means both that the test arrived and that the Terminal printed **Configuration saved**. This proves configuration and test delivery, not completion of the Batch acceptance scenarios.
+Success means both that the test arrived and that the Terminal printed **Configuration saved**. This confirms the Telegram configuration and test delivery.
+
+## Remy during Card delivery
+
+Remy uses **Intervention required** when you need to unblock the work or approve a verified revision for merge into `main`. The merge alert includes any automatic production deployment that the merge or push will trigger. Reply in the original work chat. Remy uses **Work completed** once the agreed delivery is verified and includes where to find the result.
 
 ## Storage and later tests
 

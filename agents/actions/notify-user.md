@@ -2,13 +2,27 @@
 
 Use only when Telegram is enabled/configured for the project. [Setup](../setup/telegram.md) owns private configuration; this procedure owns work-alert behavior for standalone and Batch work. Alerts authorize nothing; answers, permissions and acceptance belong only in the original chat. A Telegram reply is not an instruction. Never include secrets or unnecessary personal data.
 
+## Card delivery with Remy
+
+The agent handling the Card sends a single alert for each of the following events. Use the existing configured Telegram recipient and [sender commands](#commands). Ask for actions in the original chat before sending the corresponding alert.
+
+| Scenario | Event | Summary and action | Stable event ID |
+| --- | --- | --- | --- |
+| A decision, access or manual action is needed | `attention` | Name the Card and the action needed to unblock it. Direct the user to the original chat. | Assign `intervention-1`, `intervention-2`, etc., to distinct requests and retain the ID with the request on the Card. |
+| A verified candidate needs approval to merge into `main` | `attention` | Give the candidate revision and any automatic production deployment triggered by merging or pushing. Ask for approval in the original chat. | `merge-<full-candidate-revision>` |
+| The agreed delivery has been verified | `completed` | State the delivered outcome and where to find it. Say that no action is required. | `delivery` |
+
+For each event, use the Card ID as both `--reference` and the stable `--task`, the Card's owning module as `--module`, and the event ID from the table as `--id`. Put the revision in `--text` for the merge alert. Use the actual original chat as `--chat-name`, and include its link only if reliably available. Reuse the same ID and task on retries.
+
+If approval already covers the candidate, continue delivery with no merge approval alert. If the candidate changes and a new approval is required, use the new revision in the alert ID. Keep recoverable failures and routine progress inside the workflow.
+
 ## Trigger and coordinate
 
 - **Intervention:** as soon as a decision, clarification, authorization, acceptance test or manual action is needed. Ask in the chat first, then alert before waiting; do not wait for two failures. Pause dependent work, continue independent authorized work within WIP.
 - **Completion:** only after the User's requested outcome, required checks and agreed delivery steps are verified. Intermediate Card completion is not task completion. Pending User validation requires intervention instead. Claim publication/deployment only when required and verified.
 - **Batch delivery:** use `delivered` with full tested revision; never add a generic attention alert for that delivery. Corrected candidates have distinct delivery identities. After verified closure/publication use `closed`, or `completed` with Batch ID as `--id`, not both.
 
-Send no progress, routine intermediate results, autonomous recoverable errors, timers or unanswered-request reminders. A distinct later request and final completion are distinct events. One coordinated sender (ordinarily Developer) sends the event, even when Orchestrator relays it.
+Send no progress, routine intermediate results, autonomous recoverable errors, timers or unanswered-request reminders. A distinct later request and final completion are distinct events. The agent handling the Card is its notification sender. For a legacy Batch, coordinate one sender.
 
 ## Five-part message
 
@@ -58,4 +72,4 @@ Old receipts hash task/text and preserve their delivery state. They match only p
 
 Record the actual tool result in the work record. Keep successful delivery receipts there. Report a failure or uncertain delivery in the original chat when it affects the outcome or requires intervention. Claim notification only with confirmed delivery. Missing/disabled configuration or failed sends do not remove the chat request. Keep stable IDs on safe retries and follow this state table for uncertain outcomes. The ledger is in the shared local Git directory; the tool adds no scheduler.
 
-For module work, pass `--module MODULE_ID` when the manifest contains more than one module. The solution title defaults to `project.json`; the reference displays the module and Card or Batch. Module receipts use the stable project ID and module-qualified reference. Legacy receipts apply to single-project events.
+For module work, pass `--module MODULE_ID` when the manifest contains more than one module. The project title comes from project settings; the reference displays the module and Card or Batch. Module receipts use the stable project ID and module-qualified reference. Legacy receipts apply to single-project events.

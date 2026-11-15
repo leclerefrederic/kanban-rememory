@@ -12,6 +12,6 @@
 - **Intervention required.** Ask for the specific decision, permission or manual action that only the user can provide. Explain what depends on it and continue independent authorized work where possible. An acceptance decision is an intervention when it was explicitly agreed as part of the delivery.
 - **Work complete.** Report the delivered outcome and where to find it after the agreed checks and delivery steps are complete.
 
-Use the existing authorization throughout. Continue directly between steps and handle recoverable failures within the same run.
+Use the existing authorization throughout. Continue directly between steps and handle recoverable failures within the same run. When Remy is configured, follow [the notification triggers](notify-user.md#card-delivery-with-remy) for both kinds of handoff, including a merge approval that is still needed.
 
 Earlier Specs and Batches can be found in the archived project or Git history. Use a Card for new work.
