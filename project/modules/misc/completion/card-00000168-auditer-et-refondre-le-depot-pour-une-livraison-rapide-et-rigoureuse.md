@@ -38,7 +38,7 @@ Après publication, hors critères : suppression de l’état local périmé de 
 
 ## Execution and evidence
 
-- State: in-progress — vérification du candidat
+- State: done
 - Blocker:
 
 ## History
@@ -49,3 +49,8 @@ Après publication, hors critères : suppression de l’état local périmé de 
 - 2026-11-15 — Phase `claude/phase-168` ouverte (claim enregistré). Passage en development fait sur la branche et non dans le checkout de `main` : l’hôte interdit d’écrire dans le checkout principal depuis le worktree, et la refonte approuvée garde les Cards sur la branche de phase.
 - 2026-11-15 — Claim converti au format `phase.json` du nouvel outil par une conversion manuelle unique. Une Card de test créée par erreur lors d’un essai de `new` a été supprimée avant tout commit.
 - 2026-11-15 — Implémenté : `kr.py` et paquet `kanban`, `telegram.py`, `workflow.md`, `notify.md`, `install.md`, `guide.md`, réglages au schéma 2, modules vides retirés, `VERSION` 0.3.0. Outils et tests : 1 775 lignes contre 2 928. `AGENTS.md` et `workflow.md` : 6,8 Ko. `test-kr.py` (6 tests) et `test-telegram.py` (8 tests) passent ; le test d’envoi a révélé un bug d’`alert` (`args.event`), corrigé.
+
+- 2026-11-15T23:29:07+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-15T23:29:07+01:00 — Merge approved for the verified candidate `dcf7b255f7016169abc50115b9eee4d07c0193c2`: “Oui, fusionne”.
+- 2026-11-15 — Alerte Remy `merge-dcf7b255f7016169abc50115b9eee4d07c0193c2` envoyée avant l’accord : livraison confirmée par Telegram.
