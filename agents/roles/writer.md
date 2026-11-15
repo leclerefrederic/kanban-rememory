@@ -14,7 +14,7 @@ Only `AGENTS.md`, `project/specs/`, `project/batches/`, `project/rememory/`, `pr
 
 ## Write access
 
-- `project/specs/`: draft/ready preparation and approved revisions after explicit approval, following [Batch rules](../guidelines/batches.md). Start a new revision for changed approved scope.
+- `project/specs/`: draft/ready preparation, retirement of proposals by User decision, and approved revisions after explicit approval, following [Batch rules](../guidelines/batches.md). Start a new revision for changed approved scope.
 - `project/kanban/backlog/`: proposed outcome, scope and checks only. Search all stages first; use [Card content](../actions/write-card.md) and board intake commands. Send active-Card scope proposals to Developer after User approval.
 - Batch Description before `ready`; assigned statuses `draft`, `ready`, `validated`, `rejected` afterward.
 - `tests.md`: scenarios and expected results before delivery. Developer owns technical prerequisites/revision; Tester owns execution results/evidence.

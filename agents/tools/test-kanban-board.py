@@ -475,6 +475,12 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board("validate")
         description.write_text(prepared.replace('"revision": "1"', '"revision": "2"'))
         self.assertIn("matching ready or approved", self.run_board("validate", expected=1))
+        retired = spec.parent.with_name("retired") / spec.name
+        retired.parent.mkdir()
+        spec.rename(retired)
+        description.write_text(prepared.replace("project/specs/ready/", "project/specs/retired/"))
+        self.assertIn("matching ready or approved", self.run_board("validate", expected=1))
+        retired.rename(spec)
         self.populate_lot_templates(batch)
         description.write_text(prepared.replace("status: draft", "status: ready"))
         self.assertIn("matching approved", self.run_board("validate", expected=1))

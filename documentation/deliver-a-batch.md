@@ -8,6 +8,8 @@ Explain the desired outcome in the current project chat. In the normal workflow,
 
 A Batch selects one or more exact Specification revisions and records their priority. You approve that scope and authorize execution. Once approved, the Batch baseline stays fixed. Correcting an implementation restores agreed behavior; changing that behavior requires a new approved Specification revision and a delivery plan that preserves the active baseline.
 
+Retired proposals remain in `project/specs/retired/` with the reason and a link to any replacement. They are excluded from Batch selection.
+
 The mission order expresses priority. KR Developer may adjust the technical execution order to respect dependencies in the code.
 
 ## During development

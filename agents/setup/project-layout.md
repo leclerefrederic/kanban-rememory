@@ -30,7 +30,7 @@ With the Batch module:
 ```text
 project/
   specs/
-    draft/, ready/, approved/
+    draft/, ready/, approved/, retired/
     resources/active/, resources/archived/
   batches/
     batch-001/

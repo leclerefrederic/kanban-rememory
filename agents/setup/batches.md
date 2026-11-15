@@ -2,7 +2,7 @@
 
 Optional. Install after the core board and approved project permissions. The bundled Batch instructions are reference material until the project chooses this workflow.
 
-Create the Specification state/resources and Batch directories in [layout](project-layout.md). The canonical blank `specification.md`, `batch-description.md`, `batch-tests.md`, `batch-report.md` templates and instructions already ship with the core static package. Copy `agents/tools/guard-batch-work.py` for artifact protection; optionally copy `check-batch-publication.py` and `agents/tools/git-hooks/` for automatic closure checks. Their `kanban/` package dependency comes from core.
+Create the Specification state/resources and Batch directories in [layout](project-layout.md), including `project/specs/retired/` for proposals withdrawn from active work. The canonical blank `specification.md`, `batch-description.md`, `batch-tests.md`, `batch-report.md` templates and instructions already ship with the core static package. Copy `agents/tools/guard-batch-work.py` for artifact protection; optionally copy `check-batch-publication.py` and `agents/tools/git-hooks/` for automatic closure checks. Their `kanban/` package dependency comes from core.
 
 The shared role instructions define Writer, Developer and Tester responsibilities. Skills are an optional explicit entry. Verify a fresh role session identifies its observed Batch state and next permitted action. Writer prepares scope and records; Developer verifies approval/pickup and Git; Tester owns delivered acceptance observations. [Batch rules](../guidelines/batches.md) define states/data; [develop](../actions/develop-batch.md) and [close](../actions/close-batch.md) define execution. No Batch is created just to activate this option.
 
