@@ -43,6 +43,12 @@ Start with **Cards and Rememory**. Add the optional Specification and Batch modu
 
 Follow [one complete fictional delivery](documentation/index.md#a-complete-example) through its connected records, failed test, correction and accepted closure.
 
+## One project board, with or without modules
+
+Choose a simple project or a multi-module project during setup. Both use one Kanban in `project/kanban/` and one project journal in `project/rememory/` for shared decisions and verified publication milestones.
+
+In a multi-module project, `project.json` declares the workspaces. Cards stay on the project board, where you can filter them by module. Each workspace has its own `rememory/` and, when enabled, `specifications/` and `batches/`. See [Start a project](documentation/start-a-project.md) for the setup choices.
+
 ## One chat, distinct responsibilities
 
 Open a normal Codex or Claude Code chat in an adopted project. **KR Orchestrator** starts by default and keeps decisions and handoffs in that chat. Explicitly selected roles and assigned subagents retain their roles.
