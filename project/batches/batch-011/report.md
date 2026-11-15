@@ -21,10 +21,21 @@ batch: "Batch-011"
 
 ## Delivery summary and gaps
 
+- Candidate `7b2e8b4d6ddb241a68bd2b939ed96386a18079ab` was integrated on main for UAT after verification of the remote backup tag. The four required journeys passed on that candidate: one Card and one Batch in each of Codex and Claude Code. See [tests.md](tests.md).
+
 ## Open debt and outstanding tests
+
+- The User reported no debt. All four agreed UAT journeys have an OK verdict.
 
 ## Correction request
 
 ## User decision
 
+- On 2026-11-15 the User explicitly accepted `7b2e8b4d6ddb241a68bd2b939ed96386a18079ab` without debt and authorized closure, publication of the archive tag, and retirement of the temporary working branch after verification. Preserve the verified pre-UAT backup tag.
+
 ## Closure evidence
+
+- Verified all four required User verdicts against accepted candidate `7b2e8b4d6ddb241a68bd2b939ed96386a18079ab`, its ancestry on published main, the approval commit `ab8ac2d8934defed6daa12627cfbbe60c314d78e` and the retained pre-UAT backup tag at `3203ba22ba05e7dfa02ed82d3434dfea91a4407f`. Board, approval and skill synchronization checks passed in an isolated checkout.
+- Working ref: `refs/heads/codex/batch-011` at the accepted candidate. Recovery ref: `refs/heads/batch-recovery/batch-011` at the commit bearing the `Batch-Closure: Batch-011` trailer. The two remote refs are temporary; retire them only after confirming exact closure and archive on origin.
+- Durable archive: `refs/tags/batch-011` at the accepted candidate. Keep that tag, `refs/tags/backup/batch-011-pre-uat-main` and the local `refs/heads/batch-approval/batch-011`.
+- Closing files: this report, Batch-011 description and tests, and the dated Rememory entry.

@@ -2,7 +2,7 @@
 type: batch
 id: "Batch-011"
 specifications: [{"id":"SPEC-017","revision":"1","path":"project/specs/approved/spec-017-r1.md"},{"id":"SPEC-018","revision":"1","path":"project/specs/approved/spec-018-r1.md"},{"id":"SPEC-019","revision":"1","path":"project/specs/approved/spec-019-r1.md"}]
-status: delivered
+status: closed
 ---
 
 # Start as KR Orchestrator and clarify the four role handoffs
