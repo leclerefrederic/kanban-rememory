@@ -6,12 +6,12 @@ Begin by telling your agent which repository you want to use and that you want t
 
 On a new installation the agent asks which layout you want, whether you choose express or custom setup.
 
-Both choices use one project Kanban and one project journal.
+Both choices use one project Kanban and a project journal in `project/rememory/project/`.
 
 - **Single project** tracks everything directly under the project.
-- **Multi-module** adds workspaces for the named modules. Filter the project Kanban by scope. Modules have journals and can use their own Specifications and Batches. The agent previews the layout before creating `project.json` and configuring the workspaces.
+- **Multi-module** adds workspaces for the named modules. Filter the project Kanban by scope. Module journals live in `project/rememory/modules/<module-id>/`. Modules can use their own Specifications and Batches. The agent previews the layout before creating `project.json` and configuring the workspaces.
 
-If you already specified a mode, the agent uses that choice. Upgrades keep the installed mode unless you request a migration.
+If you already specified a mode, the agent uses that choice. Upgrades keep the installed mode. To centralize existing journals, ask your agent to preview the [journal migration](../agents/setup/project-layout.md#migrate-existing-journals).
 
 ## Agree on the workflow
 

@@ -21,11 +21,12 @@ repository/
       workflow.json
       backlog/, development/, code-review/, completion/, cancellation/
     rememory/
+      project/
 ```
 
 The example is Standard; the actual configured workflow owns stage names/order and active WIP. Cards live in their stage folders, journals by date/owner in Rememory. Kit templates remain under agents, never as a dated project journal.
 
-With modules, root `project.json` declares their workspace locations. The project board and journal stay above the module workspaces. Each workspace has its own `rememory/` and, when enabled, `specifications/` and `batches/`. A project's Cards carry a module or project scope and use one shared sequence of IDs.
+With modules, root `project.json` declares their workspace locations. The project board and project journal stay above the module workspaces. The shared Rememory contains each module's journal at `project/rememory/modules/<module-id>/`. If the manifest sets a custom `shared.memory`, its `project/` and `modules/<module-id>/` subdirectories follow the same layout. Each workspace holds `specifications/` and `batches/` when enabled. A project's Cards carry a module or project scope and use one shared sequence of IDs.
 
 With the Batch module:
 
@@ -43,3 +44,14 @@ project/
 ```
 
 A ready Batch pins the approved Specifications by their stable IDs and paths. Specs travel from draft to ready to approved, then retire when their Batch closes. Existing workspaces using `specs/` retain that name and their frozen paths. IDs are `SPEC-001`, `Batch-001`; paths remain lowercase. Cards reference Batch/Spec IDs, never the reverse. Local guards belong in the shared Git directory. Each adopting project starts with its own workflow, Cards, Specs, Batches and dated records.
+
+## Migrate existing journals
+
+From the primary worktree, use the journal migration tool to preview. Review the moves and link updates, then apply the approved plan.
+
+```sh
+python3 agents/tools/migrate-rememory.py
+python3 agents/tools/migrate-rememory.py --apply
+```
+
+Resolve reported collisions before applying. Validate the project board and rerun the preview to confirm that the migration is complete. Coordinate the apply step with other worktrees so journal writers use the same layout.

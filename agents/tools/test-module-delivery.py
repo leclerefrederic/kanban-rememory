@@ -102,7 +102,10 @@ class ModuleDeliveryTests(unittest.TestCase):
         closed = board / "completion/card-00000001-history.md"
         closed.write_text("# Historic Card\n")
         digest = sha256(closed.read_bytes()).hexdigest()
-        self.assertIn("Preview only", self.setup_modules())
+        preview = self.setup_modules()
+        self.assertIn("Preview only", preview)
+        self.assertIn("project/rememory/project", preview)
+        self.assertIn("project/rememory/modules/b", preview)
         self.assertFalse((self.root / "project.json").exists())
         self.assertFalse((self.root / "project/modules").exists())
         active = board / "development/card-00000002-active.md"
@@ -116,9 +119,10 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.setup_modules("--apply")
         self.assertEqual(sha256(closed.read_bytes()).hexdigest(), digest)
         for module in ("a", "b"):
-            self.assertTrue((self.root / f"project/modules/{module}/rememory").is_dir())
+            self.assertTrue((self.root / f"project/rememory/modules/{module}").is_dir())
             self.assertFalse((self.root / f"project/modules/{module}/kanban").exists())
         self.assertTrue((board / "workflow.json").is_file())
+        self.assertTrue((self.root / "project/rememory/project").is_dir())
 
     def test_manifest_errors_block_activation(self):
         original = self.proposal.read_text()
@@ -243,10 +247,10 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.assertIn("recorded publication revision", self.publication_note(
             "a", card, "a-card", later, expected=1,
         ))
-        journal = next((self.root / "project/rememory").glob("*.md")).read_text()
+        journal = next((self.root / "project/rememory/project").glob("*.md")).read_text()
         self.assertEqual(journal.count(f"published/{closed}"), 1)
         self.assertIn("kanban/completion/card-00000001-", journal)
-        self.assertFalse(list((self.root / "project/modules/a/rememory").glob("*.md")))
+        self.assertFalse(list((self.root / "project/rememory/modules/a").glob("*.md")))
         self.control("a", "finish", card, "--owner", "a-card", "--revision", closed)
         self.control("a", "claim", BATCH, "--owner", "a-batch", "--base", revision, "--approval", revision)
         self.control("a", "checkpoint", BATCH, "--owner", "a-batch", "waiting")
@@ -319,8 +323,8 @@ class ModuleDeliveryTests(unittest.TestCase):
 
         note("@project", project_card, "p")
         note("a", module_card, "a")
-        project_memory = next((self.root / "project/rememory").glob("*.md")).read_text()
-        module_memory = next((self.root / "project/modules/a/rememory").glob("*.md")).read_text()
+        project_memory = next((self.root / "project/rememory/project").glob("*.md")).read_text()
+        module_memory = next((self.root / "project/rememory/modules/a").glob("*.md")).read_text()
         self.assertIn("Resume @project.", project_memory)
         self.assertNotIn("Resume a.", project_memory)
         self.assertIn("Resume a.", module_memory)
@@ -439,7 +443,7 @@ class ModuleDeliveryTests(unittest.TestCase):
                      for module, sha in (("a", closing), ("b", b_closing))]
             for note in notes:
                 note.result()
-        journal = next((self.root / "project/rememory").glob("*.md")).read_text()
+        journal = next((self.root / "project/rememory/project").glob("*.md")).read_text()
         self.assertIn(f"a/{BATCH}/published/{closing}", journal)
         self.assertIn(f"b/{BATCH}/published/{b_closing}", journal)
         self.control("a", "finish", BATCH, "--owner", "a", "--revision", closing)

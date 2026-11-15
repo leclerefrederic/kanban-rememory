@@ -45,9 +45,9 @@ Follow [one complete fictional delivery](documentation/index.md#a-complete-examp
 
 ## One project board, with or without modules
 
-Choose a simple project or a multi-module project during setup. Both use one Kanban in `project/kanban/` and one project journal in `project/rememory/` for shared decisions and verified publication milestones.
+Choose a simple project or a multi-module project during setup. Both use one Kanban in `project/kanban/` and one project journal in `project/rememory/project/` for shared decisions and verified publication milestones.
 
-In a multi-module project, `project.json` declares the workspaces. Cards stay on the project board, where you can filter them by module. Each workspace has its own `rememory/` and, when enabled, `specifications/` and `batches/`. See [Start a project](documentation/start-a-project.md) for the setup choices.
+In a multi-module project, `project.json` declares the workspaces. Cards stay on the project board, where you can filter them by module. Each module has a journal in `project/rememory/modules/<module-id>/`. Its workspace holds `specifications/` and `batches/` when enabled. See [Start a project](documentation/start-a-project.md) for the setup choices.
 
 ## One chat, distinct responsibilities
 

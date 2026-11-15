@@ -1,6 +1,6 @@
 # Resume recorded work
 
-Read the assigned role, Card/Batch status, owner and checkpoint. Search Rememory by stable ID and read the latest relevant entry/evidence; expand only when the history is needed. Do not load every daily journal. Reconcile dependencies, authorization and role-permitted Git evidence. Conflicting records stop dependent work; report what disagrees.
+Read the assigned role, Card/Batch status, owner and checkpoint. Search the project journal in `project/rememory/project/` and, for module work, the assigned journal in `project/rememory/modules/<module-id>/`. Follow configured memory paths and use the existing locations on projects awaiting migration. Search by stable ID and read the latest relevant entry/evidence; expand only when the history is needed. Do not load every daily journal. Reconcile dependencies, authorization and role-permitted Git evidence. Conflicting records stop dependent work; report what disagrees.
 
 For Cards, find the existing file across configured stages, keep interrupted/blocked work there and follow [Kanban rules](../guidelines/kanban.md). Reuse authorization for the same action; do not reopen completed Cards. The Orchestrator resumes the existing native child when available, otherwise establishes whether ownership stopped before replacing it.
 

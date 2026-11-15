@@ -331,7 +331,8 @@ class Coordination:
                     from .closure import Closure
 
                     Closure(self, owner, delivery).verify_published(revision, published)
-                if not recorded_milestone(self.project.memory, self.publication_identity(delivery, revision)):
+                if not recorded_milestone(self.project.scope_memory(PROJECT_SCOPE),
+                                          self.publication_identity(delivery, revision)):
                     raise ValueError("Record the verified project publication milestone before releasing capacity.")
                 self.module_file.unlink()
 
@@ -392,7 +393,7 @@ class Coordination:
 
                     Closure(self, owner, delivery).verify_published(revision, remote_main)
                 event_identity = self.publication_identity(delivery, revision)
-                directory = self.project.memory
+                journal_scope = PROJECT_SCOPE
             else:
                 if not evidence:
                     raise ValueError("Link to existing evidence for a work note.")
@@ -400,11 +401,18 @@ class Coordination:
                 in_board = target.is_relative_to(self.project.board / "kanban")
                 same_scope = (in_board and target.is_file()
                               and self.project.card_scope(target, allow_legacy=True) == self.module)
-                if not target.is_file() or (not same_scope and
-                        (in_board or not target.is_relative_to(self.workspace))):
-                    raise ValueError("Link a local evidence file within the current scope.")
-                directory = self.project.scope_memory(self.module)
+                journal_scope = self.module
             with exclusive(self.directory, "journal-update"):
+                from .memory_migration import checkpoint_path
+
+                checkpoint = checkpoint_path(self.primary, self.project.id)
+                if checkpoint.exists() or checkpoint.is_symlink():
+                    raise ValueError("Resume the pending Rememory migration before recording a milestone.")
+                directory = self.project.scope_memory(journal_scope)
+                if not published:
+                    in_scope = (target.is_relative_to(self.workspace) or target.is_relative_to(directory))
+                    if not target.is_file() or (not same_scope and (in_board or not in_scope)):
+                        raise ValueError("Link a local evidence file within the current scope.")
                 relative = Path(os.path.relpath(target, directory)).as_posix()
                 verb = "Published revision" if published else "Revision"
                 entry = (f"## {reference}\n\n{summary}\n\n"

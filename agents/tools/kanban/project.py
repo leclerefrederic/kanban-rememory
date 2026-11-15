@@ -43,9 +43,32 @@ class Project:
         self.validate_scope(scope)
         return self.board if scope == PROJECT_SCOPE else self.modules[scope]
 
-    def scope_memory(self, scope: str) -> Path:
+    def legacy_memory(self, scope: str) -> Path:
         workspace = self.scope_workspace(scope)
         return self.memory if scope == PROJECT_SCOPE else workspace / "rememory"
+
+    def central_memory(self, scope: str) -> Path:
+        self.validate_scope(scope)
+        return self.memory / "project" if scope == PROJECT_SCOPE else self.memory / "modules" / scope
+
+    def scope_memory(self, scope: str) -> Path:
+        central_project = self.central_memory(PROJECT_SCOPE)
+        if central_project.exists() or central_project.is_symlink():
+            local_directory(self.root, central_project)
+            return local_directory(self.root, self.central_memory(scope))
+        return local_directory(self.root, self.legacy_memory(scope))
+
+    def setup_memory(self) -> tuple:
+        scopes = (PROJECT_SCOPE, *self.modules)
+        legacy = [self.legacy_memory(scope) for scope in scopes]
+        for path in legacy:
+            local_directory(self.root, path)
+        central = self.central_memory(PROJECT_SCOPE)
+        if not central.exists() and any(
+            any(path.glob("*.md")) for path in legacy
+        ):
+            return tuple(legacy)
+        return tuple(local_directory(self.root, self.central_memory(scope)) for scope in scopes)
 
     def card_scope(self, path: Path, *, allow_legacy=False) -> Optional[str]:
         if path.is_symlink() or not path.is_file():
@@ -103,6 +126,13 @@ class Project:
     def workspace(self, module: Optional[str] = None) -> Path:
         selected = self.select_module(module)
         return self.root / "project" if selected is None else self.modules[selected]
+
+
+def local_directory(root, path):
+    if (not path.is_relative_to(root) or path.resolve() != path
+            or (path.exists() and not path.is_dir())):
+        raise ValueError(f"Not a local journal directory: {path}.")
+    return path
 
 
 def unique_object(items):

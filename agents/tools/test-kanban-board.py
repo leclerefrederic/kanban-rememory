@@ -1231,6 +1231,33 @@ class KanbanBoardTests(unittest.TestCase):
             self.assertIsNone(decide(agent, "Read", file_path="project/kanban/note.md"))
         self.assertIsNotNone(decide(spec, "Write", file_path="project/kanban/note.md"))
 
+    def test_role_hook_scopes_central_journals(self):
+        self.initialize_modules()
+        memory = self.root / "project/rememory"
+        for directory in ("project", "modules/a", "modules/b"):
+            (memory / directory).mkdir(parents=True, exist_ok=True)
+        hook, roles = self.role_hook()
+        project = hook.load_project(self.root)
+        self.assertEqual((memory / "project").resolve(), project.scope_memory(hook.PROJECT_SCOPE))
+
+        def check(actor, scope, tool, path):
+            field = "path" if tool == "Glob" else "file_path"
+            return hook.decide(roles, actor, self.root, tool, {field: path},
+                               str(self.root), project, scope)
+
+        for actor in ("developer", "writer"):
+            self.assertIsNone(check(actor, "a", "Read", "project/rememory/project/2026-11-15.md"))
+            self.assertIsNone(check(actor, "a", "Read", "project/rememory/modules/a/2026-11-15.md"))
+            self.assertIsNotNone(check(actor, "a", "Read", "project/rememory/modules/b/2026-11-15.md"))
+            self.assertIsNotNone(check(actor, "a", "Glob", "project/rememory/modules"))
+
+        self.assertIsNone(check("developer", "a", "Write", "project/rememory/modules/a/2026-11-15.md"))
+        self.assertIsNone(check("developer", "a", "Write", "project/rememory/project/2026-11-15.md"))
+        self.assertIsNotNone(check("developer", "a", "Write", "project/rememory/modules/b/2026-11-15.md"))
+        self.assertIsNotNone(check("developer", "a", "Write", "project/rememory/2026-11-15.md"))
+        self.assertIsNotNone(check("developer", "a", "Write", "project/modules/a/rememory/2026-11-15.md"))
+        self.assertIsNotNone(check("writer", "a", "Write", "project/rememory/modules/a/2026-11-15.md"))
+
     def test_tester_can_record_acceptance_only(self):
         module, roles = self.role_hook()
         for path in ("project/batches/batch-042/tests.md", "project/batches/batch-042/evidence/run.txt"):

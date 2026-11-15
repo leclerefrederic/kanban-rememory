@@ -12,7 +12,7 @@ For scoped work, read `project.json`, relevant global Rememory and the assigned 
 
 ## Read access
 
-Only `AGENTS.md`, `project/specifications/` (or existing `project/specs/`), `project/batches/`, `project/rememory/`, `project/kanban/`, instructions/templates under `agents/` and `documentation/`. Product code and Git are outside this role; Developer supplies technical evidence through records. Request evidence from the permitted role if more is needed.
+Only `AGENTS.md`, `project/specifications/` (or existing `project/specs/`), `project/batches/`, project Rememory and the assigned module's journal, `project/kanban/`, instructions/templates under `agents/` and `documentation/`. Product code and Git are outside this role; Developer supplies technical evidence through records. Request evidence from the permitted role if more is needed.
 
 ## Write access
 

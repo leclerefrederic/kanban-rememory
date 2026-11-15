@@ -111,19 +111,22 @@ def initialize(args, project=PROJECT, root=ROOT):
         if outside:
             raise ValueError(f"Existing cards outside the proposed stages: {', '.join(sorted(outside))}")
 
+    from .project import load_project
+
+    memory = load_project(root).setup_memory()
     records = specification_directories(project) if args.with_batches else ()
     for path in records:
         if path.resolve() != path or (path.exists() and not path.is_dir()):
             raise ValueError(f"Batch record path is not a local directory: {path.relative_to(root)}")
     print(json.dumps(workflow, indent=2))
-    for path in (*stages, *records):
+    for path in (*stages, *memory, *records):
         if not path.exists():
             print(f"Create {path.relative_to(root)}/")
     if not args.apply:
         print("Preview only. Run again with --apply after approval.")
         return 0
 
-    for path in (*stages, *records):
+    for path in (*stages, *memory, *records):
         path.mkdir(parents=True, exist_ok=True)
         if not any(path.iterdir()):
             (path / ".gitkeep").touch(exist_ok=True)

@@ -53,9 +53,8 @@ def check_legacy_work():
 def plan(manifest, workflow, with_batches=False):
     manifest.check_legacy_boards()
     board = manifest.board / "kanban"
-    paths = [manifest.memory, board, *(board / stage for stage in workflow["stages"])]
+    paths = [*manifest.setup_memory(), board, *(board / stage for stage in workflow["stages"])]
     for workspace in manifest.modules.values():
-        paths.append(workspace / "rememory")
         if with_batches:
             paths.extend(specification_directories(workspace))
         else:

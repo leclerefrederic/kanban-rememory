@@ -109,9 +109,12 @@ def module_policy_path(project, module, kind, rel, directory, in_control):
         if path.is_relative_to(workspace):
             if name != module or not in_control:
                 return None
-            if kind == "write" and path.is_relative_to(workspace / "kanban"):
-                return None
             if kind == "write":
+                if path.is_relative_to(workspace / "kanban"):
+                    return None
+                legacy_memory = workspace / "rememory"
+                if path.is_relative_to(legacy_memory) and project.scope_memory(name) != legacy_memory:
+                    return None
                 validate_specification_write(workspace, path)
             return (Path("project") / path.relative_to(workspace)).as_posix()
         if directory and workspace.is_relative_to(path):
@@ -119,6 +122,16 @@ def module_policy_path(project, module, kind, rel, directory, in_control):
     if path.is_relative_to(project.memory):
         if not in_control:
             return None
+        modules_memory = project.memory / "modules"
+        if path.is_relative_to(modules_memory):
+            # The common directory contains other assignments' journals.
+            if module not in project.modules or not path.is_relative_to(modules_memory / module):
+                return None
+        elif project.scope_memory(PROJECT_SCOPE) != project.memory:
+            if directory and modules_memory.is_relative_to(path):
+                return None
+            if kind == "write" and not path.is_relative_to(project.scope_memory(PROJECT_SCOPE)):
+                return None
         return (Path("project/rememory") / path.relative_to(project.memory)).as_posix()
     if kind == "write" and any(covers([f"project/{group}/"], rel)
                                for group in ("kanban", *SPECIFICATION_NAMES, "batches", "rememory")):

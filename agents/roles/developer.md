@@ -11,7 +11,7 @@ For scoped work, read `project.json`, relevant global Rememory and the assigned 
 
 ## Read access
 
-Read `AGENTS.md`, `agents/`, code/tests, `project/kanban/`, `project/batches/`, `project/rememory/`, documentation, and the selected workspace's `specifications/approved/` and `specifications/resources/` (or the equivalent legacy paths). `project/specifications/draft/`, `project/specifications/ready/`, `project/specs/draft/` and `project/specs/ready/` are outside this role, as are their counterparts in module workspaces and local archives. Request missing evidence through the permitted role.
+Read `AGENTS.md`, `agents/`, code/tests, `project/kanban/`, `project/batches/`, project Rememory and the assigned module's journal, documentation, and the selected workspace's `specifications/approved/` and `specifications/resources/` (or the equivalent legacy paths). `project/specifications/draft/`, `project/specifications/ready/`, `project/specs/draft/` and `project/specs/ready/` are outside this role, as are their counterparts in module workspaces and local archives. Request missing evidence through the permitted role.
 
 ## Write access
 

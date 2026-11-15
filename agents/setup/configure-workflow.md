@@ -14,7 +14,7 @@ Use the mode agreed in [installation](install.md#inspect-and-agree) for both exp
 
 All include Cancellation for abandonment. New/custom boards require backlog first, development first active, completion as delivery and cancellation as a separate terminal stage. Existing configurations remain supported until explicitly migrated. Work starts entering development; blocked active work counts toward WIP. Suggest one active Card for solo work; confirm the team's limit and selection policy.
 
-For custom choices, walk a real change from request to usable delivery: where it waits, who checks it, where failed checks return, start/finish evidence, who authorizes pickup, capacity and priority exceptions. Confirm timezone and journal ownership (single owner defaults to `project/rememory/`). Carry express answers forward rather than repeat the interview.
+For custom choices, walk a real change from request to usable delivery: where it waits, who checks it, where failed checks return, start/finish evidence, who authorizes pickup, capacity and priority exceptions. Confirm timezone and journal ownership (single owner defaults to `project/rememory/project/`). Carry express answers forward rather than repeat the interview.
 
 Define entry/exit criteria and allowed rework moves. Short verifies in Development; Standard/Long return review failures to Development without resetting start. Long enters Refinement with clear outcome/checks/prerequisites, Testing after review, Deployment after pre-release checks, and Completion only after required delivery evidence. A project may finish at merge, deployment or explicit acceptance; distinguish these facts.
 

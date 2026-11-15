@@ -18,7 +18,7 @@ Developer performs approved filesystem/Git work. Keep project code, root instruc
 | --- | --- |
 | `documentation/` | All reader guides and the single connected example set. |
 | `agents/` | `index.md`, `VERSION`; canonical `guidelines/`, `actions/`, `setup/`, `roles/`, `templates/`. In roles copy `orchestrator.md`, `writer.md`, `developer.md`, `tester.md`. |
-| `agents/tools/` | `manage-kanban-board.py`, `configure-project-modules.py`, `manage-module-delivery.py` and the `kanban/` package. |
+| `agents/tools/` | `manage-kanban-board.py`, `configure-project-modules.py`, `manage-module-delivery.py`, `migrate-rememory.py` and the `kanban/` package. |
 
 Optional procedures ship as reference material; this does not activate tools, agents, alerts or scheduling. Do not copy the kit's project board, Cards, Specs, Batches, dated journals or root project-specific policy.
 
@@ -30,12 +30,12 @@ In a normal primary project session, act as [KR Orchestrator](agents/roles/orche
 
 Record the approved project ownership, journal conventions and Git permissions there. For Claude Code merge `@AGENTS.md` into root `CLAUDE.md`; Codex reads `AGENTS.md`. [Layout](project-layout.md) describes the resulting structure.
 
-- **Single-project:** run the [workflow preview/application](configure-workflow.md#apply-and-verify) for `project/kanban/` and create the agreed journal folder. Leave the root manifest absent.
-- **Multi-module:** run the [module setup preview/application](project-modules.md) with the proposed manifest and agreed workflow JSON. It creates the project board, project journal and module journals.
+- **Single-project:** run the [workflow preview/application](configure-workflow.md#apply-and-verify) for `project/kanban/`; it also creates `project/rememory/project/` on fresh installations. Leave the root manifest absent.
+- **Multi-module:** run the [module setup preview/application](project-modules.md) with the proposed manifest and agreed workflow JSON. It creates the project board, project journal and journals under `project/rememory/modules/<module-id>/`.
 
 Include `--with-batches` in the chosen setup command when the approved setup includes Specifications and Batches.
 
-For a new setup, apply the preview when it matches the approved proposal. Stop on a discrepancy or changed scope. For upgrades without an approved migration, verify the installed layout. Record configuration and actual validation results in Rememory.
+For a new setup, apply the preview when it matches the approved proposal. Stop on a discrepancy or changed scope. For upgrades, verify the installed layout. Use the separate [journal migration](project-layout.md#migrate-existing-journals) after reviewing and approving its preview. Record configuration and actual validation results in Rememory.
 
 ## Add selected options
 
