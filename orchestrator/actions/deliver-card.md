@@ -15,6 +15,12 @@ Apply the [lean principles](../../documentation/lean-specifications.md): record 
 5. **Ask for merge approval.** Verify the candidate against current `main` in a separate integration worktree. Keep the Card in Development. Show the user the verified revision, what was checked and any automatic deployment that merging or pushing `main` triggers. Record their explicit approval on the Card. A changed candidate needs new verification and approval.
 6. **Publish.** Complete the Card, build the closing commit, verify it, publish it and record the milestone in [Rememory](maintain-rememory.md). Treat the Card as delivered only after publication and any agreed deployment are verified.
 
+## Phase
+
+A phase is one delivery: one branch, one worktree, one claim, one integration and one merge approval for one or more Cards of a module. Open a phase before any work on a Card; never work directly on `main`, including creating or editing Cards. The branch is `claude/phase-…` or `codex/phase-…`. Run one phase at a time. Cards created during a phase stay on its branch and go through the same merge, which prevents ID collisions.
+
+The claim names the first Card. Add each further backlog Card of the module with `D add-card FIRST_CARD NEXT_CARD --owner OWNER`, then start it with `B move NEXT_CARD development --owner-token OWNER` once the previous Card is in `completion`. Capacity stays one Card in Development. Within a phase a Card moves to `completion` when its criteria are verified on the branch, with its own commit. The merge approval covers the whole candidate. List its Cards and record the approval on each in the closing commit. Closure, publication, milestone and `finish` apply to every Card of the phase, and the journal entry names them all.
+
 ## Command sequence
 
 Run delivery commands from the delivery worktree. Board moves write the Card in the primary checkout. `OWNER` is the recorded session ID.
@@ -22,7 +28,8 @@ Run delivery commands from the delivery worktree. Board moves write the Card in 
 ```sh
 D() { python3 orchestrator/tools/manage-module-delivery.py --scope MODULE "$@"; }
 B() { python3 orchestrator/tools/manage-kanban-board.py "$@"; }
-D claim CARD-ID --owner OWNER --base MAIN_COMMIT
+D claim CARD-ID --owner OWNER --base MAIN_COMMIT      # CARD-ID names the phase
+D add-card CARD-ID NEXT_CARD --owner OWNER             # optional, per further Card
 B move CARD-ID development --owner-token OWNER
 D checkpoint CARD-ID --owner OWNER "LABEL"            # at each verified milestone
 # implement, commit on the branch, run checks

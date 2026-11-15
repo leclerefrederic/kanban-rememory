@@ -64,7 +64,7 @@ def main():
             def authorize(module, delivery):
                 if not args.owner_token:
                     raise ValueError("Active moves require the recorded --owner-token.")
-                Coordination(ROOT, module).require_owner(args.owner_token, delivery)
+                Coordination(ROOT, module).require_owner(args.owner_token, delivery, member=True)
 
             with exclusive(directory, f"module-{actual}"), exclusive(directory, "board-write"):
                 return move_card(project, task_id, args.destination, authorize, scope)

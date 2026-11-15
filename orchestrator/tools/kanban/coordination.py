@@ -116,13 +116,19 @@ class Coordination:
             return None
         return json.loads(self.module_file.read_text(encoding="utf-8"))
 
-    def require_owner(self, owner, delivery):
+    def require_owner(self, owner, delivery, member=False):
         state = self.status()
-        if state is None or state["owner"] != owner or state["delivery"] != delivery:
+        # A phase delivers several Cards; only board moves may name a member besides the anchor.
+        if (state is None or state["owner"] != owner
+                or delivery != state["delivery"] and not (member and delivery in self.cards(state))):
             raise ValueError(f"No matching ownership for module {self.module}.")
         if state["worktree"] != str(self.root) or state["branch"] != self.branch():
             raise ValueError("Resume in the recorded delivery branch and worktree.")
         return state
+
+    @staticmethod
+    def cards(state):
+        return state.get("cards", [state["delivery"]])
 
     @property
     def workspace(self):
@@ -174,6 +180,19 @@ class Coordination:
                 "base_revision": base_revision,
                 "checkpoint": "picked up",
             }
+            replace_json(self.module_file, state)
+            return state
+
+    def add_card(self, owner, delivery, card):
+        """Join a backlog Card of this module to the phase; it starts once the previous Card is done."""
+        with exclusive(self.directory, "pickup"), exclusive(self.directory, f"module-{self.module}"):
+            state = self.require_owner(owner, delivery)
+            check_local_records(self.workspace)
+            first = self.project.workflow["stages"][0]
+            if card in self.cards(state) or not any(
+                    CARD_ID.match(path.stem)[1].upper() == card for path in self.scope_cards(first)):
+                raise ValueError(f"Add a {self.module} Card waiting in {first} that is not yet in the phase.")
+            state["cards"] = [*self.cards(state), card]
             replace_json(self.module_file, state)
             return state
 
@@ -234,7 +253,7 @@ class Coordination:
                 state = self.update_integration("verify", owner, delivery)
                 if state.get("verified_revision") != closing:
                     raise ValueError("Verify the exact combined Card closing revision.")
-                self.check_closure(delivery, closing)
+                self.check_closure(self.cards(claim), closing)
                 remote_main = self.remote_main()
                 previous = claim.get("closing_revision")
                 if previous and previous != closing and self.is_ancestor(previous, remote_main):
@@ -283,26 +302,29 @@ class Coordination:
                 if not self.is_ancestor(revision, published):
                     raise ValueError("The exact closing revision is not on published main.")
                 self.require_card_publication(claim, delivery, revision)
-                self.check_closure(delivery, revision)
+                self.check_closure(self.cards(claim), revision)
                 if not recorded_milestone(self.project.journal(),
                                           self.publication_identity(delivery, revision)):
                     raise ValueError("Record the verified project publication milestone before releasing capacity.")
                 self.module_file.unlink()
 
-    def check_closure(self, delivery, revision):
+    def check_closure(self, cards, revision):
         check_local_records(self.workspace)
-        matches = [path for path in self.scope_cards(self.project.workflow["completed"])
-                   if CARD_ID.match(path.stem)[1].upper() == delivery]
-        if len(matches) != 1:
-            raise ValueError("Complete the matching Card before releasing capacity.")
-        relative = matches[0].relative_to(self.primary)
-        published = self.git("show", f"{revision}:{relative}")
-        if header_value(published, "module") != self.module or header_value(published, "id") != delivery:
-            raise ValueError("Published Card closure belongs to another module or Card.")
-        checks = list(acceptance_checks(published))
-        if not checks or any("[ ]" in check for check in checks):
-            raise ValueError("Published Card closure is missing verified criteria.")
-        return self.primary / relative
+        first = None
+        for card in cards:
+            matches = [path for path in self.scope_cards(self.project.workflow["completed"])
+                       if CARD_ID.match(path.stem)[1].upper() == card]
+            if len(matches) != 1:
+                raise ValueError(f"Complete the matching Card before releasing capacity: {card}.")
+            relative = matches[0].relative_to(self.primary)
+            published = self.git("show", f"{revision}:{relative}")
+            if header_value(published, "module") != self.module or header_value(published, "id") != card:
+                raise ValueError("Published Card closure belongs to another module or Card.")
+            checks = list(acceptance_checks(published))
+            if not checks or any("[ ]" in check for check in checks):
+                raise ValueError("Published Card closure is missing verified criteria.")
+            first = first or self.primary / relative
+        return first
 
     def publication_identity(self, delivery, revision):
         return f"{self.project.id}/{self.module}/{delivery}/published/{revision}"
@@ -329,7 +351,7 @@ class Coordination:
                 if not self.is_ancestor(revision, remote_main):
                     raise ValueError("The milestone revision is not on published main.")
                 self.require_card_publication(claim, delivery, revision)
-                target = self.check_closure(delivery, revision)
+                target = self.check_closure(self.cards(claim), revision)
                 event_identity = self.publication_identity(delivery, revision)
             else:
                 if not evidence:
@@ -347,6 +369,8 @@ class Coordination:
                         raise ValueError("Link a local evidence file within the current scope.")
                 relative = Path(os.path.relpath(target, directory)).as_posix()
                 verb = "Published revision" if published else "Revision"
-                entry = (f"## {reference}\n\n{summary}\n\n"
+                phase = self.cards(claim)
+                extra = f"Phase Cards: {', '.join(phase)}.\n\n" if len(phase) > 1 else ""
+                entry = (f"## {reference}\n\n{summary}\n\n{extra}"
                          f"{verb}: `{revision}`. [Reference record](<{relative}>).")
                 add_milestone(directory, day, timezone, event_identity, entry)

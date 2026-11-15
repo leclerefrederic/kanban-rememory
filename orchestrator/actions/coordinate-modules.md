@@ -4,7 +4,7 @@ The [Card delivery](deliver-card.md) sequence lists the commands. This file cove
 
 ## Ownership
 
-`claim` records the module, owner, branch, worktree and base. Each module holds one delivery; one integration runs at a time across the project. `status` shows the current claim. An interrupted session resumes with the same owner and worktree after confirming the previous session has stopped. Never clear a lock only because it is old.
+`claim` records the module, owner, branch, worktree and base. `add-card` joins further Cards of the module to the claimed phase; `publish-card`, `milestone --published` and `finish` then require all of them in `completion` with verified criteria. Each module holds one delivery; one integration runs at a time across the project. `status` shows the current claim. An interrupted session resumes with the same owner and worktree after confirming the previous session has stopped. Never clear a lock only because it is old.
 
 `integration begin` records the local `main` tip. Do not overwrite intervening remote work. If `main` advances, release integration, rebuild the combined revision on the new `main` and verify it again. Approval covers one exact candidate.
 

@@ -20,6 +20,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("status")
     claim = commands.add_parser("claim")
+    add_card = commands.add_parser("add-card", help="Add a backlog Card to the active phase")
     checkpoint = commands.add_parser("checkpoint")
     integration = commands.add_parser("integration")
     integration.add_argument("action", choices=("begin", "verify", "release"))
@@ -35,9 +36,10 @@ def main():
     run.add_argument("--integration-checkout", help="Exact combined revision checkout")
     publish_card = commands.add_parser("publish-card")
     publish_card.add_argument("--closing", required=True)
-    for command in (claim, checkpoint, integration, finish, milestone, run, publish_card):
+    for command in (claim, add_card, checkpoint, integration, finish, milestone, run, publish_card):
         command.add_argument("delivery")
         command.add_argument("--owner", required=True, help="Recorded session ownership ID")
+    add_card.add_argument("card", help="Backlog Card to join to the phase")
     claim.add_argument("--base", required=True, help="Approved base commit")
     checkpoint.add_argument("label", help="Next action or point of resumption")
     argv = sys.argv[1:]
@@ -58,6 +60,10 @@ def main():
                 raise ValueError("Use the tracked Card ID and a nonempty owner ID.")
             if args.command == "claim":
                 state = coordination.claim(args.owner, args.delivery, args.base)
+            elif args.command == "add-card":
+                if not DELIVERY.fullmatch(args.card):
+                    raise ValueError("Use the tracked Card ID.")
+                state = coordination.add_card(args.owner, args.delivery, args.card)
             elif args.command == "checkpoint":
                 state = coordination.checkpoint(args.owner, args.delivery, args.label)
             elif args.command == "finish":

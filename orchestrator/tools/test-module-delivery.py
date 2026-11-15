@@ -147,6 +147,25 @@ class ModuleDeliveryTests(unittest.TestCase):
         self.assertEqual(self.control("delivery-a", "a", "status").strip(), "null")
         self.run_tool(self.root, "manage-kanban-board", "validate")
 
+    def test_phase_delivers_several_cards_with_one_closure(self):
+        revision = self.prepare("a", "a")
+        first, second = "CARD-00000001", "CARD-00000002"
+        delivery = self.worktree("phase-a")
+        self.control("phase-a", "a", "claim", first, "--owner", "s", "--base", revision)
+        self.assertIn("not yet in the phase", self.control(
+            "phase-a", "a", "add-card", first, first, "--owner", "s", expected=1))
+        self.control("phase-a", "a", "add-card", first, second, "--owner", "s")
+        self.assertIn("No matching ownership", self.run_tool(
+            delivery, "manage-kanban-board", "move", second, "development", "--owner-token", "other", expected=1))
+        for card in (first, second):
+            self.run_tool(delivery, "manage-kanban-board", "move", card, "development", "--owner-token", "s")
+            path = next((self.root / "project/modules/a/development").glob(f"card-{card[5:]}-*.md"))
+            path.write_text(path.read_text().replace(
+                "## Acceptance criteria\n", "## Acceptance criteria\n\n- [x] Verified.\n"))
+            self.run_tool(delivery, "manage-kanban-board", "move", card, "completion", "--owner-token", "s")
+        self.assertIn(second, self.control("phase-a", "a", "status"))
+
+
     def test_claims_race_and_integration_is_serialized(self):
         revision = self.prepare("a", "b")
         for name in ("a1", "a2", "b1"):
