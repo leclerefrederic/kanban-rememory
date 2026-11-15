@@ -1,6 +1,6 @@
 # Configure the Telegram option
 
-Install only under the project's recorded authorization. Copy `agents/tools/configure-telegram.py` and `agents/tools/notify-telegram.py`; require Python 3.9+ and network access for real setup. This option shares one private recipient configuration per operating-system account across Codex/Claude projects. No scheduler is installed.
+Install only under the project's recorded authorization. Copy `agents/tools/configure-telegram.py`, `agents/tools/notify-telegram.py` and the verification script `agents/tools/test-telegram-setup.py`; require Python 3.9+ and network access for real setup. This option shares one private recipient configuration per operating-system account across Codex/Claude projects. No scheduler is installed.
 
 Give the User the [private setup guide](../../documentation/telegram-setup.md). They run the interactive command in Terminal/PowerShell and enter the token privately; never ask them to paste it into chat, shell arguments or a repo file. The tool verifies the bot, fresh `/setup_...` message, intended recipient and test receipt before saving. Failed/cancelled replacement preserves previous settings.
 
