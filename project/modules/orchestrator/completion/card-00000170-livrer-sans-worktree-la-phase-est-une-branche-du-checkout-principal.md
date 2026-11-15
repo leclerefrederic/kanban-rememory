@@ -29,7 +29,7 @@ Décision de l’utilisateur du 2026-11-15 : « Je ne veux plus de worktrees pou
 
 ## Execution and evidence
 
-- State: in-progress — vérification du candidat
+- State: done
 - Blocker:
 
 ## History
@@ -39,3 +39,8 @@ Décision de l’utilisateur du 2026-11-15 : « Je ne veux plus de worktrees pou
 - 2026-11-15T23:36:19+01:00 — Stage moved from `backlog` to `development`.
 - 2026-11-15 — Phase ouverte sur `claude/phase-170` dans le checkout principal. L’outil publié exigeait encore un worktree : `start` a été lancé avec son propre code, ce seul contrôle neutralisé pour cette exécution.
 - 2026-11-15 — Implémenté : contrôle de worktree et champ `worktree` de l’état retirés, `publish` revient sur `main` à jour et supprime la branche, test de bout en bout sur une branche, `workflow.md` (7 commandes), `install.md` et `.gitignore` à jour. `test-kr.py` (6 tests) passe ; `telegram.py` inchangé, sa suite n’est pas relancée.
+
+- 2026-11-15T23:38:26+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-15T23:38:26+01:00 — Merge approved for the verified candidate `34038a1e90799d39aa23fc808020d86e7ab091f4`: “Oui, fusionne”.
+- 2026-11-15 — Alerte Remy `merge-34038a1e90799d39aa23fc808020d86e7ab091f4` envoyée avant l’accord : livraison confirmée par Telegram.
