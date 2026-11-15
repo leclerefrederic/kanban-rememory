@@ -33,3 +33,5 @@ Demande de l’utilisateur du 2026-11-16 : couvrir les cinq pistes d’améliora
 - 2026-11-16T00:25:04+01:00 — Stage moved from `backlog` to `development`.
 
 - 2026-11-16T00:25:17+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T00:28:42+01:00 — Merge approved for the verified candidate `61119223197a33e848369f56f8ac1402a9821851`: “Une fois celles ci couvertes, tu fusionnes dans le main tu as mon accord.”.
