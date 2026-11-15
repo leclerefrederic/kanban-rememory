@@ -1,6 +1,6 @@
 # Kanban rules
 
-The configured `project/kanban/workflow.json` defines stages, active stages, completion, transitions, WIP and timezone. Example workflows are not additional project stages. The folder is the Card stage; the optional state is `waiting`, `in-progress` or `blocked` within it. Keep one file and stable ID through moves/rework. Use [board commands](../actions/manage-board.md) and [Card content](../actions/write-card.md).
+The configured workflow defines stages, active stages, completion, transitions, WIP and timezone. Read it from the selected module workspace, or from `project/kanban/workflow.json` in single-project mode. Example workflows are not additional project stages. The folder is the Card stage; the optional state is `waiting`, `in-progress` or `blocked` within it. Keep one file and stable ID through moves/rework. Use [board commands](../actions/manage-board.md) and [Card content](../actions/write-card.md).
 
 ## Intake and execution
 
@@ -8,7 +8,7 @@ Search every stage for matching work before proposing a Card. Writer prepares ba
 
 Before starting, verify approved scope, execution authorization, dependencies (including intermediate blockers), owner and capacity. Pull the oldest eligible ID unless the project has recorded another priority. Unmet prerequisites keep unstarted work in backlog. Move authorized work to the first active stage before changing deliverables. Preserve the original actual start date through handoffs and rework.
 
-Keep interrupted/blocked work in its current stage. Record when, why and the action/condition that clears the blocker. It counts toward WIP. At capacity, help finish/unblock existing work; urgent exceptions need project-authorized rationale and a return plan. New standalone work waits until an active Batch is delivered and preserves its acceptance candidate.
+Keep interrupted/blocked work in its current stage. Record when, why and the action/condition that clears the blocker. It counts toward WIP. At capacity, help finish/unblock existing work; urgent exceptions need project-authorized rationale and a return plan. In single-project mode, new standalone work waits until the active Batch is delivered and preserves its candidate. In multi-module mode, a module accepts a new delivery only after its current delivery closes. Independent modules can progress.
 
 ## Finish and preserve evidence
 

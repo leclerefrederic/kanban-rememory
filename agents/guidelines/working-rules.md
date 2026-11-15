@@ -18,6 +18,6 @@ The root project instructions select the default role; explicit and delegated as
 
 For named Claude Code sessions using the optional role hook, set `KR_MODULE` in the invocation environment. One configured module can be inferred. Treat module instructions as advisory where no applicable host control has been verified.
 
-A standalone Card holds its outcome, scope, checks and authorization; Specs/Batches are optional. Approval alone is not execution or publication permission. Developer owns pickup, execution records and closure under project Git policy. New standalone work waits until an active Batch is delivered and preserves its candidate. Use one Card owner and the configured WIP limit.
+A standalone Card holds its outcome, scope, checks and authorization; Specs/Batches are optional. Approval alone is not execution or publication permission. Developer owns pickup, execution records and closure under project Git policy. Use one Card owner and the configured WIP limit. Follow the [Kanban capacity rules](kanban.md#intake-and-execution) and, when configured, [module delivery coordination](../actions/coordinate-modules.md).
 
 Record milestones through [Rememory](../actions/maintain-rememory.md). Distinguish test, merge, publication, deployment and User validation. The project sets selection order, timezone and permissions; default to CARD IDs and one owner's journal in `project/rememory/`.

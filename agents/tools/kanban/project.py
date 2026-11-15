@@ -67,14 +67,16 @@ def identifier(value, label):
     return value
 
 
-def repo_path(root, value, label):
+def repo_path(root, value, label, *, resolve_paths=True):
     if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
         raise ValueError(f"{label} must be a nonempty repository-relative path.")
     path = Path(value)
     windows = PureWindowsPath(value)
     if path.is_absolute() or windows.drive or ".." in path.parts:
         raise ValueError(f"{label} must be a repository-relative path without '..'.")
-    resolved = (root / path).resolve()
+    resolved = root / path
+    if resolve_paths:
+        resolved = resolved.resolve()
     if (resolved == root or not resolved.is_relative_to(root)
             or (root / ".git") in (resolved, *resolved.parents)):
         raise ValueError(f"{label} resolves outside an allowed project directory.")
@@ -97,7 +99,16 @@ def read_manifest(root, manifest):
     try:
         if manifest.is_symlink() or not manifest.is_file():
             raise ValueError("The manifest must be a regular file.")
-        data = json.loads(manifest.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+        source = manifest.read_bytes()
+    except (OSError, ValueError) as error:
+        raise ValueError(f"Invalid project.json: {error}") from error
+    return parse_manifest(root, source)
+
+
+def parse_manifest(root, source, *, resolve_paths=True):
+    """Validate manifest bytes from a checkout or a committed Git blob."""
+    try:
+        data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_object)
         object_fields(data, ("schema_version", "project", "shared", "modules", "execution"), "Manifest")
         if type(data["schema_version"]) is not int or data["schema_version"] != 1:
             raise ValueError("Unsupported project manifest schema_version; expected 1.")
@@ -106,10 +117,11 @@ def read_manifest(root, manifest):
         if not isinstance(project["name"], str) or not project["name"].strip():
             raise ValueError("project.name must be a nonempty display name.")
         shared = object_fields(data["shared"], ("memory", "sources"), "shared")
-        memory = repo_path(root, shared["memory"], "shared.memory")
+        memory = repo_path(root, shared["memory"], "shared.memory", resolve_paths=resolve_paths)
         if not isinstance(shared["sources"], list):
             raise ValueError("shared.sources must be a list.")
-        sources = tuple(repo_path(root, path, "shared.sources") for path in shared["sources"])
+        sources = tuple(repo_path(root, path, "shared.sources", resolve_paths=resolve_paths)
+                        for path in shared["sources"])
         execution = object_fields(data["execution"], EXECUTION, "execution")
         for name, expected in EXECUTION.items():
             actual = execution[name]
@@ -121,7 +133,8 @@ def read_manifest(root, manifest):
         for name, value in data["modules"].items():
             identifier(name, "Module ID")
             definition = object_fields(value, ("workspace",), f"modules.{name}")
-            workspace = repo_path(root, definition["workspace"], f"modules.{name}.workspace")
+            workspace = repo_path(root, definition["workspace"], f"modules.{name}.workspace",
+                                  resolve_paths=resolve_paths)
             if overlaps(workspace, memory) or any(overlaps(workspace, other) for other in modules.values()):
                 raise ValueError(f"Overlapping workspace or memory directory: modules.{name}.")
             modules[name] = workspace

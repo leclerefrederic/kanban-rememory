@@ -2,12 +2,14 @@
 
 from contextlib import contextmanager
 from datetime import datetime
+from errno import EACCES, EAGAIN, EDEADLK
 import json
 import os
 from pathlib import Path
 import subprocess
 import tempfile
 from time import monotonic, sleep
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from .batches import batch_descriptions, verify_approval
@@ -24,21 +26,34 @@ class BusyError(ValueError):
 def exclusive(directory, name):
     directory.mkdir(parents=True, exist_ok=True)
     lock = directory / f"{name}.lock"
+    if lock.is_symlink():
+        raise ValueError(f"Coordination lock must be local: {lock}.")
     deadline = monotonic() + 2
-    while True:
-        try:
-            lock.mkdir()
-            break
-        except FileExistsError:
-            if monotonic() >= deadline:
-                raise BusyError(
-                    f"Coordination lock is held: {lock}. Reconcile its owner before retry or recovery."
-                ) from None
-            sleep(0.025)
-    try:
+    with lock.open("a+b") as handle:
+        while True:
+            try:
+                take_lock(handle)
+                break
+            except OSError as error:
+                if error.errno not in {EACCES, EAGAIN, EDEADLK}:
+                    raise
+                if monotonic() >= deadline:
+                    raise BusyError(f"Coordination lock is held: {lock}.") from error
+                sleep(0.025)
+        # Closing the descriptor releases the lock even if its process stops.
         yield
-    finally:
-        lock.rmdir()
+
+
+def take_lock(handle):
+    if os.name == "nt":
+        import msvcrt
+
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+    else:
+        import fcntl
+
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 
 
 def replace_text(path, value):
@@ -51,7 +66,6 @@ def replace_text(path, value):
         pending.replace(path)
     finally:
         pending.unlink(missing_ok=True)
-
 
 
 def replace_json(path, value):
@@ -211,6 +225,60 @@ class Coordination:
         replace_json(path, state)
         return state
 
+    def integration_check(self, owner, delivery, revision=None, token=None):
+        with exclusive(self.directory, f"module-{self.module}"):
+            self.require_owner(owner, delivery)
+            with exclusive(self.directory, "integration-update"):
+                state = self.update_integration("verify", owner, delivery)
+                if token is None:
+                    state.pop("verified_revision", None)
+                    state["check_token"] = uuid4().hex
+                else:
+                    if state.pop("check_token", None) != token:
+                        raise ValueError("Integration changed while verification was running.")
+                    state["verified_revision"] = revision
+                replace_json(self.directory / "integration.json", state)
+                return state
+
+    def publish_card(self, owner, delivery, closing):
+        if not delivery.startswith("CARD-"):
+            raise ValueError("Use qualified Batch closure for a Batch.")
+        with exclusive(self.directory, f"module-{self.module}"):
+            self.require_owner(owner, delivery)
+            with exclusive(self.directory, "integration-update"):
+                state = self.update_integration("verify", owner, delivery)
+                if state.get("verified_revision") != closing:
+                    raise ValueError("Verify the exact combined Card closing revision.")
+                self.check_closure(delivery, closing)
+                remote_main = self.remote_main()
+                if self.is_ancestor(closing, remote_main):
+                    return remote_main
+                if remote_main != state["main_revision"]:
+                    raise ValueError("Remote main advanced. Reconcile and verify again before publishing.")
+                if not self.is_ancestor(remote_main, closing) or not self.is_ancestor(self.git("rev-parse", "HEAD"), closing):
+                    raise ValueError("Closing revision must preserve main and the delivery branch.")
+                self.git("push", f"--force-with-lease=refs/heads/main:{remote_main}", "origin",
+                         f"{closing}:refs/heads/main")
+                published = self.remote_main()
+                if not self.is_ancestor(closing, published):
+                    raise ValueError("Card closure is not reachable from published main.")
+                return published
+
+    def remote_main(self):
+        output = self.git("ls-remote", "--exit-code", "origin", "refs/heads/main").split()
+        if len(output) != 2 or output[1] != "refs/heads/main":
+            raise ValueError("Could not verify the published main revision.")
+        return output[0]
+
+    def is_ancestor(self, ancestor, revision):
+        result = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ancestor, revision],
+            cwd=self.root,
+        )
+        if result.returncode != 1:
+            result.check_returncode()
+        return result.returncode == 0
+
     def finish(self, owner, delivery, revision):
         with exclusive(self.directory, f"module-{self.module}"):
             self.require_owner(owner, delivery)
@@ -220,14 +288,14 @@ class Coordination:
                     raise ValueError("Release integration ownership after verified publication.")
                 if self.git("rev-parse", "--verify", f"{revision}^{{commit}}") != revision:
                     raise ValueError("Supply the full verified closing revision.")
-                output = self.git("ls-remote", "--exit-code", "origin", "refs/heads/main").split()
-                if len(output) != 2 or output[1] != "refs/heads/main":
-                    raise ValueError("Could not verify the published main revision.")
-                subprocess.run(
-                    ["git", "merge-base", "--is-ancestor", revision, output[0]],
-                    cwd=self.root, check=True,
-                )
+                published = self.remote_main()
+                if not self.is_ancestor(revision, published):
+                    raise ValueError("The exact closing revision is not on published main.")
                 self.check_closure(delivery, revision)
+                if delivery.startswith("Batch-"):
+                    from .closure import Closure
+
+                    Closure(self, owner, delivery).verify_published(revision, published)
                 self.module_file.unlink()
 
     def check_closure(self, delivery, revision):

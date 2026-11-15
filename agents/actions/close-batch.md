@@ -2,6 +2,8 @@
 
 Developer only. Apply [Batch invariants](../guidelines/batches.md); use the designated worktree and exclusive repository coordination described in [development](develop-batch.md#verify-approval-and-take-ownership). An explicit User decision on the tested revision is required. Standalone Card closure follows project rules separately.
 
+For a configured multi-module project, also follow [qualified publication and recovery](coordinate-modules.md#recover-a-qualified-batch-closure).
+
 ## Close the Batch
 
 1. Reconcile Description state, tests' full candidate/results, Writer's recorded decision and report Handoff. Confirm required tests/blocking debt and any explicit nonblocking deferrals. Verify the branch points to the tested revision, reachable on the authorized remote; rerun `validate` and `verify-approval` with the trusted commit. Lifecycle status changes are permitted by approval verification, not other scope changes. Record closing file list and tested revision in Closure evidence before switching branches; preserve uncommitted records.

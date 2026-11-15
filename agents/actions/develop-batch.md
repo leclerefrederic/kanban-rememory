@@ -2,12 +2,14 @@
 
 Prerequisites: Developer role, [Batch rules](../guidelines/batches.md), exact User-approved handoff and authorized execution. Work on one Batch in its designated worktree. Cards are Developer-owned implementation records; no Card IDs belong in Batch records.
 
+For a configured multi-module project, apply [module delivery coordination](coordinate-modules.md) for workspace, capacity, runtime resources and integration.
+
 ## Verify approval and take ownership
 
 1. Writer records User scope approval/execution authority, ordered mission and exact Spec revisions in report Handoff. Compare the ready Description and pinned approved Specs with that trusted handoff. If authority/snapshot is missing or inconsistent, stop dependent work and ask.
 2. Create the matching Git approval commit including required resources; retain a dedicated ref such as `refs/heads/batch-approval/batch-001`. Do not put the commit's own hash in pinned Description. Record the full hash/ref afterward in report Handoff, along with base main commit, working branch, designated worktree and guard path if applicable. Preserve uncommitted Batch records before switching/removing a worktree, even on rejection.
-3. Acquire an exclusive repository lock before reading/updating pickup status. Atomic directory creation in the shared Git directory works within one clone; another clone needs a shared coordinator. If held, do not change the Batch. Clear a stale lock only after proving its previous operation stopped and inspecting branch/status.
-4. Under the lock, recheck ready state, no other active Batch, approval and references. Run:
+3. In multi-module mode, create the approved dedicated branch/worktree and claim the verified Batch there under the selected module. In single-project mode, acquire an exclusive repository lock before reading/updating pickup status. Atomic directory creation in the shared Git directory works within one clone; another clone needs a shared coordinator. If held, do not change the Batch. Clear a stale lock only after proving its previous operation stopped and inspecting branch/status.
+4. Under the applicable pickup lock, recheck ready state, capacity, approval and references. Run:
 
 ```sh
 python3 agents/tools/manage-kanban-board.py validate
@@ -16,7 +18,7 @@ python3 agents/tools/manage-kanban-board.py verify-approval Batch-001 FULL_TRUST
 
 `verify-approval` compares ready Description, pinned Spec bytes and linked files under `project/specs/resources/` in each Resources section. Other linked files are references. An identically archived resource matches. Obtain the commit independently from trusted approval records, not files being checked. Keep approval evidence after closure.
 
-5. Create the recorded Batch branch from the agreed main revision and set in-progress. If it exists after interruption, verify its origin and resume it. Release the lock when the operation ends. Commit product and automated tests on this branch using existing test layout; never commit Batch records there. Respect mission order and technical dependencies.
+5. Create the recorded Batch branch from the agreed main revision if needed, then set in-progress. If it exists after interruption, verify its origin and resume it. Release the lock when the operation ends. Commit product and automated tests on this branch using existing test layout; never commit Batch records there. Respect mission order and technical dependencies.
 
 ## Deliver and correct
 

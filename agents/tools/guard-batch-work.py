@@ -29,19 +29,45 @@ def artifact_digest(path):
     return digest.hexdigest()
 
 
-def active_card(card, module=None):
-    from kanban.files import ROOT
-    from kanban.project import control_workspace, invocation_module, load_project
+def record_scope(record, module):
+    from kanban.files import ROOT, check_module_records
+    from kanban.project import coordination_root, invocation_module, load_project, primary_worktree
 
-    _, workspace = control_workspace(load_project(ROOT), invocation_module(module))
+    project = load_project(primary_worktree(ROOT))
+    selected = project.select_module(invocation_module(module))
+    workspace = project.workspace(selected)
+    if selected is None:
+        return workspace, None
+    check_module_records(workspace)
+    prefix = coordination_root(ROOT).resolve() / "projects" / project.id / "modules" / selected
+    path = record.absolute()
+    if (not path.is_relative_to(prefix) or len(path.relative_to(prefix).parts) != 2
+            or path.name != "guard.json" or path != path.resolve()
+            or not re.fullmatch(r"batch-[0-9]+", path.parent.name)):
+        raise ValueError(f"Expected a local guard at {prefix}/<batch>/guard.json.")
+    return workspace, f"Batch-{path.parent.name[6:]}"
+
+
+def active_card(card, workspace, batch=None):
+    from kanban.files import header_value
+
     board = workspace / "kanban"
     path = board / "workflow.json"
     if not path.exists():
-        raise ValueError("project/kanban/workflow.json is required.")
-    stages = json.loads(path.read_text()).get("active")
+        raise ValueError("kanban/workflow.json is required.")
+    if batch is not None:
+        from kanban.workflow import load_workflow
+
+        stages = load_workflow(workspace)["active"]
+    else:
+        stages = json.loads(path.read_text()).get("active")
     if not stages:
         raise ValueError("workflow.json must list its active stages.")
-    return any(any((board / stage).glob(card.lower() + "-*.md")) for stage in stages)
+    for stage in stages:
+        for path in (board / stage).glob(card.lower() + "-*.md"):
+            if batch is None or header_value(path.read_text(encoding="utf-8"), "batch") == batch:
+                return True
+    return False
 
 
 def verify_artifact(candidate):
@@ -63,13 +89,16 @@ def main():
     parser.add_argument("--revision", help="commit being published; defaults to HEAD")
     args = parser.parse_args()
     try:
+        # Pre-push already selects and verifies the record against the pushed commit.
+        if args.operation != "publish" or args.module is not None:
+            workspace, batch = record_scope(args.record, args.module)
         record = json.loads(args.record.read_text())
         current = revision("HEAD")
         frozen = record.get("acceptance")
         if args.operation in {"change", "correct"}:
             if not re.fullmatch(r"[A-Z][A-Z0-9]*-[0-9]{8}", args.card or ""):
                 raise ValueError("An active Card ID is required.")
-            if args.card not in record["authorized_cards"] or not active_card(args.card, args.module):
+            if args.card not in record["authorized_cards"] or not active_card(args.card, workspace, batch):
                 raise ValueError("Record out-of-scope work in Backlog and defer it.")
             if args.operation == "correct":
                 if not frozen or not args.blocking_test or record.get("correction"):
