@@ -11,6 +11,3 @@ Obsidian/
 
 # Python caches
 __pycache__/
-
-# Local project folder
-/project/
