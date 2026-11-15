@@ -57,24 +57,44 @@ On Windows, replace `python3` with `py -3`. `test` without `--send` displays the
 
 Telegram only alerts the User. The chat stays the place for answers, permissions and acceptance decisions, a Telegram reply changes nothing, and the tool adds no reminder or scheduler.
 
-From the project root, send through the wrapper described in [Commands for KR Developers](#commands-for-kr-developers). Give the task, a stable ID, what is waiting or the verified result, and the conversation to resume. Write `--text` and `--label` in the User's language; the icon keeps the two alerts distinguishable. Add `--link` only if the environment provides a direct link, and never invent one. For example:
+From the project root, use the wrapper in [Commands for KR Developers](#commands-for-kr-developers). Sending Telegram is an external tool action: use the configured, confirmed recipient and check the delivery result. One agent, ordinarily KR Developer, sends the event even when the Orchestrator relays its result.
+
+### Message structure and language
+
+Every work alert has the same five parts:
+
+1. Emoji and hook: 🔔 Action required, 🧪 Ready to test, or ✅ Work completed.
+2. Project name (`--project`, otherwise the repository folder name).
+3. Card or Batch ID (`--reference` for attention/completed, `--batch` for Batch events).
+4. Brief summary (`--text`): at most two sentences describing the requested work and what is waiting or what was verified. The delivery event also includes the tested revision.
+5. Next action (`--next-action`): begin with a verb and state the concrete decision or action and where to act. When nothing is required, say "No action required" in the User's language.
+
+Use the User's conversation language for the hook, labels, summary and next action. If the language is unknown, use English. `--language fr` supplies French hooks and labels; English is the default. For another known language, supply `--language`, a translated `--label` (text only; the tool supplies the emoji), and `--project-label`, `--reference-label`, `--summary-label`, `--next-action-label` (plus `--revision-label` for delivery). These are tool arguments for the agent, not questions for the User. The tool does not translate free text or infer the conversation language.
+
+For an action or acceptance alert, supply `--chat-name` with the actual application and available conversation title. Do not hardcode Codex or Claude Code: those names in examples are placeholders for the real host. Add `--link` only when the environment provides a reliable direct chat link. Never invent a host, title or URL. Do not replace the required action with a bare "see tests.md" or "see report.md".
 
 ```sh
-python3 agents/tools/configure-telegram.py run --send -- attention --task "Export report" --id export-format --text "Choose the file format." --chat-name "Claude Code · Export report"
-python3 agents/tools/configure-telegram.py run --send -- completed --task "Export report" --id export-report --text "Report exported; checks passed." --chat-name "Claude Code · Export report"
+python3 agents/tools/configure-telegram.py run --send -- attention --task "Export report" --id export-format --reference CARD-00000042 --text "The report is ready to export; its format needs your decision." --next-action "Choose PDF or CSV in the original chat." --chat-name "Actual application · Export report"
+python3 agents/tools/configure-telegram.py run --send -- completed --task "Export report" --id export-report --reference CARD-00000042 --text "The report was exported and its contents verified." --next-action "No action required." --chat-name "Actual application · Export report"
 ```
 
-Without `--send`, the command shows a preview and sends nothing; the wrapper supplies the saved recipient and the enabled events (`attention`, `completed`, and the Batch events `delivered`, `blocked`, `closed`). The project name defaults to the repository folder name; `--project` overrides it.
+Without `--send`, the command renders a preview and sends nothing. The wrapper supplies the saved recipient and enabled events (`attention`, `completed`, `delivered`, `blocked`, `closed`).
 
-An alert counts as sent once for the same project, kind, `--id`, `--task` and `--text`. Reusing an `--id` with a different task or text sends a new alert; resending the same alert, even from another chat, does not. Rewording the text of a resend counts as a new request.
+### Cadence and duplicate prevention
 
-For a Batch, use the Batch events so the same event never produces two alerts:
+Send when human intervention becomes necessary (after asking in the original chat, before waiting), when a candidate is delivered for acceptance, or when the requested outcome is finished and verified. Do not send routine progress, intermediate Card completion or errors resolved autonomously. There is no timer, periodic reminder, minimum delay or automatic resend because the User has not answered. A distinct later request remains a separate event.
+
+The agent declares sameness: retain the same stable `--id` for a resend, even with different wording or after resuming in another chat; use a new ID for a new request. When unsure, use a new ID: a possible extra alert is preferable to a missed request. Keep `--task` stable across resends. The key is destination, project, kind, task and declared ID; wording, language and conversation title are not part of it.
+
+Older receipts contain a hash of task and text rather than their original values. They are preserved and recognized when the original wording matches. For a reworded pre-upgrade resend, supply the known original wording with `--previous-text` so the tool can prove the match. Once matched, later rewordings use the stable key. Without a provable match, check the original alert; if still uncertain, choose a new ID and accept the possible duplicate. The tool cannot reconstruct old wording and does not silently suppress ambiguous new requests.
+
+For Batch delivery, use `delivered` with the full tested commit from `tests.md`, not a second generic attention alert. Each corrected candidate remains independently notifiable:
 
 ```sh
-python3 agents/tools/configure-telegram.py run --send -- delivered --batch Batch-001 --revision FULL_TESTED_COMMIT
+python3 agents/tools/configure-telegram.py run --send -- delivered --batch Batch-001 --revision FULL_TESTED_COMMIT --text "The approved changes are implemented and verified." --next-action "Start the guided acceptance tests in the original chat." --chat-name "Actual application · Batch acceptance"
 ```
 
-Use the full tested commit from `tests.md` as `--revision`: each delivery of a Batch, including a corrected one, sends once. Use `blocked` with a stable `--blocker-id`. After a Batch closes and its publication is verified, use `closed`; if you also send `completed` for that Batch, give the Batch ID as `--id` so the two are one outcome.
+Use `blocked` with a stable `--blocker-id`, a brief summary and the specific action needed to unblock work. After Batch closure and publication are verified, use `closed` with its verified summary and explicit next action; do not also send `completed`. The aliases `closed` and `completed` with the same Batch reference and Batch ID as `--id` share one outcome. The Batch ID is their canonical task regardless of its human-readable title.
 
 ## Delivery states
 
@@ -108,7 +128,7 @@ The default sender is `notify-telegram.py` beside the setup tool. The wrapper on
 For a Batch delivery:
 
 ```sh
-python3 agents/tools/configure-telegram.py run --send -- delivered --batch Batch-001 --revision FULL_TESTED_COMMIT
+python3 agents/tools/configure-telegram.py run --send -- delivered --batch Batch-001 --revision FULL_TESTED_COMMIT --text "The approved changes are implemented and verified." --next-action "Start the guided acceptance tests in the original chat." --chat-name "Actual application · Batch acceptance"
 ```
 
 The supplied revision must be the full tested commit from the Batch records. Direct calls to `notify-telegram.py` with explicit environment variables and `--send-to` remain supported. This setup tool does not replace the project's authorization or notification rules, and does not make a Telegram reply an instruction.

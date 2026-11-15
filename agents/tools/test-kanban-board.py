@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -718,7 +719,9 @@ class KanbanBoardTests(unittest.TestCase):
         for identifier in ("Batch-001", "batch-001", "BATCH-001", "bad-id"):
             with self.subTest(identifier=identifier):
                 result = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"),
-                                         "delivered", "--batch", identifier, "--revision", "a" * 40], env=environment,
+                                         "delivered", "--batch", identifier, "--revision", "a" * 40,
+                                         "--text", "Candidate ready.", "--next-action", "Start guided tests.",
+                                         "--chat-name", "Actual app · Acceptance"], env=environment,
                                         capture_output=True, text=True)
                 if identifier == "bad-id":
                     self.assertNotEqual(result.returncode, 0)
@@ -922,7 +925,8 @@ class KanbanBoardTests(unittest.TestCase):
 
     def alert(self, module, ledger, sender, event="attention", confirm_retry=False, project="demo", **fields):
         values = dict(event=event, task=None, id=None, text=None, label=None, chat_name=None, link=None,
-                      batch=None, blocker_id=None, revision=None, confirm_retry=confirm_retry)
+                      batch=None, blocker_id=None, revision=None, confirm_retry=confirm_retry, language="en",
+                      reference="CARD-00000135", next_action="Return to the chat and choose the format.", previous_text=None)
         values.update(fields)
         return module.notify(argparse.Namespace(**values), "token", "42", ledger, sender=sender, project=project)
 
@@ -933,14 +937,14 @@ class KanbanBoardTests(unittest.TestCase):
         sender = lambda token, chat, text: sent.append(text)
 
         def deliver(revision, **extra):
-            return self.alert(module, ledger, sender, "delivered", batch="Batch-001", revision=revision, **extra)
+            return self.alert(module, ledger, sender, "delivered", batch="Batch-001", revision=revision, text="The candidate is ready.", **extra)
 
         self.assertEqual(deliver("a" * 40), "sent")
         self.assertEqual(deliver("a" * 40), "duplicate")  # Retry of the same delivery.
         self.assertEqual(deliver("b" * 40), "sent")  # Delivery of the corrected candidate.
         self.assertEqual(len(sent), 2)
         self.assertIn("revision bbbbbbb", sent[1])
-        self.assertTrue(sent[1].startswith("🔔 Intervention needed"))
+        self.assertTrue(sent[1].startswith("🧪 Ready to test"))
         refused = subprocess.run([sys.executable, str(KIT / "agents/tools/notify-telegram.py"), "delivered",
                                   "--batch", "Batch-001"], env={**os.environ, "TELEGRAM_CHAT_ID": "42",
                                   "TELEGRAM_EVENTS": "delivered"}, capture_output=True, text=True)
@@ -955,25 +959,80 @@ class KanbanBoardTests(unittest.TestCase):
         fields = dict(task="Export report", text="Choose the file format.", chat_name="Claude Code · Export",
                       link="https://example.invalid/chat/1")
         self.assertEqual(self.alert(module, ledger, sender, id="request-1", **fields), "sent")
-        self.assertEqual(sent[0], "🔔 Intervention needed\ndemo — Export report\nChoose the file format.\n"
-                                  "💬 Claude Code · Export\nhttps://example.invalid/chat/1")
-        done = dict(fields, text="Report exported and checked.", label="Tâche terminée")
+        self.assertEqual(sent[0], "🔔 Action required\n\nProject: demo\nReference: CARD-00000135\n"
+                                  "Summary: Choose the file format.\n\n"
+                                  "Next action: Return to the chat and choose the format. — Claude Code · Export\n"
+                                  "https://example.invalid/chat/1")
+        done = dict(fields, text="Rapport exporté et vérifié.", language="fr", next_action="Aucune action requise.")
         self.assertEqual(self.alert(module, ledger, sender, "completed", id="export", **done), "sent")
-        self.assertTrue(sent[1].startswith("✅ Tâche terminée\ndemo — Export report"))
+        self.assertTrue(sent[1].startswith("✅ Travail terminé\n\nProjet: demo"))
         self.assertEqual(self.alert(module, ledger, sender, id="request-1", **fields), "duplicate")
         self.assertEqual(self.alert(module, ledger, sender, "completed", id="export", **done), "duplicate")
         # A different request, another project and a new request on the same task stay notifiable.
         self.assertEqual(self.alert(module, ledger, sender, id="request-2", **fields), "sent")
         self.assertEqual(self.alert(module, ledger, sender, id="request-1", project="other", **fields), "sent")
-        # A different request or task that reuses a confirmed ID is not mistaken for a repeat.
-        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, text="Choose the destination.")), "sent")
+        # The agent declares a new request with a new ID; rewording alone remains a resend.
+        self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, text="Choose a format, please.")), "duplicate")
         self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, task="Import report")), "sent")
         self.assertEqual(self.alert(module, ledger, sender, "completed", id="export", **dict(done, task="Other task")), "sent")
         self.assertEqual(self.alert(module, ledger, sender, id="request-1", **dict(fields, chat_name="Resumed chat", link=None)), "duplicate")
         # A Batch closure and a completion of the same Batch are one outcome.
-        self.assertEqual(self.alert(module, ledger, sender, "closed", batch="Batch-001"), "sent")
-        self.assertEqual(self.alert(module, ledger, sender, "completed", id="Batch-001", **done), "duplicate")
-        self.assertEqual(len(sent), 8)
+        self.assertEqual(self.alert(module, ledger, sender, "closed", batch="Batch-001", text="Closure verified."), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, "completed", id="Batch-001", **dict(done, reference="Batch-001")), "duplicate")
+        self.assertEqual(len(sent), 7)
+
+    def test_legacy_receipts_migrate_without_losing_state_or_hiding_new_requests(self):
+        module = self.load_notifier()
+        ledger = self.root / "legacy.sqlite3"
+        sent = []
+        sender = lambda token, chat, text: sent.append(text)
+        original = "Choose the format."
+        old_id = "request-1#" + sha256(f"Export\n{original}".encode()).hexdigest()[:12]
+        with sqlite3.connect(ledger) as connection:
+            connection.execute("CREATE TABLE alerts (chat TEXT, project TEXT, kind TEXT, ident TEXT, state TEXT,"
+                               " PRIMARY KEY (chat, project, kind, ident))")
+            connection.executemany("INSERT INTO alerts VALUES (?,?,?,?,?)", [
+                ("42", "demo", "attention", old_id, "sent"),
+                ("42", "demo", "completed", "Batch-001", "sent"),
+                ("42", "uncertain", "attention", old_id, "unconfirmed")])
+        fields = dict(task="Export", id="request-1", text=original, chat_name="Codex · Export")
+        self.assertEqual(self.alert(module, ledger, sender, **fields), "duplicate")
+        self.assertEqual(self.alert(module, ledger, sender, **dict(fields, text="Pick a format.")), "duplicate")
+        # A separate old receipt can be proved with original wording before any v2 receipt exists.
+        self.assertEqual(self.alert(module, ledger, sender, project="uncertain", previous_text=original,
+                                    **dict(fields, text="Pick a format.")), "unconfirmed")
+        self.assertEqual(self.alert(module, ledger, sender, project="uncertain", confirm_retry=True,
+                                    previous_text=original, **dict(fields, text="Pick a format.")), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, **dict(fields, task="Import")), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, **dict(fields, id="request-2")), "sent")
+        self.assertEqual(self.alert(module, ledger, sender, "closed", batch="Batch-001",
+                                    text="Closure verified."), "duplicate")
+        with sqlite3.connect(ledger) as connection:
+            self.assertEqual(connection.execute("SELECT state FROM alerts WHERE ident=? AND project='demo'", (old_id,)).fetchone(), ("sent",))
+        self.assertEqual(len(sent), 3)
+
+    def test_localized_structure_and_host_are_supplied_by_the_conversation(self):
+        module = self.load_notifier()
+        ledger = self.root / "languages.sqlite3"
+        sent = []
+        sender = lambda token, chat, text: sent.append(text)
+        self.alert(module, ledger, sender, "delivered", batch="Batch-010", revision="a" * 40,
+                   language="fr", text="Le candidat est prêt.", next_action="Commence les tests guidés.",
+                   chat_name="Claude Code · Recette")
+        self.assertIn("🧪 Prêt à tester\n\nProjet: demo\nRéférence: Batch-010", sent[-1])
+        self.assertIn("Résumé: Le candidat est prêt. (révision aaaaaaa)", sent[-1])
+        self.assertIn("Prochaine action: Commence les tests guidés. — Claude Code · Recette", sent[-1])
+        self.assertNotIn("Codex", sent[-1])
+        self.alert(module, ledger, sender, "completed", task="Export", id="done", text="Export verified.",
+                   next_action="No action required.")
+        self.assertIn("✅ Work completed", sent[-1])
+        self.assertIn("Next action: No action required.", sent[-1])
+        self.alert(module, ledger, sender, task="Export", id="es", language="es", label="🔔 Acción requerida",
+                   project_label="Proyecto", reference_label="Referencia", summary_label="Resumen",
+                   next_action_label="Próxima acción", text="La exportación está lista.",
+                   next_action="Elige el formato.", chat_name="Codex · Exportación")
+        self.assertIn("🔔 Acción requerida\n\nProyecto: demo", sent[-1])
+        self.assertIn("Próxima acción: Elige el formato. — Codex · Exportación", sent[-1])
 
     def test_unknown_delivery_is_not_resent_blindly(self):
         module = self.load_notifier()
@@ -1002,7 +1061,8 @@ class KanbanBoardTests(unittest.TestCase):
                                   env={**{k: v for k, v in os.environ.items() if not k.startswith("TELEGRAM_")},
                                        **environment}, capture_output=True, text=True)
 
-        full = ("attention", "--task", "Task", "--id", "r1", "--text", "Need you.", "--chat-name", "Chat")
+        full = ("attention", "--task", "Task", "--id", "r1", "--text", "Need you.", "--chat-name", "Chat",
+                "--reference", "CARD-00000135", "--next-action", "Choose the format in the chat.")
         disabled = run(*full, TELEGRAM_CHAT_ID="42", TELEGRAM_EVENTS="completed")
         self.assertEqual(disabled.returncode, 0)
         self.assertIn("disabled; nothing was sent", disabled.stdout)
@@ -1012,6 +1072,9 @@ class KanbanBoardTests(unittest.TestCase):
         preview = run(*full, TELEGRAM_CHAT_ID="42", TELEGRAM_EVENTS="attention")
         self.assertIn("Preview:", preview.stdout)
         for bad in (("attention", "--task", "Task", "--id", "r1", "--text", "x"),  # No chat name.
+                    (*full, "--reference", "Task-135"),
+                    (*full, "--next-action", " "),
+                    (*full, "--language", "es"),  # A known language needs translated labels.
                     ("attention", *full[1:], "--link", "not a link"),
                     ("attention", *full[1:], "--revision", "a" * 40)):
             self.assertNotEqual(run(*bad, TELEGRAM_CHAT_ID="42", TELEGRAM_EVENTS="attention").returncode, 0)

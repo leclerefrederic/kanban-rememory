@@ -14,7 +14,14 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ICONS = {"attention": "🔔", "completed": "✅"}
-LABELS = {"attention": "Intervention needed", "completed": "Task completed"}
+LABELS = {
+    "en": {"attention": "Action required", "delivered": "Ready to test", "completed": "Work completed",
+           "project": "Project", "reference": "Reference", "summary": "Summary", "next_action": "Next action",
+           "revision": "revision"},
+    "fr": {"attention": "Action requise", "delivered": "Prêt à tester", "completed": "Travail terminé",
+           "project": "Projet", "reference": "Référence", "summary": "Résumé", "next_action": "Prochaine action",
+           "revision": "révision"},
+}
 LEGACY = {"delivered": "attention", "blocked": "attention", "closed": "completed"}
 
 
@@ -46,29 +53,53 @@ def send_message(token, chat, message):
         raise SendFailed(True)
 
 
+def labels_for(args):
+    """English is the unknown-language fallback; the agent supplies other translations."""
+    labels = dict(LABELS.get(args.language, LABELS["en"]))
+    for field in ("project", "reference", "summary", "next_action", "revision"):
+        value = getattr(args, field + "_label", None)
+        if value:
+            labels[field] = value
+    return labels
+
+
 def describe(args):
-    """Return (kind, task, id, label, text) for the alert, mapping the Batch events."""
+    """Return (kind, task, id, label, text), sharing Batch outcomes across event aliases."""
     kind = LEGACY.get(args.event, args.event)
-    label = args.label or LABELS[kind]
+    labels = labels_for(args)
+    label = args.label or labels["delivered" if args.event == "delivered" else kind]
     if args.event == "delivered":
-        text = args.text or f"{args.batch} is ready for acceptance (revision {args.revision[:7]}). Review tests.md."
-        return kind, args.task or args.batch, f"{args.batch}@{args.revision}", label, text
+        text = f"{args.text} ({labels['revision']} {args.revision[:7]})"
+        return kind, args.batch, f"{args.batch}@{args.revision}", label, text
     if args.event == "blocked":
-        text = args.text or f"Action needed. Review report.md for blocker {args.blocker_id}."
-        return kind, args.task or args.batch, f"{args.batch}:{args.blocker_id}", label, text
+        return kind, args.batch, f"{args.batch}:{args.blocker_id}", label, args.text
     if args.event == "closed":
-        text = args.text or "Closure verified. See the outcome in report.md."
-        return kind, args.task or args.batch, args.batch, label, text
-    return kind, args.task, args.id, label, args.text
+        return kind, args.batch, args.batch, label, args.text
+    # A Batch reference is the canonical task for aliases such as completed/closed.
+    task = args.reference if re.fullmatch(r"Batch-[0-9]+", args.reference or "", re.IGNORECASE) else args.task
+    return kind, task, args.id, label, args.text
 
 
-def render(kind, project, task, label, text, chat_name, link):
-    lines = [f"{ICONS[kind]} {label}", f"{project} — {task}", text]
-    if chat_name:
-        lines.append(f"💬 {chat_name}")
-    if link:
-        lines.append(link)
-    return "\n".join(lines)
+def render(args, project):
+    kind, task, ident, label, text = describe(args)
+    labels = labels_for(args)
+    icon = "🧪" if args.event == "delivered" else ICONS[kind]
+    label = label.removeprefix(icon).lstrip()
+    action = args.next_action
+    if args.chat_name:
+        action += f" — {args.chat_name}"
+    if args.link:
+        action += f"\n{args.link}"
+    return (f"{icon} {label}\n\n"
+            f"{labels['project']}: {project}\n"
+            f"{labels['reference']}: {args.batch or args.reference}\n"
+            f"{labels['summary']}: {text}\n\n"
+            f"{labels['next_action']}: {action}")
+
+
+def receipt_ident(task, ident):
+    # JSON avoids delimiter collisions; text, language and chat name are deliberately absent.
+    return "v2:" + json.dumps([task, ident], ensure_ascii=False, separators=(",", ":"))
 
 
 def notify(args, token, chat, ledger, sender=send_message, project="project"):
@@ -78,12 +109,9 @@ def notify(args, token, chat, ledger, sender=send_message, project="project"):
         return "sent"
 
     kind, task, ident, label, text = describe(args)
-    if args.event in ("attention", "completed") and not re.fullmatch(r"Batch-[0-9]+", ident, re.IGNORECASE):
-        # The agent chooses this ID and may reuse it: tie it to the request so a different one is notified.
-        # A Batch ID names one outcome, so a closure and a completion of that Batch stay one alert.
-        # shortcut: rewording the text counts as a new request, when that sends repeats, keep the same text.
-        ident += "#" + hashlib.sha256(f"{task}\n{text}".encode()).hexdigest()[:12]
-    message = render(kind, project, task, label, text, args.chat_name, args.link)
+    declared_ident = ident
+    ident = receipt_ident(task, declared_ident)
+    message = render(args, project)
     key = (chat, project, kind, ident)
     with sqlite3.connect(ledger, timeout=20) as connection:
         connection.execute(
@@ -93,6 +121,19 @@ def notify(args, token, chat, ledger, sender=send_message, project="project"):
         connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
             "SELECT state FROM alerts WHERE (chat,project,kind,ident) = (?,?,?,?)", key).fetchone()
+        if row is None:
+            # Earlier receipts kept only a truncated hash of task + text, not the originals.
+            # Prove a match with the original text; never suppress an ambiguous new request.
+            legacy_ident = declared_ident
+            if args.event in ("attention", "completed") and not re.fullmatch(r"Batch-[0-9]+", declared_ident, re.IGNORECASE):
+                original_text = args.previous_text if args.previous_text is not None else args.text
+                legacy_ident += "#" + hashlib.sha256(f"{args.task}\n{original_text}".encode()).hexdigest()[:12]
+            legacy_key = (chat, project, kind, legacy_ident)
+            row = connection.execute(
+                "SELECT state FROM alerts WHERE (chat,project,kind,ident) = (?,?,?,?)", legacy_key).fetchone()
+            if row:
+                # Retain the original receipt for old versions and copy its delivery state.
+                connection.execute("INSERT INTO alerts VALUES (?,?,?,?,?)", (*key, row[0]))
         if row and row[0] == "sent":
             return "duplicate"
         if row and not args.confirm_retry:
@@ -128,8 +169,14 @@ def main():
     parser.add_argument("event", choices=("test", "attention", "completed", *LEGACY))
     parser.add_argument("--task", help="the requested task in human-readable terms")
     parser.add_argument("--id", help="stable ID of the request or task, used to avoid duplicates")
-    parser.add_argument("--text", help="what is waiting, or the verified result, in the conversation language")
-    parser.add_argument("--label", help="localized heading; defaults to the English one")
+    parser.add_argument("--text", help="summary in the conversation language, at most two sentences")
+    parser.add_argument("--previous-text", help="original pre-upgrade wording, only to match an existing receipt")
+    parser.add_argument("--reference", help="Card or Batch ID for attention/completed events")
+    parser.add_argument("--next-action", help="specific action and where to act, or explicitly no action required")
+    parser.add_argument("--language", default="en", help="conversation language (en/fr built in); unknown defaults to en")
+    for field in ("project", "reference", "summary", "next-action", "revision"):
+        parser.add_argument("--" + field + "-label", help="translated field label for other conversation languages")
+    parser.add_argument("--label", help="translated hook text without the emoji; defaults to the selected language")
     parser.add_argument("--chat-name", help="title of the conversation to resume, with the application")
     parser.add_argument("--link", help="direct link to the conversation, only if the environment provides one")
     parser.add_argument("--project", help="project name; defaults to the repository folder name")
@@ -157,6 +204,29 @@ def main():
         parser.error("Provide the full tested commit with --revision.")
     if args.event != "delivered" and args.revision is not None:
         parser.error("--revision is only for delivered events.")
+    if args.event != "test":
+        if not all(value and value.strip() for value in (args.text, args.next_action)):
+            parser.error("Provide --text (brief summary) and --next-action for every alert.")
+        if args.event in ("attention", "delivered", "blocked") and not args.chat_name:
+            parser.error("Provide --chat-name with the actual application and conversation to resume.")
+        if args.event in ("attention", "completed"):
+            if not re.fullmatch(r"(?:CARD-[0-9]{8}|Batch-[0-9]+)", args.reference or "", re.IGNORECASE):
+                parser.error("Provide --reference with the relevant Card or Batch ID.")
+            prefix, number = args.reference.split("-", 1)
+            args.reference = ("Batch" if prefix.lower() == "batch" else "CARD") + "-" + number
+            if re.fullmatch(r"Batch-[0-9]+", args.id, re.IGNORECASE):
+                args.id = "Batch-" + args.id.split("-", 1)[1]
+        if args.language not in LABELS:
+            required = [args.label, args.project_label, args.reference_label, args.summary_label, args.next_action_label]
+            if args.event == "delivered":
+                required.append(args.revision_label)
+            if not all(required):
+                parser.error("For another known language, translate --label and all field labels (including --revision-label for delivered).")
+        for field in ("task", "id", "text", "previous_text", "next_action", "chat_name", "label", "project",
+                      "project_label", "reference_label", "summary_label", "next_action_label", "revision_label"):
+            value = getattr(args, field, None)
+            if value is not None and (not value.strip() or "\n" in value or "\r" in value):
+                parser.error("Alert fields must be nonempty single lines.")
     if args.link and not re.fullmatch(r"[a-z][a-z0-9+.-]*://\S+", args.link, re.IGNORECASE):
         parser.error("--link must be a full address such as https://example.invalid/chat.")
 
@@ -170,6 +240,8 @@ def main():
         parser.error("Set TELEGRAM_CHAT_ID to the numeric destination. Nothing was sent.")
     if args.send_to is None:
         print(f"Preview: {args.event} notification to chat {chat}. Confirm with --send-to {chat}.")
+        if args.event != "test":
+            print(render(args, args.project or Path(__file__).resolve().parents[2].name))
         return 0
     if args.send_to != chat:
         parser.error("Confirmed destination does not match TELEGRAM_CHAT_ID.")
