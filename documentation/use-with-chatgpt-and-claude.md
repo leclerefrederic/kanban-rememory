@@ -35,7 +35,7 @@ A project works without these integrations. Instructions and approval rules stil
 
 ## Understand what a check covers
 
-The Claude role check covers selected tools and visible project paths in named sessions. It does not enforce role limits in Codex or ordinary chat applications, and it does not cover every shell command or tool. A session without a named agent is not restricted by that check. Role instructions remain applicable in all these cases.
+The Claude role check covers selected tools and visible project paths in named sessions. It does not enforce role limits in Codex or ordinary chat applications, and it does not cover every shell command or tool. A session without a named agent is not restricted by that check. Role instructions remain applicable in all these cases. The optional Claude CLI settings profile separately protects the hook’s configuration and policy files on tested filesystem surfaces. Use the setup guide to check the host, launch profile and coverage. [Settings protection and host coverage](../agents/setup/claude-role-check.md#protect-the-settings-in-a-named-cli-session)
 
 The [role-check procedure](../agents/setup/claude-role-check.md#what-the-check-covers-and-does-not-cover) lists its precise coverage, failure behavior and unconfirmed host details. Do not infer enforcement from an assistant's name or from the presence of a hook file. Other sandbox and approval controls can impose their own limits.
 
