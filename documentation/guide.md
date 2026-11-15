@@ -34,6 +34,8 @@ The agent looks for an existing Card, records the scope and your decisions, and 
 
 ## Review and approve
 
+You can also run the tool yourself: `./kr show` lists the boards, the active phase and its next action.
+
 Once authorized, the agent implements, runs the relevant automated checks and fixes what it can within scope. It hands control back only when it needs a decision or an action from you, or when the work is done. Before starting, the agent asks whether to work directly on `main` or in a release. A release groups Cards on one branch, and publishing it raises the version number and tags it `vX.Y.Z` (patch by default; tell the agent if you want minor or major). Work on `main` commits there and creates no tag. Before merging into `main`, it shows you the verified revision, what was checked and anything that merging or pushing triggers, such as a deployment. Then it waits for your explicit approval. A changed revision needs a new approval. If your request already says to merge, for example "do it and merge", that approval covers the verified result and the agent publishes without asking again. It asks again when a check fails or the change goes beyond what you asked. Checks that need you are done on that exact revision, and the agent records your verdict.
 
 ## Resume work

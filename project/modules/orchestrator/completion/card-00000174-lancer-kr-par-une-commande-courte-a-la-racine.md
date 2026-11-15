@@ -17,9 +17,9 @@ Demande de l’utilisateur du 2026-11-16 : couvrir les cinq pistes d’améliora
 
 ## Acceptance criteria
 
-- [ ] `./kr show` affiche le même résultat que `python3 orchestrator/tools/kr.py show`, y compris lancé depuis un autre répertoire.
-- [ ] `workflow.md` et `guide.md` nomment `./kr` comme lanceur.
-- [ ] `validate` passe.
+- [x] `./kr show` affiche le même résultat que `python3 orchestrator/tools/kr.py show`, y compris lancé depuis un autre répertoire.
+- [x] `workflow.md` et `guide.md` nomment `./kr` comme lanceur.
+- [x] `validate` passe.
 
 ## Execution and evidence
 
@@ -29,3 +29,7 @@ Demande de l’utilisateur du 2026-11-16 : couvrir les cinq pistes d’améliora
 ## History
 
 - 2026-11-16 — Créée à la demande de l’utilisateur.
+
+- 2026-11-16T00:25:04+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:25:17+01:00 — Stage moved from `development` to `completion`.
