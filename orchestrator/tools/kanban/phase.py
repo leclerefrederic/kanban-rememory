@@ -43,6 +43,11 @@ class Phase:
         self.common = common_directory(self.root)
         self.file = self.common / "kanban-rememory/phase.json"
 
+    @property
+    def cancelled(self):
+        """Terminal stages besides completion: their phase Cards are skipped at closure."""
+        return self.project.frozen - {self.project.workflow["completed"]}
+
     def state(self):
         return json.loads(self.file.read_text(encoding="utf-8")) if self.file.exists() else None
 
@@ -154,25 +159,27 @@ class Phase:
             raise ValueError(f"HEAD {head} is not verified: run check, then ask for approval of that revision.")
         workflow = self.project.workflow
         completed = workflow["completed"]
-        found = [find_card(self.project, card) for card in state["cards"]]
-        for card, (_, stage, path) in zip(state["cards"], found):
+        found = [(card, *find_card(self.project, card)[1:]) for card in state["cards"]]
+        live = [(card, stage, path) for card, stage, path in found if stage not in self.cancelled]
+        for card, stage, path in live:
             if stage != completed and (completed not in workflow["transitions"].get(stage, [])
                                        or unchecked(path.read_text(encoding="utf-8"))):
                 raise ValueError(f"Check every acceptance criterion of {card} before close.")
         now = self.project.now()
         paths = []
-        for card, (_, stage, path) in zip(state["cards"], found):
+        for card, stage, path in live:
             if stage != completed:
                 path = move(self.project, card, completed, lambda *_: None)
             add_history(path, f"{now.isoformat(timespec='seconds')} — Merge approved for the verified "
                               f"candidate `{head}`: “{approval}”.")
-            paths.append(path)
-        texts = [(card, path.read_text(encoding="utf-8")) for card, path in zip(state["cards"], paths)]
+            paths.append((card, path))
+        paths = paths or [(card, path) for card, _, path in found]  # every Card cancelled: link the first
+        texts = [(card, path.read_text(encoding="utf-8")) for card, path in paths]
         performance = report(datetime.fromisoformat(state["started"]), now, texts, workflow["active"], completed,
                              {self.root, self.common.parent})
         journal = local(self.project.journal)
         listed = f"Phase Cards: {', '.join(state['cards'])}.\n\n" if len(state["cards"]) > 1 else ""
-        link = Path(os.path.relpath(paths[0], journal)).as_posix()
+        link = Path(os.path.relpath(paths[0][1], journal)).as_posix()
         entry = (f"## {state['module']}/{state['cards'][0]}\n\n{summary}\n\n{listed}{performance}\n\n"
                  f"Verified revision: `{head}`. [Card](<{link}>).")
         day = journal / f"{now.date().isoformat()}.md"
@@ -196,7 +203,8 @@ class Phase:
         marker = f"candidate `{verified}`"
         for card in state["cards"]:
             _, stage, path = find_card(self.project, card)
-            if stage != self.project.workflow["completed"] or marker not in path.read_text(encoding="utf-8"):
+            if stage not in self.cancelled and (stage != self.project.workflow["completed"]
+                                                or marker not in path.read_text(encoding="utf-8")):
                 raise ValueError(f"Close {card} before publishing.")
         if not any(f"Verified revision: `{verified}`" in day.read_text(encoding="utf-8")
                    for day in self.project.journal.glob("*.md")):

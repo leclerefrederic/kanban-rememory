@@ -6,7 +6,7 @@ Kanban Rememory is a Git and Markdown framework for running software projects wi
 
 You explain what you want, approve the scope, authorize work and judge the result. **The agents write the records and maintain the board.**
 
-[Read the guides](documentation/index.md) · [Start a project](documentation/start-a-project.md) · [Read the manifesto](documentation/lean-specifications.md)
+[Read the guide](documentation/guide.md) · [Start a project](documentation/guide.md#start-a-project) · [Read the manifesto](documentation/lean-specifications.md)
 
 ## Why this box exists
 
@@ -37,14 +37,14 @@ Each declared module stores its Cards and their resources in its own Kanban. Car
 
 ## One agent follows the Card
 
-In a normal chat, the same agent clarifies the request, updates the Card, implements the authorized change, runs the applicable automated checks and publishes under the project's permissions. You decide scope and acceptance where your decision is required.
+In a normal chat, the same agent clarifies the request, updates the Card, implements the authorized change on a dedicated branch, runs the checks that cover it and publishes under the project's permissions once you approve the verified revision. You decide scope and acceptance where your decision is required.
 
 ## Pick your next move
 
-[Start a project](documentation/start-a-project.md) with your agent. It checks prerequisites, proposes a short, standard, long or custom workflow, then installs and verifies the approved setup. The tools require Git and Python 3.9 or later.
+[Start a project](documentation/guide.md#start-a-project) with your agent. It checks prerequisites, proposes a short, standard, long or custom workflow, then installs and verifies the approved setup. The tools require Git and Python 3.9 or later.
 
 Agent sessions execute the kit instructions and checks. Installing the kit starts no background development service.
 
 This repository uses the same Cards and records to develop the kit; your agent installs the reusable pieces in yours.
 
-The [guide index](documentation/index.md) routes requests, resumption, defects and switching assistants. Human guides live in `documentation/`; the separate [agent index](orchestrator/index.md) routes operating instructions and templates.
+The [user guide](documentation/guide.md) covers requests, approval, resumption, defects and switching assistants. The agent follows [its workflow](orchestrator/workflow.md).

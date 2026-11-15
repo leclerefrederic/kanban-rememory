@@ -1,6 +1,6 @@
 # Configure Telegram once on macOS or Windows
 
-Use `orchestrator/tools/configure-telegram.py`. It configures one private Telegram conversation for the current operating-system account, outside the repository. Claude Code and Codex can then load the same settings through its `run` command, including from fresh sessions. No shell exports, pasted Python snippets, third-party ID bot or manual chat-ID lookup are needed.
+Use `orchestrator/tools/telegram.py`. It configures one private Telegram conversation for the current operating-system account, outside the repository. Claude Code and Codex then send alerts with the same file, including from fresh sessions. No shell exports, pasted Python snippets, third-party ID bot or manual chat-ID lookup are needed.
 
 Python 3.9 or later and an internet connection are required. The workflow is the same on both systems; Windows uses the Python launcher `py -3` (or `python` if that is your installed command).
 
@@ -14,7 +14,7 @@ Python 3.9 or later and an internet connection are required. The workflow is the
 From the repository directory:
 
 ```sh
-python3 orchestrator/tools/configure-telegram.py
+python3 orchestrator/tools/telegram.py
 ```
 
 ## Windows
@@ -22,7 +22,7 @@ python3 orchestrator/tools/configure-telegram.py
 From the repository directory in PowerShell:
 
 ```powershell
-py -3 orchestrator/tools/configure-telegram.py
+py -3 orchestrator/tools/telegram.py
 ```
 
 ## The same setup steps on both systems
@@ -51,11 +51,11 @@ The token is stored in this private file in plain text, not in the macOS Keychai
 Display configuration status without exposing the key, or send another test:
 
 ```sh
-python3 orchestrator/tools/configure-telegram.py status
-python3 orchestrator/tools/configure-telegram.py test --send
+python3 orchestrator/tools/telegram.py status
+python3 orchestrator/tools/telegram.py test --send
 ```
 
-On Windows, replace `python3` with `py -3`. `test` without `--send` displays the destination and sends nothing. To change the bot or recipient, run the initial setup again. The tool asks before replacing existing configuration. It does not read or execute the earlier experimental `telegram.env` file.
+On Windows, replace `python3` with `py -3`. `test` without `--send` displays the destination and sends nothing. To change the bot or recipient, run the initial setup again. The tool asks before replacing existing configuration.
 
 ## If a step fails
 
@@ -69,7 +69,7 @@ On Windows, replace `python3` with `py -3`. `test` without `--send` displays the
 
 ## Verification
 
-Run `python3 orchestrator/tools/test-telegram-setup.py` on macOS or `py -3 orchestrator/tools/test-telegram-setup.py` on Windows. Tests use fake credentials and simulated Telegram responses; they send no Telegram messages. On macOS, the regression test runs a real terminal session with hidden input. Windows exercises its native ACL handling when the suite is run there; a mocked ACL test alone is not proof of a Windows run.
+Run `python3 orchestrator/tools/test-telegram.py` on macOS or `py -3 orchestrator/tools/test-telegram.py` on Windows. Tests use fake credentials and simulated Telegram responses; they send no Telegram messages. On macOS, the regression test runs a real terminal session with hidden input. Windows exercises its native ACL handling when the suite is run there; a mocked ACL test alone is not proof of a Windows run.
 
 Record live bot delivery and Windows execution separately from automated test results. An unexecuted platform check or real Telegram test is not a pass.
 

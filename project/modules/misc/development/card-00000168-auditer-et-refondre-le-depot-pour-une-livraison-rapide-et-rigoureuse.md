@@ -27,18 +27,18 @@ Après publication, hors critères : suppression de l’état local périmé de 
 
 ## Acceptance criteria
 
-- [ ] Une phase complète (`start`, `check`, `close`, commit, `publish`) se déroule avec `kr.py` dans le seul worktree de phase, sans écriture dans le checkout de `main` ; un test de bout en bout le vérifie.
-- [ ] L’outil refuse une seconde phase, `new` hors du worktree de phase pendant une phase, `close` sur une autre révision que celle vérifiée et `publish` d’un commit de clôture qui touche autre chose que les Cards et le journal ; chaque refus est testé.
-- [ ] La séquence documentée d’une phase à une Card compte au plus 8 commandes.
-- [ ] Les éléments listés comme superflus ne figurent plus dans le code ni dans la doc ; les réglages sont au schéma 2 avec les modules `misc`, `notifications` et `orchestrator`.
-- [ ] Les alertes Remy gardent le même message, l’anti-doublon et la confirmation des envois incertains ; `telegram.py` les envoie avec `--card`, sans `--module`, `--task` ni `--project` ; testé sans réseau.
-- [ ] Les règles de l’agent tiennent dans `AGENTS.md` et `orchestrator/workflow.md`, sans règle dupliquée, en moins de 8 Ko à eux deux (18 Ko auparavant pour une livraison).
-- [ ] Les guides humains se limitent à README, `documentation/guide.md`, `lean-specifications.md` et `telegram-setup.md`, cohérents avec le nouveau flux.
-- [ ] `validate`, `test-kr.py` et `test-telegram.py` passent sur le candidat vérifié.
+- [x] Une phase complète (`start`, `check`, `close`, commit, `publish`) se déroule avec `kr.py` dans le seul worktree de phase, sans écriture dans le checkout de `main` ; un test de bout en bout le vérifie.
+- [x] L’outil refuse une seconde phase, `new` hors du worktree de phase pendant une phase, `close` sur une autre révision que celle vérifiée et `publish` d’un commit de clôture qui touche autre chose que les Cards et le journal ; chaque refus est testé.
+- [x] La séquence documentée d’une phase à une Card compte au plus 8 commandes.
+- [x] Les éléments listés comme superflus ne figurent plus dans le code ni dans la doc ; les réglages sont au schéma 2 avec les modules `misc`, `notifications` et `orchestrator`.
+- [x] Les alertes Remy gardent le même message, l’anti-doublon et la confirmation des envois incertains ; `telegram.py` les envoie avec `--card`, sans `--module`, `--task` ni `--project` ; testé sans réseau.
+- [x] Les règles de l’agent tiennent dans `AGENTS.md` et `orchestrator/workflow.md`, sans règle dupliquée, en moins de 8 Ko à eux deux (18 Ko auparavant pour une livraison).
+- [x] Les guides humains se limitent à README, `documentation/guide.md`, `lean-specifications.md` et `telegram-setup.md`, cohérents avec le nouveau flux.
+- [x] `validate`, `test-kr.py` et `test-telegram.py` passent sur le candidat vérifié.
 
 ## Execution and evidence
 
-- State:
+- State: in-progress — vérification du candidat
 - Blocker:
 
 ## History
@@ -47,3 +47,5 @@ Après publication, hors critères : suppression de l’état local périmé de 
 
 - 2026-11-15T23:11:07+01:00 — Stage moved from `backlog` to `development`.
 - 2026-11-15 — Phase `claude/phase-168` ouverte (claim enregistré). Passage en development fait sur la branche et non dans le checkout de `main` : l’hôte interdit d’écrire dans le checkout principal depuis le worktree, et la refonte approuvée garde les Cards sur la branche de phase.
+- 2026-11-15 — Claim converti au format `phase.json` du nouvel outil par une conversion manuelle unique. Une Card de test créée par erreur lors d’un essai de `new` a été supprimée avant tout commit.
+- 2026-11-15 — Implémenté : `kr.py` et paquet `kanban`, `telegram.py`, `workflow.md`, `notify.md`, `install.md`, `guide.md`, réglages au schéma 2, modules vides retirés, `VERSION` 0.3.0. Outils et tests : 1 775 lignes contre 2 928. `AGENTS.md` et `workflow.md` : 6,8 Ko. `test-kr.py` (6 tests) et `test-telegram.py` (8 tests) passent ; le test d’envoi a révélé un bug d’`alert` (`args.event`), corrigé.

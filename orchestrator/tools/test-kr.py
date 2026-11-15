@@ -124,7 +124,7 @@ class KrTests(unittest.TestCase):
         self.assertNotIn("gone.md", output)  # completed Cards keep the links of their time
 
     def test_phase_from_start_to_publish(self):
-        for title, module in (("Alpha", "a"), ("Beta", "a"), ("Other", "b")):
+        for title, module in (("Alpha", "a"), ("Beta", "a"), ("Other", "b"), ("Dropped", "a")):
             self.kr(self.root, "new", title, "--module", module)
         self.commit(self.root, "Add Cards")
         self.assertIn("never on main", self.kr(self.root, "start", "CARD-00000001", expected=1))
@@ -139,6 +139,8 @@ class KrTests(unittest.TestCase):
         self.assertIn("acceptance checklist", self.kr(phase, "move", "CARD-00000001", "completion", expected=1))
         self.check_criteria(phase, "CARD-00000001")
         self.kr(phase, "move", "CARD-00000001", "completion")
+        self.kr(phase, "start", "CARD-00000004")
+        self.kr(phase, "move", "CARD-00000004", "cancellation")  # abandoned inside the phase: skipped at closure
         self.kr(phase, "start", "CARD-00000002")
         self.check_criteria(phase, "CARD-00000002")
         (phase / "src.txt").write_text("change\n")
@@ -160,9 +162,10 @@ class KrTests(unittest.TestCase):
         closing = self.commit(phase, "Close")
         for task_id in ("CARD-00000001", "CARD-00000002"):
             self.assertIn(f"verified candidate `{candidate}`: “Oui, fusionne”", self.card(phase, task_id).read_text())
+        self.assertNotIn("Merge approved", self.card(phase, "CARD-00000004").read_text())
         journal = "".join(day.read_text() for day in (phase / "project/rememory").glob("*.md"))
         self.assertRegex(journal, r"## a/CARD-00000001\n\nAlpha and Beta\.\n\nPhase Cards: CARD-00000001, "
-                                  r"CARD-00000002\.\n\nDuration: .+ Tokens \(Claude Code\): unavailable\.")
+                                  r"CARD-00000004, CARD-00000002\.\n\nDuration: .+ Tokens \(Claude Code\): unavailable\.")
         self.assertIn(f"Verified revision: `{candidate}`. [Card](<../modules/a/completion/", journal)
         (phase / "src.txt").write_text("unapproved\n")
         self.commit(phase, "Change after approval")
