@@ -17,7 +17,7 @@ Apply the [lean principles](../../documentation/lean-specifications.md): record 
 
 ## Phase
 
-A phase is one delivery: one branch, one worktree, one claim, one integration and one merge approval for one or more Cards of a module. Open a phase before any work on a Card; never work directly on `main`, including creating or editing Cards. The branch is `claude/phase-…` or `codex/phase-…`. Run one phase at a time. Cards created during a phase stay on its branch and go through the same merge, which prevents ID collisions.
+A phase is one delivery: one branch, one worktree, one claim, one integration and one merge approval for one or more Cards of a module. Open a phase before starting work on a Card; never execute work directly on `main`. Creating a backlog Card is not executing it and may happen on `main` when no phase is active. While a phase is active, create new Cards in its worktree: they stay on its branch and go through the same merge, which prevents ID collisions. The branch is `claude/phase-…` or `codex/phase-…`. Run one phase at a time.
 
 The claim names the first Card. Add each further backlog Card of the module with `D add-card FIRST_CARD NEXT_CARD --owner OWNER`, then start it with `B move NEXT_CARD development --owner-token OWNER` once the previous Card is in `completion`. Capacity stays one Card in Development. Within a phase a Card moves to `completion` when its criteria are verified on the branch, with its own commit. The merge approval covers the whole candidate. List its Cards and record the approval on each in the closing commit. Closure, publication, milestone and `finish` apply to every Card of the phase, and the journal entry names them all.
 
