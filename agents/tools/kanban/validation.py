@@ -51,6 +51,16 @@ HISTORICAL_RETIRED_LINKS = {
      '../../../agents/batches/batch-workflow.md'),
 }
 
+# These frozen links record CARD-128's original stage and must stay byte-identical.
+CARD_128_BACKLOG_NAME = "card-00000128-protect-the-agent-settings-from-edits-and-cover-codex-with-role-limits.md"
+FROZEN_CARD_MOVE_LINKS = {
+    ("project/kanban/completion/card-00000095-design-how-role-limits-know-the-active-role.md",
+     f"../backlog/{CARD_128_BACKLOG_NAME}"),
+    ("project/kanban/completion/card-00000096-enforce-role-limits-with-hooks-for-each-llm.md",
+     f"../backlog/{CARD_128_BACKLOG_NAME}"),
+    ("project/specs/approved/spec-012-r2.md", f"../../kanban/backlog/{CARD_128_BACKLOG_NAME}"),
+}
+
 BATCH_CARD_ID = re.compile(r"\b(?:CARD|TASK)-([0-9]{8})\b", re.IGNORECASE)
 
 
@@ -126,7 +136,9 @@ def validate(workflow):
                     target = target.with_name(target.name.lower())
                 if not target.exists() and archived_specification_resource(path, target.resolve()):
                     continue
-                if not target.exists() and (name.as_posix(), href) in HISTORICAL_RETIRED_LINKS:
+                reference = (name.as_posix(), href)
+                if not target.exists() and (reference in HISTORICAL_RETIRED_LINKS
+                                            or reference in FROZEN_CARD_MOVE_LINKS):
                     continue
                 if not target.exists():
                     findings.append(f"{name}: missing link target {href}")

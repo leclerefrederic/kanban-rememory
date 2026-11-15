@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 from .batches import is_closed_lot_report
 from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, cards, field,
                     header_value, markdown_files, markdown_lines, prose_lines)
+from .validation import FROZEN_CARD_MOVE_LINKS
 
 
 def show_board(workflow, limit, today):
@@ -56,6 +57,8 @@ def rewrite_card_links(source, document, card, target):
                 return match[0]
             old_destination = (document.parent / unquote(url.path)).resolve()
             if old_destination == card:
+                if (document.relative_to(ROOT).as_posix(), href) in FROZEN_CARD_MOVE_LINKS:
+                    return match[0]
                 destination = target
             elif document == card:
                 destination = old_destination

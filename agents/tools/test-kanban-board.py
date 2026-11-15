@@ -248,6 +248,34 @@ class KanbanBoardTests(unittest.TestCase):
         self.run_board("move", "CARD-00000001", "completion")
         self.run_board("validate")
 
+    def test_move_preserves_the_three_frozen_card_128_links(self):
+        self.run_board("init", "--template", "short", "--apply")
+        card = "card-00000128-protect-the-agent-settings-from-edits-and-cover-codex-with-role-limits.md"
+        (self.board / "backlog" / card).write_text(
+            "# CARD-00000128\n\n## Acceptance criteria\n\n- [x] Verified.\n"
+        )
+        approved = self.root / "project/specs/approved"
+        approved.mkdir(parents=True)
+        frozen = {
+            self.board / "completion/card-00000095-design-how-role-limits-know-the-active-role.md":
+                f"[Card](../backlog/{card})\n",
+            self.board / "completion/card-00000096-enforce-role-limits-with-hooks-for-each-llm.md":
+                f"[Card](../backlog/{card})\n",
+            approved / "spec-012-r2.md": f"[Card](../../kanban/backlog/{card})\n",
+        }
+        for path, content in frozen.items():
+            path.write_text(content)
+        active = self.board / "backlog/card-00000129-example.md"
+        active.write_text(f"[Card]({card})\n")
+        for stage in ("development", "completion"):
+            self.run_board("move", "CARD-00000128", stage)
+            self.run_board("validate")
+            for path, content in frozen.items():
+                self.assertEqual(path.read_bytes(), content.encode())
+            self.assertIn(f"../{stage}/{card}", active.read_text())
+        active.write_text(f"[Card]({card})\n")
+        self.assertIn("missing link target", self.run_board("validate", expected=1))
+
     def test_lot_mapping(self):
         self.run_board("init", "--template", "short", "--apply")
         for stage in ("draft", "ready", "frozen"):
