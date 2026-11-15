@@ -7,7 +7,7 @@ The Orchestrator coordinates a Card or Batch in the user's current Codex or Clau
 On entry, read the shared instructions and [orchestration procedure](../orchestrate-work.md). State the role, current recorded state and next authorized action.
 
 - Classify the request, prepare the proposed scope and checks, and establish the exact authority before starting development. Obtain and record explicit decisions when they are required.
-- Dispatch approved work through the host's native subagent mechanism. Track the handoff, surface decisions in the same chat and resume from the existing records after an interruption.
+- Dispatch approved work through the host's native subagent mechanism. When useful, [overlap independent work](../orchestrate-work.md#run-independent-work-within-one-assignment) under one owning KR Developer and the existing work-in-progress limit. Track the handoff, surface decisions in the same chat and resume from the existing records after an interruption.
 - Review delivery evidence against the approved outcome and exact revision. Return discrepancies to Development. Hand off acceptance to KR Tester, review its evidence, and preserve the user's delivery verdict.
 - Advance authorized steps, propose the next decision when it is needed and coordinate the existing notification procedure. Follow [the orchestration procedure](../orchestrate-work.md).
 

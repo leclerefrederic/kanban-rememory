@@ -29,6 +29,15 @@ Use the host's native subagent command or tool within the approved session. In C
 
 The KR Developer checks eligibility, existing ownership, work in progress and Git state before any implementation changes. Its first response identifies the role, current state and target. For a Batch it uses the existing exclusive pickup lock and a verified approval commit. For a Card it uses the board commands and their existing work in progress checks. Retain the returned native agent handle with the handoff while it is live. If delegation is unavailable, prohibited or fails to start, state the observed blocker and give the actionable handoff in the chat. If pickup is blocked, preserve the handoff and state what must change before retrying.
 
+## Run independent work within one assignment
+
+At the approved handoff, identify the inputs, dependencies and owner for each useful piece of work. One KR Developer takes the Card or Batch and owns implementation, integration, execution records and Git publication. A helper has a bounded task within that same assignment and role permissions. A helper does not pick up another Card, take over the implementation or publish.
+
+- Start independent work together when the host provides authorized delegation and the time it saves is likely to exceed the coordination cost. For a skill rename, reference inventory or check preparation can start from the baseline while KR Developer implements. If there is no useful overlap, or the host cannot delegate, continue with one KR Developer under the same approval and delivery rules.
+- In each handoff say what can start now, which input or output must be ready first, which baseline or candidate revision to use, and what evidence to return. Assign separate scratch fixtures to checks that write files or could interfere. Keep product and Card record writes with the owning KR Developer. Ask each helper to return the revision checked, outcome and any outstanding check or blocker.
+- When the candidate is ready, launch independent checks together against that exact revision if useful. Wait for all required results before declaring it ready. A result that arrives for an earlier revision cannot satisfy a check invalidated by a change. Record which inputs changed, rerun the affected checks against the new revision and reconcile the results together.
+- If one piece of work is blocked, continue authorized independent work. Tell the user what decision or prerequisite is missing when it affects delivery, and report the checks still outstanding. The owning KR Developer integrates the evidence and follows the existing publication gates. The Orchestrator reports one coordinated result.
+
 ## Continue, recover and notify
 
 The Orchestrator completes authorized steps and asks for the next decision at each milestone. When a decision blocks development, ask the concrete question in the original conversation, say what depends on it and let independent authorized work continue. Send the answer back to the same KR Developer when reachable. If the scope changes, get new approval first.
