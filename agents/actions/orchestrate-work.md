@@ -4,11 +4,11 @@ Use the [Orchestrator role](../roles/orchestrator.md), inherited [Writer limits]
 
 ## Show progress in the original chat
 
-Start authorized work with one short, visible line. Before each meaningful stage starts, show its name in the conversation language, such as “Breaking the Batch into tasks”, “Calling KR Developer”, “Running regression tests” or “Publishing”. Show only real stages; tool calls, tool output and journal entries do not count as visible updates.
+For routine progress, send only a short stage label on one visible line in the original chat. Start with that label before doing the step, including delegation. Use the conversation language. Examples: “Calling KR Developer”, “Running regression tests”, “Publishing”. Skip introductory or explanatory sentences and verification summaries. Show only real stages; tool activity and journal entries do not count.
 
-During work, including delegated work, show verified checkpoints in one line. Use waits that allow a visible update after about one minute if the stage is still running without a new checkpoint. Confirm the current stage briefly and use counts only when observed. Distinguish active work, waiting for the User and blocked work.
+While a stage runs, another brief label can show a verified checkpoint or, after about one minute without one, confirm the current stage. Use waits short enough to post that update. Use counts only when observed. Label active work, waiting for the User and blocked work accurately.
 
-If User action is needed, say what is waiting, why it matters and what to decide or do. Give relevant options and consequences. Answer requests for detail, then return to short updates when work resumes. At completion, state the outcome briefly. Keep routine implementation details, individual checks and successful notification receipts in the work records. Surface failures in chat when they affect the result or require intervention.
+When the User needs to decide or act, explain the situation, available options and relevant consequences. Answer requests for detail. Return to the short stage labels when work resumes. State the outcome briefly at completion. Routine checks and successful notification receipts belong in the work records. Surface failures in the chat when they affect the result or require action. Keep internal agent handoffs complete.
 
 ## Frame and approve
 
