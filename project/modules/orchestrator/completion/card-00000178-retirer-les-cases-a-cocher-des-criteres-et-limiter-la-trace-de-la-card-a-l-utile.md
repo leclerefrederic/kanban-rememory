@@ -27,3 +27,7 @@ Demande de l'utilisateur du 2026-11-16 : cocher les critères et ajouter des lig
 ## History
 
 - 2026-11-16T00:36:57+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:40:45+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T00:40:45+01:00 — Merge approved for the verified candidate `280eb218fdb770e8136589e59c8c8b710bf89e15`: “Approuvé”.
