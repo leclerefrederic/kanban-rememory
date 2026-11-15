@@ -18,7 +18,7 @@ Demande de l’utilisateur du 2026-11-16, release = phase. La demande autorise l
 - **Choix au démarrage.** `kr start` n'ouvre rien sans réponse : `main` ou release (nouvelle ou existante).
 - **Mode `main`.** L'Orchestrator commite chaque étape sur `main` (autocommit). `check` reste obligatoire avant la poussée : l'autocommit ne dispense pas de vérifier. Un accord donné dans la demande (CARD-00000172) permet de publier sans redemander.
 - **Mode release.** Les Cards se commitent sur la branche de la release. L'utilisateur décide de la fusion ; `publish` la fait comme aujourd'hui.
-- **Version.** Aucun fichier version (CARD-00000169) : le dernier tag `vX.Y.Z` est la source. L'utilisateur choisit patch, minor ou major à la création de la release, patch par défaut. `publish` calcule le tag suivant et le pose sur le commit publié, puis le pousse.
+- **Version.** La version courante est stockée dans `project/settings.json` (clé `version`, `"X.Y.Z"`, initialisée à `0.0.0`), à côté de `last_card_id`. Le tag git n'en est que le reflet : la valeur de `settings.json` fait foi. L'utilisateur choisit patch, minor ou major à la création de la release, patch par défaut. `publish` calcule la version suivante, l'écrit dans `settings.json` dans le commit de clôture, pose le tag `vX.Y.Z` sur ce commit et le pousse avec `main`. `validate` vérifie le format de `version` (`KEYS` de `kanban/project.py`) et refuse un tag existant d'une autre valeur.
 - **Points à confirmer avant le démarrage** : le tag en mode `main` (proposition : aucun, seules les releases sont taguées) ; si `check` reste exigé en mode `main` (proposition : oui).
 - Modifier `kr.py`, `kanban/`, `test-kr.py`, `workflow.md`, `guide.md`, `install.md` et `AGENTS.md` relève de cette Card.
 
@@ -26,7 +26,7 @@ Demande de l’utilisateur du 2026-11-16, release = phase. La demande autorise l
 
 - [ ] `kr start` demande `main` ou release et refuse sans réponse.
 - [ ] Le mode `main` commite sur `main`, exige `check`, puis pousse.
-- [ ] Une release fusionnée reçoit le tag `vX.Y.Z` suivant selon patch, minor ou major, poussé avec `main`.
+- [ ] Une release fusionnée met à jour `version` dans `settings.json` et reçoit le tag `vX.Y.Z` suivant selon patch, minor ou major, poussé avec `main`.
 - [ ] Les points à confirmer sont tranchés par l'utilisateur et consignés dans la Card.
 - [ ] `workflow.md`, `guide.md`, `install.md` et `AGENTS.md` décrivent le choix et le tag sans se répéter.
 - [ ] `test-kr.py` couvre les deux modes et le calcul du tag ; `validate` passe.
