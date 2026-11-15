@@ -12,7 +12,7 @@ Name its benefit: experience, usability, performance, or protection (security, d
 
 ## 3. Specify the smallest complete experience
 
-Cover the steps needed to reach the outcome, including recovery from relevant failures. Be precise about behavior, constraints, and decisions that affect the result. Approved mockups are part of the Specification; state which aspects are binding. Implementation details remain the developer's choice within the approved behavior and constraints, but never a license to add features, controls, steps, or messages. If the expected user-visible behavior remains unclear, record the question and pause the affected work until clarified. Continue work that does not depend on the answer.
+Cover the steps needed to reach the outcome, including recovery from relevant failures. Be precise about behavior, constraints, and decisions that affect the result. Approved mockups are part of the agreed scope; state which aspects are binding. Implementation details remain the developer's choice within the approved behavior and constraints, but never a license to add features, controls, steps, or messages. If the expected user-visible behavior remains unclear, record the question and pause the affected work until clarified. Continue work that does not depend on the answer.
 
 ## 4. Give each requirement a way to pass or fail
 
@@ -20,7 +20,7 @@ Write acceptance criteria around observable behavior: setup, action, expected re
 
 ## 5. Change scope only by agreement
 
-Suggest improvements separately. Adding or changing behavior requires explicit approval recorded before implementation: in the Card for standalone work, or in a Specification for Batch work. A correction restores behavior already agreed. If it is unclear whether a proposed correction changes that behavior, clarify before implementing it. The approved baseline of an active Batch stays fixed. Link the approved scope (intended behavior), test results (verified behavior), and debt records (unresolved defects), so each decision starts from evidence. Every observed defect is open debt until its correction is verified.
+Suggest improvements separately. Adding or changing behavior requires explicit approval recorded before implementation: on the Card. A correction restores behavior already agreed. If it is unclear whether a proposed correction changes that behavior, clarify before implementing it. Link the approved scope (intended behavior), test results (verified behavior), and debt records (unresolved defects), so each decision starts from evidence. Every observed defect is open debt until its correction is verified.
 
 ## 6. Build the simplest thing that meets the criteria
 
@@ -34,4 +34,4 @@ For every requirement:
 - Who explicitly agreed to it?
 - How will we verify it?
 
-Then reread the Specification, or the Card's scope for standalone work: **what can we remove without losing value?**
+Then reread the Card's scope: **what can we remove without losing value?**

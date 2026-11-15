@@ -1,3 +1,0 @@
-#!/bin/sh
-# Optional Git hook: enable with `git config core.hooksPath orchestrator/tools/git-hooks`.
-exec python3 "$(git rev-parse --show-toplevel)/orchestrator/tools/check-batch-publication.py"

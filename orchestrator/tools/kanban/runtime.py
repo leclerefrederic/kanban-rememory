@@ -33,7 +33,7 @@ def run_check(coordination, owner, delivery, command, integration_checkout=None)
     environment = os.environ.copy()
     for name in ("TMPDIR", "TEMP", "TMP"):
         environment[name] = str(runtime / "tmp")
-    environment.update(KR_MODULE=state["module"], KR_RUNTIME_DIR=str(runtime),
+    environment.update(KR_RUNTIME_DIR=str(runtime),
                        KR_ARTIFACT_DIR=str(runtime / "artifacts"))
     print(f"Runtime directory: {runtime}", flush=True)
     result = subprocess.call(command, cwd=checkout, env=environment)

@@ -12,11 +12,9 @@ A **Card** holds the outcome, decisions, dependencies and delivery evidence. Its
 
 **Rememory** is the project journal for shared decisions and verified milestones. It links to Cards for delivery details.
 
-**Specifications and Batches** are historical records of earlier deliveries. Their resources and approval evidence stay at their recorded locations.
-
 ## Telegram alerts
 
-If you enable Telegram, the agent alerts you in two cases only: **Intervention needed**, as soon as it needs a decision, an answer or an action from you, and **Task completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to. Confirmed alerts are tracked to avoid duplicate sends. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a message was certainly not sent, the agent says so in the chat. If delivery is uncertain, it reports that uncertainty and checks before any retry.
+If you enable Telegram, the agent alerts you in two cases only: **Intervention required**, as soon as it needs a decision, an answer or an action from you, and **Work completed**, once the outcome you asked for is verified. It sends no progress updates and no reminders. Each alert names the project, the task and the chat to return to. Confirmed alerts are tracked to avoid duplicate sends. The chat stays where you answer and decide: a reply in Telegram changes nothing. If Telegram is off or a message was certainly not sent, the agent says so in the chat. If delivery is uncertain, it reports that uncertainty and checks before any retry.
 
 ## Reading progress
 

@@ -1,8 +1,7 @@
 ---
 type: card
 id: "CARD-NNNNNNNN"
-batch: null
-specifications: []
+module: null
 ---
 
 # CARD-NNNNNNNN
@@ -26,5 +25,3 @@ Record the approved boundary and permission to execute.
 - Actual start:
 - Actual finish:
 - Blocker:
-
-## History

@@ -265,20 +265,11 @@ class SetupTests(unittest.TestCase):
         root = Path(self.directory.name)
         git_dir = root / 'git-common'
         git_dir.mkdir()
-        manifest = {
-            'schema_version': 1,
-            'project': {'id': 'example', 'name': 'Example solution'},
-            'shared': {'memory': 'project/rememory', 'sources': ['src']},
-            'modules': {
-                'a': {'workspace': 'project/modules/a'},
-                'b': {'workspace': 'project/modules/b'},
-            },
-            'execution': {
-                'active_deliveries_per_module': 1, 'branch_required': True,
-                'worktree_required': True, 'concurrent_integrations': 1,
-            },
-        }
-        (root / 'project.json').write_text(json.dumps(manifest))
+        settings = json.loads((SCRIPT.parents[2] / 'project/settings.json').read_text())
+        settings['project'] = {'id': 'example', 'name': 'Example solution'}
+        settings['modules'] = {name: {'workspace': f'project/modules/{name}'} for name in ('a', 'b', 'misc')}
+        (root / 'project').mkdir()
+        (root / 'project/settings.json').write_text(json.dumps(settings))
         sent = []
 
         def fake_sender(token, chat, text):
@@ -302,8 +293,7 @@ class SetupTests(unittest.TestCase):
             self.assertIn('Choose a module explicitly', errors.getvalue())
             self.assertFalse(sent)
             for module_args in (['--module', 'a'], ['--module', 'b'],
-                                ['--module', 'a', '--project', 'Renamed solution'],
-                                ['--scope', '@project'], ['--scope', '@project']):
+                                ['--module', 'a', '--project', 'Renamed solution'], ['--scope', 'misc']):
                 with patch.object(sys, 'argv', [*args, *module_args]):
                     self.assertEqual(notifier.main(), 0)
         self.assertEqual(len(sent), 3)
@@ -311,8 +301,7 @@ class SetupTests(unittest.TestCase):
             self.assertIn('Projet: Example solution', message)
             self.assertIn(f'Référence: {module} / CARD-00000001', message)
             self.assertIn('Prochaine action: Aucune action requise.', message)
-        self.assertIn('Référence: CARD-00000001\n', sent[2])
-        self.assertNotIn('@project', sent[2])
+        self.assertIn('Référence: misc / CARD-00000001\n', sent[2])
 
     @unittest.skipIf(sys.platform == 'win32', 'Real POSIX terminal; Windows needs live acceptance')
     def test_real_terminal_accepts_all_answers_without_echoing_token(self):

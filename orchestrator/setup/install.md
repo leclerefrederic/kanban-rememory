@@ -1,55 +1,42 @@
 # Install or upgrade a project
 
-Output: approved core setup and selected options, verified in the target repository. This procedure coordinates adoption; linked setup documents own their commands. Maintain the project records under the applicable workflow and permissions. Reader explanations begin at [start a project](../../documentation/start-a-project.md).
+Output: the approved setup, verified in the target repository. Reader explanations begin at [start a project](../../documentation/start-a-project.md). A procedure, preview or copied file is not permission to execute product work.
 
 ## Inspect and agree
 
-1. Check Python 3.9+, Git, target path, existing code/instructions, board, kit version and requested hosts. Use an existing Git repository or obtain authorization to initialize one. If a prerequisite is absent, report the exact missing dependency, recovery action and untouched state; resume after it is available.
-2. Identify the installed mode. `project/settings.json` selects the current module layout. A root `project.json` or a separate `project/kanban/workflow.json` identifies an older layout. Preserve the installed mode and workflows on upgrades unless the User explicitly requests and approves a migration.
-3. On initial installation, offer express or custom setup. Agree on the module names and workspaces. A simple project can start with the `misc` module alone.
-4. Use [workflow setup](configure-workflow.md) to agree on stages, transitions, WIP, journal owner/timezone, delivery evidence and selection policy for the selected layout. Establish project Git permissions.
-5. Present one concrete proposal with the selected mode, target files/configuration, workflow, options and checks. Obtain approval before copying/configuring. Reuse an already explicit approval. A procedure, preview or copied file is not permission to execute product work.
+1. Check Python 3.9+, Git, the target path, existing code and instructions, any installed kit version and the requested hosts. Use an existing Git repository or obtain authorization to initialize one. If a prerequisite is missing, report it, the recovery action and the untouched state.
+2. A target with `project/settings.json` is already installed; upgrade it in place. A target with another Kanban Rememory layout needs a separately approved migration.
+3. Agree on the modules, the workflow, WIP limit, timezone, delivery evidence, selection policy and Git permissions using [project modules](project-modules.md). A small project can start with `misc` alone.
+4. Present one concrete proposal: target files, settings, workflow and checks. Obtain approval before copying or configuring. Reuse an approval that is already explicit.
 
-## Copy and configure the core
+## Copy and configure
 
-Developer performs approved filesystem/Git work. Keep project code, root instructions, records, customizations and unrelated settings. Copy this reusable static package, preserving paths:
+Keep project code, root instructions, records and unrelated settings. Copy these paths unchanged:
 
-| Package | Contents |
+| Path | Contents |
 | --- | --- |
-| `documentation/` | All reader guides and the single connected example set. |
-| `orchestrator/` | `index.md`, `VERSION`; canonical `guidelines/`, `actions/`, `setup/`, `roles/`, `templates/`. |
-| `orchestrator/tools/` | `manage-kanban-board.py`, `configure-project-modules.py`, `manage-module-delivery.py`, `migrate-rememory.py` and the `kanban/` package. |
+| `documentation/` | Reader guides. |
+| `orchestrator/` | `index.md`, `VERSION`, `actions/`, `guidelines/`, `setup/`, `templates/`. |
+| `orchestrator/tools/` | `manage-kanban-board.py`, `manage-module-delivery.py`, `configure-project-modules.py` and the `kanban/` package. |
 
-Optional procedures ship as reference material; this does not activate tools, agents, alerts or scheduling. Do not copy the kit's project board, Cards, Specs, Batches, dated journals or root project-specific policy.
-
-Merge this entry into the target's `AGENTS.md` without removing its existing instructions:
+Do not copy this kit's Cards, journal or root project policy. Merge this entry into the target's `AGENTS.md` without removing existing instructions, then record the project's ownership and Git permissions there:
 
 ```markdown
-Follow the [Card delivery workflow](orchestrator/actions/deliver-card.md) and [shared working rules](orchestrator/guidelines/working-rules.md). The Orchestrator owns authorized Card work from intake through verified delivery in the current chat.
+Act as the Orchestrator and follow the [Card delivery workflow](orchestrator/actions/deliver-card.md).
 ```
 
-Record the approved project ownership, journal conventions and Git permissions there. For Claude Code merge `@AGENTS.md` into root `CLAUDE.md`; Codex reads `AGENTS.md`. [Layout](project-layout.md) describes the resulting structure.
+For Claude Code, add `@AGENTS.md` to root `CLAUDE.md`; Codex reads `AGENTS.md`. Apply the approved settings with [project modules](project-modules.md). [Layout](project-layout.md) shows the result.
 
-- **Current projects:** configure the module layout in [project settings](project-modules.md). Include `misc` and keep the workflow in the same settings file.
-- **Existing single-board projects:** see the [legacy workflow setup](configure-workflow.md).
+## Option
 
-The Batch setup applies to legacy projects.
-
-For a new setup, apply the preview when it matches the approved proposal. Stop on a discrepancy or changed scope. For upgrades, verify the installed layout. Use the separate [journal migration](project-layout.md#migrate-existing-journals) after reviewing and approving its preview. Record configuration and actual validation results in Rememory.
-
-## Add selected options
-
-| Option | Benefit and dependency | Setup |
+| Option | Benefit | Setup |
 | --- | --- | --- |
-| Host skills | Explicit KR role discovery in Codex/Claude; core instructions first. | [Skills](skills.md) |
-| Batch records/guard | Exact approved scope, candidate acceptance and closure; Git and core board first. | [Batches](batches.md) |
-| Claude role check | Best-effort native named-agent path restrictions; shared roles and core Python package first. | [Claude check](claude-role-check.md) |
-| Telegram | Alerts when human action is needed or work completes; private confirmed account setup and network. | [Telegram](telegram.md) |
+| Telegram | Alerts when an intervention is needed or work completes. | [Telegram](telegram.md) |
 
-Options can be added later. Run each option's own preview/check before application and verify its result. Do not infer Telegram opt-in/default policy or Codex enforcement that the project has not approved.
+Do not infer an opt-in the project has not approved.
 
 ## Upgrade and verify
 
-Inventory current paths/version before copying. The package now lives in `orchestrator/`. Update the installed root instructions and shared source paths, then run the [skill sync](skills.md) and update any enabled [Claude role check](claude-role-check.md) or [Batch push check](batches.md#optional-push-check). Compare source and installed bytes with the known distributed revision; preserve custom roles, instructions, adapters, skills, extra files and settings. Merge approved changes deliberately rather than overwrite a directory. Old launch IDs resolve to canonical policies. Never keep competing customized policies unnoticed: reconcile them before claiming successful role migration.
+Inventory installed paths and `VERSION` before copying. Compare installed files with the distributed revision; merge approved changes instead of overwriting a directory, and preserve project customizations. Remove distributed files the new version no longer ships only after checking they are unchanged.
 
-Run board validate/show for the project board and verify its scope filters when modules exist. Check the selected options; a second setup review should recognize the installed mode and require no layout changes. Open a fresh target-project chat and confirm the installed layout, applicable scope and next authorized action. Record each result as verified, awaiting User action, or blocked, with exact recovery steps. Automated tests and simulated alerts do not prove native discovery or real delivery.
+Run `validate` and `show` on the board. Open a fresh chat in the target and confirm it identifies the Orchestrator, the layout and the next authorized action. Record each result in Rememory as verified, awaiting user action or blocked, with recovery steps.

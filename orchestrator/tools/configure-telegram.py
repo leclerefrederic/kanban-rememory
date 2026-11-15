@@ -16,7 +16,9 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 import warnings
 
-EVENTS = 'attention,completed,delivered,blocked,closed'
+EVENTS = 'attention,completed'
+# shortcut: configurations saved before 0.2.0 list retired event names; accept them until they are re-saved.
+RETIRED_EVENTS = {'delivered', 'blocked', 'closed'}
 
 
 class SetupError(Exception):
@@ -66,7 +68,7 @@ def validate(config):
             or not isinstance(config.get('chat_id'), str)
             or not re.fullmatch(r'[0-9]+', config['chat_id'])
             or not isinstance(config.get('events'), str)
-            or not set(config['events'].split(',')).issubset(set(EVENTS.split(',')) | {''})):
+            or not set(config['events'].split(',')).issubset(set(EVENTS.split(',')) | RETIRED_EVENTS | {''})):
         raise SetupError('Invalid configuration. Run configure-telegram.py again to replace it.')
     return config
 

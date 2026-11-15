@@ -24,12 +24,12 @@ The [Lean Specifications manifesto](documentation/lean-specifications.md) sets t
 - **Make each requirement earn its place.** Keep behavior that provides value or necessary protection.
 - **Specify the smallest complete experience.** Include relevant failure recovery and binding mockup details. Ambiguous behavior becomes a question.
 - **Give requirements a way to pass or fail.** Observable criteria and evidence identify what was checked and on which revision.
-- **Change scope only by agreement.** Suggestions stay separate; the approved baseline of an active Batch stays fixed. Every observed defect remains debt until its correction is verified.
+- **Change scope only by agreement.** Suggestions stay separate; approved scope changes only on the Card. Every observed defect remains debt until its correction is verified.
 - **Build the simplest thing that meets the criteria.** Reuse what works, preserve required protections, and stop when the agreed outcome is verified.
 
 ## The records that keep the work together
 
-A **Card** carries the outcome, agreed scope, decisions and delivery evidence. Add a Resources section when it needs attachments or references. **Rememory** keeps the project journal of decisions, milestones and publications with links to the relevant Cards. Earlier Specifications and Batches are available in the archived project or Git history.
+A **Card** carries the outcome, agreed scope, decisions and delivery evidence. Add a Resources section when it needs attachments or references. **Rememory** keeps the project journal of decisions, milestones and publications with links to the relevant Cards. Git history keeps earlier records.
 
 ## One Kanban per module
 
@@ -37,7 +37,7 @@ Each declared module stores its Cards and their resources in its own Kanban. Car
 
 ## One agent follows the Card
 
-In a normal chat, the same agent clarifies the request, updates the Card, implements the authorized change, runs the applicable automated checks and publishes under the project's permissions. It uses the relevant skills as guides. You decide scope and acceptance where your decision is required.
+In a normal chat, the same agent clarifies the request, updates the Card, implements the authorized change, runs the applicable automated checks and publishes under the project's permissions. You decide scope and acceptance where your decision is required.
 
 ## Pick your next move
 

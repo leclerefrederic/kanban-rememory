@@ -1,19 +1,50 @@
 # Deliver a Card
 
-The Orchestrator owns these steps in the current chat. Record user decisions and provide any required acceptance steps against the exact candidate.
+The Orchestrator owns the Card from request to verified delivery in the current chat. The user decides scope, required acceptance and approval to merge. Helpers take bounded, self-contained assignments; the Orchestrator keeps the Card, integration and delivery and verifies the combined result. Procedures never grant authorization.
 
-1. Read `project/settings.json` and the latest relevant project Rememory entry. Use the module's Kanban to find existing work and check capacity. Reuse its Card and authorization when resuming.
-2. Put the outcome, scope, acceptance criteria and user decisions on one Card. Adjust detail to the work. Use a Card in the owning module when ownership is clear. Use `misc` for work without an owner, including cross-module changes that ship together. List affected modules in `affected_modules` and refer to the Card by stable ID. Use separate Cards for independently deliverable changes and link actual dependencies.
-3. For attachments, add a `## Resources` section with a relative link and purpose for each file. Store linked attachments in the module's `resources/<card-id>/` directory. Reference files already in the repository at their existing paths.
-4. Once authorized, carry the Card through implementation, diff review and applicable automated checks in the current chat. Investigate failures, fix recoverable issues within scope and rerun the affected checks. Run the acceptance cases that can be verified directly. Guide the user through any agreed cases that require their participation. Use the relevant skills as guides. Delegate independent work or a focused review only when useful and permitted, with a self-contained handoff.
-5. Verify the proposed integration with current `main` in a separate integration worktree. Keep the Card in `development` while waiting for merge approval. Before merging into `main`, show the user the verified revision, what was checked and any automatic production deployment that the merge or push will trigger. Obtain explicit approval for that candidate and record it on the Card. If the proposed integration changes while waiting, verify the updated candidate and obtain approval for it.
-6. After approval, carry out the authorized delivery and verify publication and any agreed deployment. Treat the Card as delivered once these steps are verified. Use the [module coordination commands](coordinate-modules.md) to include its closure in the verified publication candidate. Record the verified publication in [Rememory](maintain-rememory.md) when publication is part of delivery.
+## Principles
+
+Apply the [lean principles](../../documentation/lean-specifications.md): record who needs what and how it is checked; keep only requirements that earn their place; ask about ambiguous user-visible behavior instead of inventing it; record scope changes on the Card before implementing them; build the simplest thing that meets the criteria and stop once it is verified. Suggestions stay outside the approved scope.
+
+## Steps
+
+1. **Find the work.** Read `project/settings.json` and the latest relevant entry in `project/rememory/`. Search every stage for the Card by stable ID with `path CARD-ID`. Reuse the existing Card and authorization. Never reopen a completed Card; create a successor that refers to it. Before taking over a claimed delivery, confirm the previous session has stopped. Conflicting records stop dependent work; report what disagrees.
+2. **Frame the Card.** Record outcome, scope, observable acceptance criteria and user decisions on one Card in the owning module, following [Card content](write-card.md) and the [Kanban rules](../guidelines/kanban.md). Split independently deliverable changes and link real dependencies.
+3. **Start.** With explicit authorization, check dependencies and capacity, then run the claim and Development move below.
+4. **Build and verify.** Implement in the delivery worktree. Review the diff, run the applicable checks, fix recoverable failures within scope and rerun the affected checks. Run the acceptance cases you can verify; guide the user through agreed cases that need them and record their verdict.
+5. **Ask for merge approval.** Verify the candidate against current `main` in a separate integration worktree. Keep the Card in Development. Show the user the verified revision, what was checked and any automatic deployment that merging or pushing `main` triggers. Record their explicit approval on the Card. A changed candidate needs new verification and approval.
+6. **Publish.** Complete the Card, build the closing commit, verify it, publish it and record the milestone in [Rememory](maintain-rememory.md). Treat the Card as delivered only after publication and any agreed deployment are verified.
+
+## Command sequence
+
+Run delivery commands from the delivery worktree. Board moves write the Card in the primary checkout. `OWNER` is the recorded session ID.
+
+```sh
+D() { python3 orchestrator/tools/manage-module-delivery.py --scope MODULE "$@"; }
+B() { python3 orchestrator/tools/manage-kanban-board.py "$@"; }
+D claim CARD-ID --owner OWNER --base MAIN_COMMIT
+B move CARD-ID development --owner-token OWNER
+D checkpoint CARD-ID --owner OWNER "LABEL"            # at each verified milestone
+# implement, commit on the branch, run checks
+D integration begin CARD-ID --owner OWNER
+# integration worktree at main: merge the branch
+D run-check CARD-ID --owner OWNER --integration-checkout PATH -- CHECKS
+# ask for approval of that revision; after approval:
+B move CARD-ID completion --owner-token OWNER         # all criteria checked
+# in the integration worktree, commit the completed Card file and any
+# uncommitted journal files from the primary checkout: CLOSING
+D run-check CARD-ID --owner OWNER --integration-checkout PATH -- CHECKS
+D publish-card CARD-ID --owner OWNER --closing CLOSING
+D milestone published CARD-ID --owner OWNER --summary "ONE LINE" --revision CLOSING --published
+D integration release CARD-ID --owner OWNER
+D finish CARD-ID --owner OWNER --revision CLOSING
+```
+
+`publish-card` pushes only the exact verified closing revision and stops if remote `main` moved. Release integration while waiting on a decision or blocker, and reacquire it before resuming. [Module coordination](coordinate-modules.md) covers locks, check isolation and recovery.
 
 ## Return control to the user
 
-- **Intervention required.** Ask for the specific decision, permission or manual action that only the user can provide. Explain what depends on it and continue independent authorized work where possible. An acceptance decision is an intervention when it was explicitly agreed as part of the delivery.
-- **Work complete.** Report the delivered outcome and where to find it after the agreed checks and delivery steps are complete.
+- **Intervention required.** Ask for the specific decision, permission or manual action only the user can provide. Pause dependent work; continue independent authorized work.
+- **Work complete.** Report the delivered outcome and where to find it.
 
-Use the existing authorization throughout. Continue directly between steps and handle recoverable failures within the same run. When Remy is configured, follow [the notification triggers](notify-user.md#card-delivery-with-remy) for both kinds of handoff, including a merge approval that is still needed.
-
-Earlier Specs and Batches can be found in the archived project or Git history. Use a Card for new work.
+Continue between steps without asking again and handle recoverable failures in the same run. When Remy is configured, follow [the notification triggers](notify-user.md#card-delivery-with-remy), including a pending merge approval.

@@ -1,29 +1,27 @@
 # Coordinate a module delivery
 
-For a configured multi-module project. Read [shared rules](../guidelines/working-rules.md). The module's Card WIP and delivery ownership both apply. Work from the recorded module branch and worktree. Keep tracking records in the primary checkout, separate from product changes on delivery branches.
+The [Card delivery](deliver-card.md) sequence lists the commands. This file covers ownership, check isolation and recovery. Coordinate only in worktrees of a single clone.
 
-1. Confirm selected module, approved scope, authorization, dependencies, intake eligibility and recorded owner. Coordinate only in worktrees of a single clone.
-2. From the dedicated delivery worktree, use `python3 orchestrator/tools/manage-module-delivery.py --scope SCOPE status`. Use the module ID or `@project` for a project Card. Claim the approved delivery with `claim DELIVERY --owner OWNER --base COMMIT` and add `--approval APPROVAL_COMMIT` for a Batch. Use the recorded session ID for OWNER and `--owner-token OWNER` for active Card moves. Maintain the next action with `checkpoint DELIVERY --owner OWNER LABEL`. An interrupted session uses the same recorded owner and worktree after confirming the previous session has stopped. Never clear a lock solely because it is old.
-3. After development verification and any required acceptance, use `integration begin DELIVERY --owner OWNER`. Record the remote main tip, confirm it matches the integration base, and verify the combined candidate with current main, including affected shared contracts. Use `integration verify DELIVERY --owner OWNER` before publication. Do not overwrite intervening remote work.
-4. Release integration with `integration release DELIVERY --owner OWNER` during any decision or blocker, or after verified publication. Retain module ownership, exact candidates and earlier evidence. Before resuming, reacquire integration and recheck main. If integration changes an accepted candidate, apply affected acceptance checks and the existing User decision rule to the changed candidate.
-5. For a standalone Card, keep its stage in Development while approval is pending. Obtain and record the user's explicit approval to merge the verified Card candidate into `main`, following [Card delivery](deliver-card.md). Publish the approved Card with `publish-card DELIVERY --owner OWNER --closing CLOSING_COMMIT`. For a Batch use qualified closure below. Record the verified publication with `milestone published DELIVERY --owner OWNER --summary SUMMARY --revision CLOSING_COMMIT --published`. The project milestone can be recovered after a push and is keyed by delivery and revision. For a useful scoped work note, supply its own event ID and `--evidence PATH` instead of `--published`. After verified publication, its journal entry and release of integration, release the scope slot with `finish DELIVERY --owner OWNER --revision CLOSING_COMMIT`. Use the [closure rules](close-batch.md) to retire only verified temporary branches.
+## Ownership
+
+`claim` records the module, owner, branch, worktree and base. Each module holds one delivery; one integration runs at a time across the project. `status` shows the current claim. An interrupted session resumes with the same owner and worktree after confirming the previous session has stopped. Never clear a lock only because it is old.
+
+`integration begin` records the local `main` tip. Do not overwrite intervening remote work. If `main` advances, release integration, rebuild the combined revision on the new `main` and verify it again. Approval covers one exact candidate.
 
 ## Verify the combined revision
 
-Before running checks, create an integration worktree at the expected main tip and assemble the combined revision there. Do not move main to a tentative result. Keep each check's temporary files and artifacts separate with:
+Create an integration worktree at the expected `main` tip and assemble the combined revision there; never move `main` to a tentative result. Run all required checks as one command against that clean checkout:
 
 ```sh
-python3 orchestrator/tools/manage-module-delivery.py --module MODULE run-check DELIVERY --owner OWNER -- CHECK_COMMAND
+python3 orchestrator/tools/manage-module-delivery.py --scope MODULE run-check DELIVERY --owner OWNER --integration-checkout PATH -- CHECK_COMMAND
 ```
 
-Use the runtime directory for test databases and `KR_ARTIFACT_DIR` for builds. Start network fixtures with dynamically assigned loopback ports and independent data. If a fixture requires a fixed shared resource, run its checks in sequence. To record combined verification, add `--integration-checkout PATH` before `--`. Run all required checks as one command against the exact clean checkout. A failed or interrupted rerun invalidates earlier verification.
+Each run gets its own temporary directory. Use `KR_RUNTIME_DIR` for test databases and `KR_ARTIFACT_DIR` for builds. Give network fixtures dynamic loopback ports and independent data; run checks that need a fixed shared resource in sequence. A failed or interrupted run, or a changed checkout, invalidates earlier verification. `publish-card` accepts only the revision verified last.
 
-## Recover a qualified Batch closure
+## Recover
 
-Record the user's exact decision in the Batch report under User decision as ``- Decision: accepted `FULL_CANDIDATE`.`` or the equivalent with `rejected`. Also record the explicit decision context and required evidence. Add `Batch-Closure: MODULE/Batch-NNN` to the closing commit. Verify that closing preserves the accepted product tree, or excludes the rejected candidate. Changes to declared shared sources, configuration, resources or other product paths require acceptance of the new combined revision. A closing commit limited to Markdown tracking records and Batch evidence can preserve a prior decision. A stale product decision releases integration and keeps the module occupied. Review the combined revision and record the new decision before reacquiring and verifying against current main.
+- **Publication interrupted:** rerun `publish-card` with the same closing commit. It recognizes a closing commit already on remote `main` and refuses a different one.
+- **Journal missing:** `milestone ... --published` is keyed by delivery and revision and can be rerun after the push.
+- **Capacity still held:** `finish` refuses until integration is released and the closing revision is on published `main`.
 
-With integration ownership and the recorded acceptance or rejection, run `closure retire BATCH-NNN --owner OWNER --integration-checkout PATH` before creating the closing commit. Stage the identical retired Specifications and their removal from `approved/` together with the Batch records. Preserve the approval pins and evidence. Then run the combined checks against the exact closing revision.
-
-With integration ownership and successful combined checks at that closing revision, run `closure prepare Batch-NNN --owner OWNER --closing CLOSING --candidate CANDIDATE --result accepted`; use `rejected` for rejection. Use `closure publish Batch-NNN --owner OWNER` to publish or resume. This verifies the recovery ref, retained tag or archive, and remote main. It stops if main moved before publication. Restore missing local objects from the authorized qualified recovery ref and reconcile the recorded ownership first. Retain the prior record if remote recovery exists; do not replace it on a mismatch.
-
-Qualify recovery and archives with `PROJECT/MODULE/batch-nnn`. Keep artifact guards under the common Git directory at `kanban-rememory/projects/PROJECT/modules/MODULE/batch-nnn/guard.json`. Retire temporary refs only under the [existing lease and verification procedure](close-batch.md#retire-temporary-branches).
+After `finish`, delete the delivery branch and worktrees only when they point to verified, published commits.

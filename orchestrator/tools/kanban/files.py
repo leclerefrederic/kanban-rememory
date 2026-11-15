@@ -6,13 +6,7 @@ from pathlib import Path
 import re
 import subprocess
 
-from .specifications import SPECIFICATION_NAMES, specification_root
-
-
 ROOT = Path(__file__).resolve().parents[3]
-
-
-PROJECT = ROOT / "project"
 
 
 CARD_ID = re.compile(r"^([A-Z][A-Z0-9]*-[0-9]{8})(?:-|$)", re.ASCII | re.IGNORECASE)
@@ -30,10 +24,6 @@ LINK = re.compile(r"(?<!\\)\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+\"[^\"]*\")?\s*\)
 def card_order(path):
     prefix, _, number = CARD_ID.match(path.stem)[1].upper().rpartition("-")
     return prefix, int(number), path.name
-
-
-def cards(stage, project=PROJECT):
-    return board_cards(stage, project / "kanban")
 
 
 def board_cards(stage, board):
@@ -105,19 +95,15 @@ def markdown_files(scope=None, root=ROOT):
             yield path
 
 
-
-def check_module_records(project):
-    """Refuse linked record paths before any module operation."""
-    specification_root(project)
-    for name in ("kanban", *SPECIFICATION_NAMES, "batches", "lots", "Lots", "rememory"):
-        directory = project / name
-        if directory.is_symlink():
-            raise ValueError(f"Module record path is a symbolic link: {directory}.")
-        for current, dirs, files in os.walk(directory):
-            for entry in dirs + files:
-                path = Path(current) / entry
-                if path.is_symlink():
-                    raise ValueError(f"Module record path is a symbolic link: {path}.")
+def check_local_records(directory):
+    """Refuse linked record paths before any board operation."""
+    if directory.is_symlink():
+        raise ValueError(f"Record path is a symbolic link: {directory}.")
+    for current, dirs, files in os.walk(directory):
+        for entry in dirs + files:
+            path = Path(current) / entry
+            if path.is_symlink():
+                raise ValueError(f"Record path is a symbolic link: {path}.")
 
 
 def header_value(source, key, default=None):

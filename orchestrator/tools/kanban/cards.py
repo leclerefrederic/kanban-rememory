@@ -1,6 +1,5 @@
 """Card creation, display, and guarded moves."""
 
-from contextlib import contextmanager
 from collections import Counter
 from datetime import date, datetime
 import json
@@ -10,65 +9,45 @@ from unicodedata import normalize
 from urllib.parse import quote, unquote, urlsplit
 from zoneinfo import ZoneInfo
 
-from .batches import is_closed_lot_report, relationship, validate_lot_mapping
-from .coordination import replace_text
-from .files import (CARD_ID, LINK, PROJECT, ROOT, acceptance_checks, board_cards, field,
+from .files import (CARD_ID, LINK, ROOT, acceptance_checks, board_cards, field,
                     header_value, markdown_files, markdown_lines, prose_lines)
-from .project import PROJECT_SCOPE
-from .validation import FROZEN_CARD_MOVE_LINKS
+from .project import MISC
 
 
-def scoped_cards(stage, project, context=None, scope=None, *, history=False):
-    """Read one or all module boards, optionally including frozen project Cards."""
-    workspaces = (project,)
-    if context and context.module_boards:
-        workspaces = (context.card_workspace(scope),) if scope else context.card_workspaces()
-        if not history:
-            workspaces = tuple(workspace for workspace in workspaces if workspace != project)
-        elif not context.flat_board and project not in workspaces:
-            workspaces = (*workspaces, project)
+def card_id(path):
+    return CARD_ID.match(path.stem)[1].upper()
+
+
+def scoped_cards(stage, project, scope=None):
+    """Read one module board, or all of them, for one stage."""
+    workspaces = (project.workspace(scope),) if scope else tuple(project.modules.values())
     for workspace in workspaces:
-        directory = context.card_directory(workspace) if context else workspace / "kanban"
-        for path in board_cards(stage, directory):
-            if context is None:
-                yield path
-                continue
-            found = context.card_scope(path, allow_legacy=True)
-            if found == PROJECT_SCOPE and context.module_boards and history:
-                found = context.misc_module
-            if found is not None and (scope is None or found == scope):
+        for path in board_cards(stage, workspace):
+            if scope is None or project.card_scope(path) == scope:
                 yield path
 
 
-def find_card(workflow, task_id, project=PROJECT, context=None):
-    workspaces = context.card_workspaces() if context else (project,)
-    matches = [(stage, path) for stage in workflow["stages"] for workspace in workspaces
-               for path in board_cards(stage, context.card_directory(workspace) if context else workspace / "kanban")
-               if not (context and context.module_boards and not context.flat_board and workspace != project
-                       and context.card_scope(path, allow_legacy=True) is None)
-               if CARD_ID.match(path.stem)[1].upper() == task_id]
+def find_card(project, task_id):
+    matches = [(stage, path) for stage in project.workflow["stages"]
+               for path in scoped_cards(stage, project) if card_id(path) == task_id]
     if len(matches) != 1:
         raise ValueError(f"Expected exactly one current card for {task_id}, found {len(matches)}.")
-    stage, path = matches[0]
-    if context and context.card_scope(path, allow_legacy=True) is None:
-        raise ValueError(f"{task_id} is an unscoped historical record. Use history or an approved migration.")
-    return stage, path
+    return matches[0]
 
 
-def show_board(workflow, limit, today, project=PROJECT, root=ROOT, *, context=None, scope=None):
+def show_board(project, limit, today, *, scope=None):
+    workflow = project.workflow
     wip = Counter()
     for stage in workflow["stages"]:
         print(stage)
-        history = stage in {workflow["completed"], "cancellation"}
-        for path in scoped_cards(stage, project, context, scope, history=history):
+        for path in scoped_cards(stage, project, scope):
             source = path.read_text(encoding="utf-8")
-            card_scope = context.card_scope(path) if context else None
+            card_scope = project.card_scope(path)
             heading = next((line[2:] for line in markdown_lines(source)
                             if line.startswith("# ")), path.stem)
-            task_id = CARD_ID.match(path.stem)[1].upper()
+            task_id = card_id(path)
             title = heading.removeprefix(task_id).lstrip(" —-")
-            scope_column = f"{card_scope} | " if context else ""
-            print(f"  {task_id} | {scope_column}{title} | {path.relative_to(root)}")
+            print(f"  {task_id} | {card_scope} | {title} | {path.relative_to(project.root)}")
             if stage in workflow["active"]:
                 wip[card_scope] += 1
                 try:
@@ -76,29 +55,21 @@ def show_board(workflow, limit, today, project=PROJECT, root=ROOT, *, context=No
                 except ValueError:
                     age = "unknown"
                 print(f"    Age: {age}")
-                state = field(source, "State")
-                if state:
-                    print(f"    State: {state}")
-                blocker = field(source, "Blocker")
-                if blocker:
-                    print(f"    Blocker: {blocker}")
-        if context and context.module_boards and scope not in (None, context.misc_module, PROJECT_SCOPE):
-            for path in scoped_cards(stage, project, context, context.misc_module):
-                source = path.read_text(encoding="utf-8")
-                affected = header_value(source, "affected_modules")
+                for label in ("State", "Blocker"):
+                    value = field(source, label)
+                    if value:
+                        print(f"    {label}: {value}")
+        if scope not in (None, MISC):
+            for path in scoped_cards(stage, project, MISC):
+                affected = header_value(path.read_text(encoding="utf-8"), "affected_modules")
                 if isinstance(affected, list) and scope in affected:
-                    task_id = CARD_ID.match(path.stem)[1].upper()
-                    print(f"  {task_id} | linked from {context.misc_module} | {path.relative_to(root)}")
-    if context and scope is None:
-        scopes = context.modules if context.module_boards else (PROJECT_SCOPE, *context.modules)
-        for item in scopes:
-            print(f"{item} WIP: {wip[item]}/{limit} | Available slots: {max(0, limit - wip[item])}")
-    else:
-        print(f"WIP: {wip[scope]}/{limit} | Available slots: {max(0, limit - wip[scope])}")
+                    print(f"  {card_id(path)} | linked from {MISC} | {path.relative_to(project.root)}")
+    for item in (project.modules if scope is None else (scope,)):
+        print(f"{item} WIP: {wip[item]}/{limit} | Available slots: {max(0, limit - wip[item])}")
     return 0
 
 
-def rewrite_card_links(source, document, card, target, root=ROOT):
+def rewrite_card_links(source, document, card, target):
     new_document = target if document == card else document
     lines = source.splitlines(keepends=True)
     for index, line in prose_lines(lines):
@@ -113,8 +84,6 @@ def rewrite_card_links(source, document, card, target, root=ROOT):
                 return match[0]
             old_destination = (document.parent / unquote(url.path)).resolve()
             if old_destination == card:
-                if (document.relative_to(root).as_posix(), href) in FROZEN_CARD_MOVE_LINKS:
-                    return match[0]
                 destination = target
             elif document == card:
                 destination = old_destination
@@ -133,43 +102,31 @@ def rewrite_card_links(source, document, card, target, root=ROOT):
     return "".join(lines)
 
 
-def relocate_card(card, target, completed, transition, project=PROJECT, root=ROOT,
-                  *, context=None, scope=None, new_scope=None):
+def relocate_card(project, card, target, scope, transition):
+    workspace = project.workspace(scope)
+    completed = project.workflow["completed"]
+    journal = project.journal()
     updates = {}
-    documents = markdown_files(None if project == root / "project" else project, root)
-    for document in set(documents) | {card}:
+    for document in set(markdown_files(None, project.root)) | {card}:
         original = document.read_bytes()
         source = original.decode("utf-8")
-        updated = rewrite_card_links(source, document, card, target, root)
-        if document == card and header_value(source, "type") == "card":
-            if new_scope is not None:
-                marker = updated.index("\n---", 4)
-                key = context.card_module_field
-                header, count = re.subn(rf"(?m)^{key}:[^\n]*", lambda _: f"{key}: {json.dumps(new_scope)}",
-                                        updated[:marker], count=1)
-                if count != 1:
-                    raise ValueError("Expected one scoped Card header.")
-                updated = header + updated[marker:]
+        updated = rewrite_card_links(source, document, card, target)
+        if document == card:
             updated = updated.rstrip()
             if not re.search(r"^## History$", updated, re.MULTILINE):
                 updated += "\n\n## History"
             updated += f"\n\n- {transition}\n"
-        if source != updated:
-            if context and document != card:
-                directory = context.card_directory(context.card_workspace(scope))
-                same_scope_card = (document.parent.parent == directory
-                                   and CARD_ID.match(document.stem)
-                                   and context.card_scope(document, allow_legacy=True) == scope)
-                local_journal = document.is_relative_to(context.scope_memory(scope))
-                if not (same_scope_card or local_journal):
-                    raise ValueError(f"Move would rewrite a protected record: {document.relative_to(root)}. Use a stable Card ID.")
-            if project != root / "project" and not any(
-                document.is_relative_to(project / directory) for directory in ("kanban", "rememory")
-            ):
-                raise ValueError(f"Move would rewrite a protected record: {document.relative_to(root)}. Use a qualified Card reference.")
-            if (document.parent.name == completed.name and CARD_ID.match(document.stem)) or is_closed_lot_report(document, project):
-                raise ValueError(f"Move would rewrite immutable history: {document.relative_to(root)}")
-            updates[target if document == card else document] = (original, updated.encode("utf-8"))
+        if source == updated:
+            continue
+        if document != card:
+            same_scope_card = (document.parent.parent == workspace and CARD_ID.match(document.stem)
+                               and project.card_scope(document) == scope)
+            if not (same_scope_card or document.is_relative_to(journal)):
+                raise ValueError(f"Move would rewrite a protected record: "
+                                 f"{document.relative_to(project.root)}. Use a stable Card ID.")
+            if document.parent.name == completed:
+                raise ValueError(f"Move would rewrite immutable history: {document.relative_to(project.root)}")
+        updates[target if document == card else document] = (original, updated.encode("utf-8"))
 
     card.rename(target)
     attempted = []
@@ -185,177 +142,82 @@ def relocate_card(card, target, completed, transition, project=PROJECT, root=ROO
         raise
 
 
-def move_card(workflow, task_id, destination, project=PROJECT, root=ROOT, authorize_active=None,
-              *, context=None, scope=None):
-    stage, card = find_card(workflow, task_id, project, context)
-    if context:
-        actual_scope = context.card_scope(card)
-        if actual_scope != scope:
-            raise ValueError(f"{task_id} belongs to scope {actual_scope}, not {scope}.")
-        if scope == PROJECT_SCOPE and relationship(card.read_text(encoding="utf-8"), "batch"):
-            raise ValueError("A Batch Card must have the same module scope as its Batch.")
-        if findings := validate_lot_mapping((card,), context.scope_workspace(scope), root,
-                                            standalone=context.flat_board):
-            raise ValueError("\n".join(findings))
+def move_card(project, task_id, destination, authorize_active, scope=None):
+    workflow = project.workflow
+    stage, card = find_card(project, task_id)
+    actual_scope = project.card_scope(card)
+    if scope is not None and scope != actual_scope:
+        raise ValueError(f"{task_id} belongs to module {actual_scope}, not {scope}.")
     if stage == workflow["completed"]:
         raise ValueError("Completed cards are immutable. Create a follow-up card.")
-    if "transitions" not in workflow:
-        raise ValueError("Configure transitions in kanban/workflow.json before moving cards.")
     if destination not in workflow["transitions"].get(stage, []):
         raise ValueError(f"Transition from {stage} to {destination} is not allowed.")
     active = workflow["active"]
-    if authorize_active and (stage in active or destination in active):
-        source = card.read_text(encoding="utf-8")
-        delivery = header_value(source, "batch") or task_id
-        authorize_active(delivery)
+    if stage in active or destination in active:
+        authorize_active(actual_scope, task_id)
     if destination in active and stage not in active:
-        if sum(1 for column in active for _ in scoped_cards(column, project, context, scope)) >= workflow["wip_limit"]:
+        if sum(1 for column in active for _ in scoped_cards(column, project, actual_scope)) >= workflow["wip_limit"]:
             raise ValueError("WIP limit reached. Finish active work before starting another card.")
     if destination == workflow["completed"]:
         checks = list(acceptance_checks(card.read_text(encoding="utf-8")))
         if not checks or any(re.match(r"[-*+]\s+\[ \]", check) for check in checks):
             raise ValueError("Completion requires a nonempty acceptance checklist with every item checked.")
-    workspace = context.card_workspace(scope) if context else project
-    board = context.card_directory(workspace) if context else workspace / "kanban"
-    target = board / destination / card.name
+    target = project.workspace(actual_scope) / destination / card.name
     if target.exists() or target.is_symlink():
-        raise ValueError(f"Destination already exists: {target.relative_to(root)}")
-    if context and context.module_boards:
-        target.parent.mkdir(parents=True, exist_ok=True)
+        raise ValueError(f"Destination already exists: {target.relative_to(project.root)}")
+    target.parent.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
-    transition = f"{timestamp} — Stage moved from `{stage}` to `{destination}`."
-    relocate_card(card, target, board / workflow["completed"], transition, project, root,
-                  context=context, scope=scope)
+    relocate_card(project, card, target, actual_scope,
+                  f"{timestamp} — Stage moved from `{stage}` to `{destination}`.")
     print(f"Moved {task_id} from {stage} to {destination}.")
     return 0
 
 
-def reassign_card(workflow, task_id, context, new_scope, is_claimed):
-    stage, path = find_card(workflow, task_id, context.board, context)
-    old_scope = context.card_scope(path)
-    if stage != workflow.get("intake", workflow["stages"][0]) or is_claimed(old_scope):
-        raise ValueError("Scope can be reassigned only while the Card is unclaimed in backlog.")
-    if old_scope == new_scope:
-        print(f"{task_id} already has scope {new_scope}.")
-        return 0
-    source = path.read_text(encoding="utf-8")
-    if relationship(source, "batch") or relationship(source, "specifications"):
-        raise ValueError("Resolve Batch and Specification references before reassigning the Card.")
-    if context.module_boards:
-        resources = context.card_resources(context.card_workspace(old_scope), task_id)
-        if resources.exists():
-            raise ValueError("Reassign the attachment directory and its links before changing the Card scope.")
-        if header_value(source, "affected_modules") and new_scope != context.misc_module:
-            raise ValueError("Resolve the affected modules before reassigning a transversal Card.")
-    timestamp = datetime.now(ZoneInfo(workflow["timezone"])).isoformat(timespec="seconds")
-    transition = f"{timestamp} — Scope reassigned from `{old_scope}` to `{new_scope}`."
-    if context.module_boards:
-        target = context.card_directory(context.card_workspace(new_scope)) / stage / path.name
-        if target.exists() or target.is_symlink():
-            raise ValueError(f"Destination already exists: {target.relative_to(context.root)}")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        relocate_card(path, target, target.parent.parent / workflow["completed"], transition,
-                      context.board, context.root, context=context, scope=old_scope, new_scope=new_scope)
-    else:
-        marker = source.index("\n---", 4)
-        header, count = re.subn(r"(?m)^scope:[^\n]*", lambda _: f"scope: {json.dumps(new_scope)}",
-                                source[:marker], count=1)
-        if count != 1:
-            raise ValueError("Expected one scoped Card header.")
-        updated = (header + source[marker:]).rstrip()
-        if not re.search(r"^## History$", updated, re.MULTILINE):
-            updated += "\n\n## History"
-        replace_text(path, f"{updated}\n\n- {transition}\n")
-    print(f"Reassigned {task_id} to scope {new_scope}.")
-    return 0
-
-
-@contextmanager
-def board_write_lock(project=PROJECT):
-    lock = project / "kanban/.write-lock"
-    try:
-        lock.mkdir()
-    except FileExistsError:
-        raise ValueError("Another board write holds kanban/.write-lock. Retry after it finishes.") from None
-    try:
-        yield
-    finally:
-        lock.rmdir()
-
-
-def create_card(workflow, args, project=PROJECT, root=ROOT, *, scope=None, write_lock=None, context=None):
-    title, owner = args.title.strip(), args.owner.strip()
+def create_card(project, title, owner, scope, apply, write_lock):
+    title, owner = title.strip(), owner.strip()
     if not title or not owner or len(title.splitlines()) != 1 or len(owner.splitlines()) != 1:
         raise ValueError("Title and owner must each be a nonempty single line.")
-    entry = workflow.get("intake", workflow["stages"][0])
-    if entry not in workflow["stages"] or entry in workflow["active"] or entry == workflow["completed"]:
-        raise ValueError("Configure an intake stage outside active and completed work.")
-
-    template_path = ROOT / "orchestrator/templates/card.md"
-    if not template_path.exists():
-        template_path = ROOT / "orchestrator/templates/kanban-card.md"
-    if not template_path.is_file():
-        template_path = ROOT / "docs/templates/kanban-card.md"
-    if not template_path.is_file():
-        template_path = ROOT / "docs/templates/card.md"
-    if not template_path.is_file():
-        template_path = ROOT / "docs/lot-templates/Card.md"
-    if not template_path.is_file():
-        template_path = ROOT / "docs/task-template.md"
-    template = template_path.read_text(encoding="utf-8")
+    workflow = project.workflow
+    template = (ROOT / "orchestrator/templates/card.md").read_text(encoding="utf-8")
     slug = normalize("NFKD", title).encode("ascii", "ignore").decode().lower()
     slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")[:80].rstrip("-") or "task"
 
     def prepare():
-        highest = context.last_card_id if context else 0
+        highest = project.last_card_id
         seen = set()
-        workspaces = context.card_workspaces() if context else (project,)
-        for workspace in workspaces:
-            directory = context.card_directory(workspace) if context else workspace / "kanban"
-            stages = workflow["stages"]
-            if scope is not None and not (context and context.flat_board):
-                stages = [path.name for path in directory.glob("*") if path.is_dir()]
-            for stage in stages:
-                for card in board_cards(stage, directory):
-                    task_id = CARD_ID.match(card.stem)[1].upper()
-                    historical_module = (context and context.module_boards and workspace != project
-                                         and context.card_scope(card, allow_legacy=True) is None)
-                    if not historical_module:
-                        if task_id in seen:
-                            raise ValueError(f"Duplicate {task_id}. Resolve the collision before creating a card.")
-                        seen.add(task_id)
-                    if task_id.startswith(("CARD-", "TASK-")):
-                        highest = max(highest, int(task_id.split("-")[1]))
+        for stage in workflow["stages"]:
+            for card in scoped_cards(stage, project):
+                task_id = card_id(card)
+                if task_id in seen:
+                    raise ValueError(f"Duplicate {task_id}. Resolve the collision before creating a card.")
+                seen.add(task_id)
+                if task_id.startswith("CARD-"):
+                    highest = max(highest, int(task_id.split("-")[1]))
         if highest >= 99999999:
             raise ValueError("The eight-digit CARD range is exhausted.")
         task_id = f"CARD-{highest + 1:08d}"
-        workspace = context.card_workspace(scope) if context else project
-        directory = context.card_directory(workspace) if context else workspace / "kanban"
-        target = directory / entry / f"{task_id.lower()}-{slug}.md"
-        content = re.sub(r'^id: "(?:CARD|TASK)-NNNNNNNN"$', lambda _: f'id: "{task_id}"',
-                         template, count=1, flags=re.MULTILINE)
-        if scope is not None:
-            key = context.card_module_field if context else "scope"
-            content = content.replace(f'id: "{task_id}"\n', f'id: "{task_id}"\n{key}: {json.dumps(scope)}\n', 1)
-        if context and context.module_boards:
-            content = content.replace("batch: null\nspecifications: []\n", "", 1)
-        content = re.sub(r"^# (?:CARD|TASK)-NNNNNNNN(?: — Short title)?$", lambda _: f"# {task_id} — {title}",
+        target = project.workspace(scope) / workflow["stages"][0] / f"{task_id.lower()}-{slug}.md"
+        content = template.replace('id: "CARD-NNNNNNNN"\n', f'id: "{task_id}"\n', 1)
+        content = re.sub(r'^module: [^\n]*$', lambda _: f"module: {json.dumps(scope)}",
+                         content, count=1, flags=re.MULTILINE)
+        content = re.sub(r"^# CARD-NNNNNNNN[^\n]*$", lambda _: f"# {task_id} — {title}",
                          content, count=1, flags=re.MULTILINE)
         content = re.sub(r"^- Owner:[^\n]*$", lambda _: f"- Owner: {owner}",
                          content, count=1, flags=re.MULTILINE)
+        if f'id: "{task_id}"' not in content or f"module: {json.dumps(scope)}" not in content:
+            raise ValueError("The Card template needs id and module header fields.")
         return target, content
 
-    if not args.apply:
+    if not apply:
         target, content = prepare()
-        print(f"Preview {target.relative_to(root)}:\n\n{content}")
+        print(f"Preview {target.relative_to(project.root)}:\n\n{content}")
         print("Run again with --apply once the project intake rules permit recording the backlog Card.")
         return 0
 
-    with (write_lock if write_lock is not None else board_write_lock(project)):
+    with write_lock:
         target, content = prepare()
-        if context and context.module_boards:
-            target.parent.mkdir(parents=True, exist_ok=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
         with target.open("x", encoding="utf-8") as stream:
             stream.write(content)
-    print(f"Created {target.relative_to(root)}.")
+    print(f"Created {target.relative_to(project.root)}.")
     return 0

@@ -1,28 +1,24 @@
-"""Workflow configuration and initialization."""
+"""Workflow configuration checks."""
 
-import json
 import re
 from zoneinfo import ZoneInfo
-
-from .files import PROJECT, ROOT
-from .specifications import specification_directories
 
 
 def check_workflow(workflow):
     if not isinstance(workflow, dict):
-        raise ValueError("workflow.json must contain an object.")
+        raise ValueError("workflow must contain an object.")
     stages = workflow.get("stages")
     if (not isinstance(stages, list) or not stages
             or any(not isinstance(stage, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", stage)
                    for stage in stages)
-            or len(stages) != len(set(stages))):
-        raise ValueError("stages must contain unique folder names.")
+            or len(stages) != len(set(stages)) or "resources" in stages):
+        raise ValueError("stages must contain unique folder names other than resources.")
     active = workflow.get("active")
     completed = workflow.get("completed")
     if (not isinstance(active, list) or not active or any(stage not in stages for stage in active)
             or completed not in stages or completed in active):
         raise ValueError("Define active stages and a distinct completed stage.")
-    transitions = workflow.get("transitions", {})
+    transitions = workflow.get("transitions")
     if not isinstance(transitions, dict) or any(
         source not in stages or not isinstance(destinations, list)
         or any(destination not in stages or destination == source for destination in destinations)
@@ -42,102 +38,16 @@ def check_workflow(workflow):
     return workflow
 
 
-def load_workflow(project=PROJECT, *, context=None):
-    if context and context.flat_board:
-        return context.workflow
-    path = project / "kanban/workflow.json"
-    if not path.is_file():
-        raise ValueError("No workflow configured. Follow orchestrator/setup/configure-workflow.md before using the board.")
-    workflow = check_workflow(json.loads(path.read_text(encoding="utf-8")))
-    missing = [stage for stage in workflow["stages"] if not (project / "kanban" / stage).is_dir()]
-    if missing:
-        raise ValueError(f"Missing stage folders: {', '.join(missing)}")
-    return workflow
-
-
-TEMPLATES = {
-    "short": ([], ["development"]),
-    "standard": ([], ["development", "code-review"]),
-    "long": (["refinement"], ["development", "code-review", "testing", "deployment"]),
-}
-
-
-def starter_transitions(delivery, active):
-    transitions = {
-        stage: [following, "cancellation"] for stage, following in zip(delivery, delivery[1:])
-    }
-    for stage in active[1:]:
-        transitions[stage].append(active[0])
-    return transitions
-
-
-def initialize(args, project=PROJECT, root=ROOT):
-    if args.config:
-        workflow = json.loads(args.config.read_text(encoding="utf-8"))
-    else:
-        preparation, active = TEMPLATES[args.template]
-        delivery = ["backlog", *preparation, *active, "completion"]
-        workflow = {
-            "stages": [*delivery, "cancellation"],
-            "transitions": starter_transitions(delivery, active),
-            "active": active,
-            "completed": "completion",
-            "wip_limit": args.wip_limit if args.wip_limit is not None else 1,
-            "timezone": args.timezone or "UTC",
-        }
+def check_new_workflow(workflow):
+    """Rules for a newly configured board; existing boards keep their approved stages."""
     check_workflow(workflow)
-
-    board = project / "kanban"
-    config = board / "workflow.json"
-    if board.is_symlink() or config.is_symlink():
-        raise ValueError("The board and workflow configuration must be local paths.")
-    if config.exists() and json.loads(config.read_text(encoding="utf-8")) != workflow:
-        raise ValueError("A different workflow already exists. Use an explicit migration.")
-    if not config.exists():
-        required = {"backlog", "development", "completion", "cancellation"}
-        if missing := required.difference(workflow["stages"]):
-            raise ValueError(f"Missing required stages: {', '.join(sorted(missing))}")
-        if (workflow["stages"][0] != "backlog" or workflow["active"][0] != "development"
-                or workflow["completed"] != "completion"
-                or {"backlog", "cancellation"}.intersection(workflow["active"])
-                or workflow.get("transitions", {}).get("cancellation")):
-            raise ValueError("Use backlog for intake, development as the first active stage, "
-                             "completion for delivery, and cancellation as a terminal stage.")
-    stages = [board / stage for stage in workflow["stages"]]
-    for stage in stages:
-        if stage.is_symlink() or (stage.exists() and not stage.is_dir()):
-            raise ValueError(f"Stage path is not a local directory: {stage.relative_to(root)}")
-    if board.exists():
-        outside = [entry.name for entry in board.iterdir()
-                   if entry.is_dir() and entry not in stages and any(entry.glob("*.md"))]
-        if outside:
-            raise ValueError(f"Existing cards outside the proposed stages: {', '.join(sorted(outside))}")
-
-    from .project import load_project
-
-    memory = load_project(root).setup_memory()
-    records = specification_directories(project) if args.with_batches else ()
-    for path in records:
-        if path.resolve() != path or (path.exists() and not path.is_dir()):
-            raise ValueError(f"Batch record path is not a local directory: {path.relative_to(root)}")
-    print(json.dumps(workflow, indent=2))
-    for path in (*stages, *memory, *records):
-        if not path.exists():
-            print(f"Create {path.relative_to(root)}/")
-    if not args.apply:
-        print("Preview only. Run again with --apply after approval.")
-        return 0
-
-    for path in (*stages, *memory, *records):
-        path.mkdir(parents=True, exist_ok=True)
-        if not any(path.iterdir()):
-            (path / ".gitkeep").touch(exist_ok=True)
-    try:
-        with config.open("x", encoding="utf-8") as file:
-            json.dump(workflow, file, indent=2)
-            file.write("\n")
-    except FileExistsError:
-        if load_workflow(project) != workflow:
-            raise ValueError("A different workflow already exists. Use an explicit migration.") from None
-    print("Workflow ready.")
-    return 0
+    required = {"backlog", "development", "completion", "cancellation"}
+    if missing := required.difference(workflow["stages"]):
+        raise ValueError(f"Missing required stages: {', '.join(sorted(missing))}")
+    if (workflow["stages"][0] != "backlog" or workflow["active"][0] != "development"
+            or workflow["completed"] != "completion"
+            or {"backlog", "cancellation"}.intersection(workflow["active"])
+            or workflow["transitions"].get("cancellation")):
+        raise ValueError("Use backlog for intake, development as the first active stage, "
+                         "completion for delivery, and cancellation as a terminal stage.")
+    return workflow

@@ -1,25 +1,19 @@
 # Kanban rules
 
-The `workflow` section of `project/settings.json` defines the shared stages, transitions, WIP limit and timezone. Each declared module has its own Kanban and WIP count. Apply Card WIP by scope for a project with modules. The folder is the Card stage; the optional state is `waiting`, `in-progress` or `blocked` within it. Keep one file and a stable project-wide ID. The `module` field names its owning module. Use [board commands](../actions/manage-board.md) and [Card content](../actions/write-card.md).
+The `workflow` section of `project/settings.json` defines the stages, transitions, WIP limit and timezone. Each module has its own Kanban and WIP count. The folder is the Card stage; the optional state is `waiting`, `in-progress` or `blocked` within it. Keep one file and a stable project-wide ID. The `module` field names the owning module. Use [board commands](../actions/manage-board.md) and [Card content](../actions/write-card.md).
 
 ## Intake and execution
 
-Search every stage for matching work before proposing a Card. One agent prepares the Card and owns pickup, stage moves, evidence and closure. The User supplies decisions in conversation; agents maintain the records.
+Search every stage for matching work before proposing a Card. Before starting, verify approved scope, execution authorization, dependencies, owner and capacity. Pull the oldest eligible ID unless the Card records another agreed priority. Unmet prerequisites keep unstarted work in backlog. Move authorized work to the first active stage before changing deliverables. Keep the original actual start through rework.
 
-Before starting, verify approved scope, execution authorization, dependencies (including intermediate blockers), owner and capacity. Pull the oldest eligible ID unless the project has recorded another priority. Unmet prerequisites keep unstarted work in backlog. Move authorized work to the first active stage before changing deliverables. Preserve the original actual start date through handoffs and rework.
-
-Keep interrupted/blocked work in its current stage. Record when, why and the action/condition that clears the blocker. It counts toward WIP. At capacity, help finish/unblock existing work; urgent exceptions need project-authorized rationale and a return plan. A module accepts a new delivery after its current delivery closes. Independent modules can progress.
+Keep interrupted or blocked work in its current stage. Record when, why and the condition that clears the blocker. It counts toward WIP. At capacity, finish or unblock existing work first; an urgent exception needs a recorded rationale and return plan. Independent modules can progress in parallel.
 
 ## Finish and preserve evidence
 
-Verify all acceptance criteria and the agreed delivery point before completion: applicable tests, review, merge, publication, deployment and User validation are separate facts. A merged PR suffices only when merge is the agreed finish. Keep pending required checks open; return to Development for rework. Record the exact revision/artifact, evidence, actual finish and journal link. On abandonment record the reason and move to Cancellation.
+Before completion verify every acceptance criterion and the agreed delivery point. Tests, review, merge, publication, deployment and user validation are separate facts. Return failed work to Development. Record the exact revision, evidence, actual finish and journal link. On abandonment record the reason and move to Cancellation.
 
-Completed Cards and closed Batch reports are immutable. Corrections/rollback create a successor Card referring to the original. Use stable Card IDs while a Card can move. Historical Cards can retain their links to Specs and Batches. The move tool refuses a move that would rewrite frozen Card/report links.
+Completed Cards are immutable. Corrections and rollbacks create a successor Card that refers to the original. Refer to Cards by stable ID while they can move.
 
-## Measure and improve flow
+## Measure flow
 
-Count started, unfinished Cards (including blocked) as WIP. Throughput is completed Cards per period, excluding cancellations. Work-item age is today minus actual start; cycle time is actual finish minus actual start, in project calendar days/timezone. Write dates `YYYY-MM-DD`.
-
-At closure or the project's review cadence, inspect blockers, aging work and delivery queues; compare throughput and cycle time. Use historical percentiles to forecast only when comparable data supports them; otherwise label an estimate. Agree one improvement and record its expected effect/review date in Rememory. The [human guide](../../documentation/understand-the-framework.md) explains examples.
-
-Adoption owns stage conditions, selection policy, exceptions and WIP: use [workflow setup](../setup/configure-workflow.md). The [Kanban Guide](https://kanbanguides.org/the-kanban-guide) provides background, not additional local authorization.
+WIP counts started, unfinished Cards, including blocked ones. Throughput is completed Cards per period, excluding cancellations. Age is today minus actual start; cycle time is actual finish minus actual start, in project calendar days. Write dates as `YYYY-MM-DD`. At closure or resumption, review blockers and aging work; record one agreed improvement and its review date in Rememory.

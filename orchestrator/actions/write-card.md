@@ -1,18 +1,16 @@
 # Prepare Card content
 
-Search the board for matching work first. The agent maintains the Card throughout delivery. The User supplies requests and decisions in conversation. Apply the [Kanban rules](../guidelines/kanban.md) and use the [board command](manage-board.md#create) with the [blank template](../templates/card.md).
+Search the board for matching work first. Create the Card with the [board command](manage-board.md#create); it fills the [template](../templates/card.md). The user supplies requests and decisions in conversation; the agent maintains the Card. Exclude secrets and unnecessary personal data.
 
-A Card describes one executable outcome, including an investigation whose deliverable is a finding. Split independently verifiable work when useful. Keep detailed designs, logs and test outputs in linked evidence, not the Card. Exclude secrets and unnecessary personal data.
+A Card describes one executable outcome, including an investigation whose deliverable is a finding. Keep detailed designs, logs and test outputs in linked evidence.
 
 | Point | Required record |
 | --- | --- |
-| Intake | Stable ID/action title; `module`; owner; expected outcome; scope; dependencies or none; observable acceptance checks; relevant decisions/requirements. |
-| Before start | Explicit execution authorization, prerequisites/capacity checked, actual start. |
-| Active | State and next action; blocker date/cause/unblocking condition; revision and evidence at milestones. |
-| Closure | Verified criteria, actual finish, exact revision/artifact and agreed delivery evidence, journal reference. |
+| Intake | Action title, exactly one `module` field, owner, expected outcome, scope, dependencies or none, observable acceptance criteria, relevant decisions. |
+| Before start | Explicit execution authorization, prerequisites and capacity checked, actual start. |
+| Active | State and next action; blocker date, cause and clearing condition; revision and evidence at milestones. |
+| Closure | Checked criteria, merge approval, actual finish, exact revision and delivery evidence, journal reference. |
 
-The folder determines stage; state describes progress inside it. Use `waiting` for a normal queue and `blocked` for an impediment. Neither removes active work from WIP. Keep the original start through rework.
+Use `waiting` for a normal queue and `blocked` for an impediment; both stay in WIP.
 
-Use a `## Resources` section to link required files and describe their purpose. Store attachments under the owning module's `resources/<card-id>/`. For a Card in `misc` with cross-module impact, list the affected module IDs in the `affected_modules` header so the Card appears in those views.
-
-Keep existing Spec and Batch links on historical Cards.
+Link required files from a `## Resources` section with their purpose. Store attachments under the owning module's `resources/<card-id>/`; reference repository files at their existing paths. For a `misc` Card with cross-module impact, list the module IDs in an `affected_modules` header field.

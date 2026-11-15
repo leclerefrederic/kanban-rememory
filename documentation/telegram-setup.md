@@ -46,7 +46,7 @@ Remy uses **Intervention required** when you need to unblock the work or approve
 | macOS | `~/.config/kanban-rememory/telegram.json` | File mode `600`: only the account owner can read or write it. |
 | Windows | `%LOCALAPPDATA%\KanbanRememory\telegram.json` | A new file receives an explicit current-user full-control ACL and no inherited permissions before the token is written. Saving is refused if this fails. |
 
-The token is stored in this private file in plain text, not in the macOS Keychain or Windows Credential Manager. It is never put in Git or printed by the tool. It is shared by projects using the same OS account; configure separately on another computer or OS account. The saved event list supports both the Batch notifications and the attention/completed events when the selected sender implements them.
+The token is stored in this private file in plain text, not in the macOS Keychain or Windows Credential Manager. It is never put in Git or printed by the tool. It is shared by projects using the same OS account; configure separately on another computer or OS account.
 
 Display configuration status without exposing the key, or send another test:
 
