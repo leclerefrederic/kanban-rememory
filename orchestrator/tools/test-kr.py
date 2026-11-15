@@ -229,6 +229,35 @@ class KrTests(unittest.TestCase):
         self.assertEqual(self.git(root, "rev-parse", "HEAD~1"), candidate)
         self.assertIn("Phase: none", self.kr(root, "show"))
 
+    def test_check_and_publish_refuse_unsafe_states(self):
+        root = self.root
+        self.kr(root, "new", "Direct", "--module", "a")
+        self.commit(root, "Add Card")
+        self.kr(root, "start", "CARD-00000001", "--main")
+        (root / "project/modules/a/backlog/notes.md").write_text("x\n")
+        self.commit(root, "Invalid record")
+        self.kr(root, "check", expected=1)  # validate fails: nothing is verified
+        self.assertIn("run check", self.kr(root, "show"))
+        (root / "project/modules/a/backlog/notes.md").unlink()
+        self.commit(root, "Fix record")
+        self.kr(root, "check")
+        self.assertIn("nonempty single lines", self.kr(root, "publish", "--summary", "a\nb", "--approval", "Oui", expected=1))
+        self.assertIn("needs --summary", self.kr(root, "publish", "--notify", "Chat", expected=1))
+        self.assertIn("Give --summary and --approval", self.kr(root, "publish", expected=1))
+        self.assertIn("Check every acceptance criterion", self.kr(root, "publish", "--summary", "S", "--approval", "Oui", expected=1))
+        self.check_criteria(root, "CARD-00000001")
+        self.commit(root, "Tick")
+        self.assertIn("lacks its closure", self.kr(root, "publish", "--summary", "S", "--approval", "Oui", expected=1))
+        self.kr(root, "check")
+        self.git(self.base, "clone", "-q", "-b", "main", "origin.git", "other")
+        other = self.base / "other"
+        (other / "elsewhere.txt").write_text("moved\n")
+        self.commit(other, "Move origin")
+        self.git(other, "push", "-q", "origin", "main")
+        self.assertIn("origin/main moved", self.kr(root, "publish", "--summary", "S", "--approval", "Oui", expected=1))
+        self.assertIn("Merge origin/main", self.kr(root, "check", expected=1))
+        self.assertEqual(self.git(root, "ls-remote", "origin", "refs/heads/main").split()[0], self.git(other, "rev-parse", "HEAD"))
+
     def test_report_sums_durations_and_host_tokens_of_the_phase(self):
         start = datetime.fromisoformat("2026-11-15T10:00:00+01:00")
         end = datetime.fromisoformat("2026-11-15T11:30:00+01:00")
