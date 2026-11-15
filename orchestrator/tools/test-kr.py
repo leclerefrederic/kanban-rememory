@@ -80,10 +80,6 @@ class KrTests(unittest.TestCase):
     def card(self, root, task_id):
         return root / self.kr(root, "path", task_id).strip()
 
-    def check_criteria(self, root, task_id):
-        path = self.card(root, task_id)
-        path.write_text(path.read_text().replace("## Acceptance criteria\n", "## Acceptance criteria\n\n- [x] Done.\n"))
-
     def test_new_allocates_project_wide_ids_once(self):
         self.kr(self.root, "new", "First", "--module", "a")
         first = self.board("a") / "backlog/card-00000001-first.md"
@@ -130,7 +126,7 @@ class KrTests(unittest.TestCase):
         os.symlink(self.root, self.board("a") / "resources/link")
         output = self.kr(self.root, "validate", expected=1)
         for finding in ("needs exactly one module field set to a", "attachment ../resources/other.png",
-                        "affected_modules must list", "notes.md: expected card-NNNNNNNN", "unchecked acceptance",
+                        "affected_modules must list", "notes.md: expected card-NNNNNNNN",
                         "duplicate CARD-00000001", "project/modules/z: module missing", "missing link target missing.md",
                         "missing heading anchor #nowhere", "missing tool orchestrator/tools/gone.py", "symbolic link"):
             self.assertIn(finding, output)
@@ -153,13 +149,10 @@ class KrTests(unittest.TestCase):
         self.git(root, "switch", "-q", "claude/phase-1")
         self.assertIn("belongs to b", self.kr(root, "start", "CARD-00000003", expected=1))
         self.assertIn("WIP limit", self.kr(root, "start", "CARD-00000002", expected=1))
-        self.assertIn("acceptance checklist", self.kr(root, "move", "CARD-00000001", "completion", expected=1))
-        self.check_criteria(root, "CARD-00000001")
         self.kr(root, "move", "CARD-00000001", "completion")
         self.kr(root, "start", "CARD-00000004")
         self.kr(root, "move", "CARD-00000004", "cancellation")  # abandoned inside the phase: skipped at closure
         self.kr(root, "start", "CARD-00000002")
-        self.check_criteria(root, "CARD-00000002")
         (root / "src.txt").write_text("change\n")
         self.assertIn("local changes", self.kr(root, "check", expected=1))
         self.commit(root, "Implement")
@@ -214,7 +207,6 @@ class KrTests(unittest.TestCase):
         self.assertNotIn("Next:", self.kr(root, "show"))
         self.kr(root, "start", "CARD-00000001", "--main")
         self.assertIn("Next: commit the changes", self.kr(root, "show"))
-        self.check_criteria(root, "CARD-00000001")
         (root / "src.txt").write_text("change\n")
         candidate = self.commit(root, "Implement on main")
         self.assertIn("Next: run check", self.kr(root, "show"))
@@ -244,9 +236,8 @@ class KrTests(unittest.TestCase):
         self.assertIn("nonempty single lines", self.kr(root, "publish", "--summary", "a\nb", "--approval", "Oui", expected=1))
         self.assertIn("needs --summary", self.kr(root, "publish", "--notify", "Chat", expected=1))
         self.assertIn("Give --summary and --approval", self.kr(root, "publish", expected=1))
-        self.assertIn("Check every acceptance criterion", self.kr(root, "publish", "--summary", "S", "--approval", "Oui", expected=1))
-        self.check_criteria(root, "CARD-00000001")
-        self.commit(root, "Tick")
+        self.card(root, "CARD-00000001").open("a").write("Note.\n")
+        self.commit(root, "Note")
         self.assertIn("lacks its closure", self.kr(root, "publish", "--summary", "S", "--approval", "Oui", expected=1))
         self.kr(root, "check")
         self.git(self.base, "clone", "-q", "-b", "main", "origin.git", "other")

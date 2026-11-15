@@ -15,7 +15,4 @@ module: "MODULE"
 
 ## Execution and evidence
 
-- State:
-- Blocker:
-
 ## History

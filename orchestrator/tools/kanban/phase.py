@@ -9,7 +9,6 @@ import sys
 import tempfile
 
 from .board import add_history, find_card, local, move
-from .markdown import unchecked
 from .project import JOURNAL, MODULES, SETTINGS, bump, common_directory, git, load_project
 from .report import report
 from .validation import validate
@@ -176,9 +175,8 @@ class Phase:
         found = [(card, *find_card(self.project, card)[1:]) for card in state["cards"]]
         live = [(card, stage, path) for card, stage, path in found if stage not in self.cancelled]
         for card, stage, path in live:
-            if stage != completed and (completed not in workflow["transitions"].get(stage, [])
-                                       or unchecked(path.read_text(encoding="utf-8"))):
-                raise ValueError(f"Check every acceptance criterion of {card} before publishing.")
+            if stage != completed and completed not in workflow["transitions"].get(stage, []):
+                raise ValueError(f"{card} cannot move from {stage} to {completed}.")
         now = self.project.now()
         paths = []
         for card, stage, path in live:

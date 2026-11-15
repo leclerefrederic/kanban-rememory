@@ -11,7 +11,6 @@ FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,}).*$")
 HEADING = re.compile(r"^ {0,3}(#{1,6})[ \t]+(.+?)\s*#*\s*$")
 LINK = re.compile(r"(?<!\\)\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+\"[^\"]*\")?\s*\)")
 MOVE = re.compile(r"^(?:- )?(\S+) — Stage moved from `[^`]+` to `([^`]+)`", re.MULTILINE)
-UNCHECKED = re.compile(r"[-*+]\s+\[ \]")
 
 
 def card_id(path):
@@ -44,23 +43,6 @@ def anchors(source):
                 unique, suffix = f"{slug}-{suffix}", suffix + 1
             result.add(unique)
     return result
-
-
-def acceptance_checks(source):
-    """Checklist items of the Acceptance criteria section."""
-    level = None
-    for _, line in prose_lines(source.splitlines()):
-        heading = HEADING.match(line)
-        if heading and (level is None or len(heading[1]) <= level):
-            level = len(heading[1]) if heading[2].casefold() == "acceptance criteria" else None
-        if level and re.match(r"\s*[-*+]\s+\[[ xX]\]", line):
-            yield line.strip()
-
-
-def unchecked(source):
-    """True when the acceptance checklist is empty or has an open item."""
-    checks = list(acceptance_checks(source))
-    return not checks or any(UNCHECKED.match(check) for check in checks)
 
 
 def resource_links(source):

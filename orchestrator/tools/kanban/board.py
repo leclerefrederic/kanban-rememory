@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 from unicodedata import normalize
 
-from .markdown import card_id, field, header_value, moves, prose_lines, unchecked
+from .markdown import card_id, field, header_value, moves, prose_lines
 from .project import MISC
 
 TEMPLATE = Path(__file__).resolve().parents[2] / "templates/card.md"
@@ -133,8 +133,6 @@ def move(project, task_id, destination, guard):
             len(cards(project, column, module)) for column in active) >= workflow["wip_limit"]:
         raise ValueError(f"WIP limit reached on {module}. Finish the active Card first.")
     text = card.read_text(encoding="utf-8")
-    if destination == workflow["completed"] and unchecked(text):
-        raise ValueError("Completion requires a nonempty acceptance checklist with every item checked.")
     target = local(project.board(module) / destination) / card.name
     with target.open("x", encoding="utf-8") as stream:
         stream.write(text)

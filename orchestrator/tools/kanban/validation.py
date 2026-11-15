@@ -3,7 +3,7 @@
 import re
 from urllib.parse import unquote, urlsplit
 
-from .markdown import (LINK, UNCHECKED, acceptance_checks, anchors, card_id, front_matter,
+from .markdown import (LINK, anchors, card_id, front_matter,
                        markdown_files, prose_lines, resource_links)
 from .project import MISC, MODULES
 
@@ -83,8 +83,6 @@ def card_findings(project, module, stage, path, task_id):
         if target.is_relative_to(attachments.parent) and not (target.is_relative_to(attachments)
                                                                and target.is_file()):
             findings.append(f"{name}: attachment {href} must be a file in resources/{task_id.lower()}/")
-    if stage == project.workflow["completed"] and any(UNCHECKED.match(check) for check in acceptance_checks(source)):
-        findings.append(f"{name}: unchecked acceptance criterion in {stage}")
     return findings
 
 

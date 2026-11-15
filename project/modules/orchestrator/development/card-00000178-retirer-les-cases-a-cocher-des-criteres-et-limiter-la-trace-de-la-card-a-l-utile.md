@@ -23,3 +23,7 @@ Demande de l'utilisateur du 2026-11-16 : cocher les critères et ajouter des lig
 - `test-kr.py` et `validate` passent.
 
 ## Execution and evidence
+
+## History
+
+- 2026-11-16T00:36:57+01:00 — Stage moved from `backlog` to `development`.
