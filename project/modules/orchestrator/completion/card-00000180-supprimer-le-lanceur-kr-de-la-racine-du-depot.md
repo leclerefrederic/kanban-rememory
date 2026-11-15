@@ -26,3 +26,7 @@ Demande de l'utilisateur du 2026-11-16 : il n'utilise pas le lanceur, seul l'Orc
 ## History
 
 - 2026-11-16T00:50:27+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T00:52:59+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T00:52:59+01:00 — Merge approved for the verified candidate `4d5d483cb27d4fe77840fd88be7fc0f1ee392f36`: “Approuvé”.
