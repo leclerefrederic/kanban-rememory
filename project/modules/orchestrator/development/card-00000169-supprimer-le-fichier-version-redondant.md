@@ -17,9 +17,9 @@ Constat du 2026-11-15 : aucun outil ne lit `orchestrator/VERSION`, seul `orchest
 
 ## Acceptance criteria
 
-- [ ] `orchestrator/VERSION` n’existe plus et aucun fichier hors historique ne le cite.
-- [ ] `install.md` décrit la mise à jour depuis le schéma 1 des réglages, sans numéro de version.
-- [ ] `validate` passe.
+- [x] `orchestrator/VERSION` n’existe plus et aucun fichier hors historique ne le cite.
+- [x] `install.md` décrit la mise à jour depuis le schéma 1 des réglages, sans numéro de version.
+- [x] `validate` passe.
 
 ## Execution and evidence
 
@@ -29,3 +29,6 @@ Constat du 2026-11-15 : aucun outil ne lit `orchestrator/VERSION`, seul `orchest
 ## History
 
 - 2026-11-15 — Créée à la demande de l’utilisateur.
+
+- 2026-11-15T23:31:41+01:00 — Stage moved from `backlog` to `development`.
+- 2026-11-15 — `orchestrator/VERSION` supprimé ; `install.md` repère la version installée par `schema_version`. Seule de la documentation change : `validate` suffit.

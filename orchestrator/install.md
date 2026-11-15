@@ -4,7 +4,7 @@ Installing is approved work like any other: a copied file is not permission to e
 
 ## Agree
 
-1. Check Python 3.9+, Git, the target repository or the authorization to create one, its existing instructions and any installed `orchestrator/VERSION`.
+1. Check Python 3.9+, Git, the target repository or the authorization to create one, its existing instructions and the `schema_version` of any installed `project/settings.json`.
 2. Agree on the modules, the workflow, the WIP limit, the timezone, what counts as delivered and the Git permissions. Ask only the unresolved questions, one at a time, and suggest answers from the project's actual flow. Module IDs are lowercase and include `misc`; a small project can use `misc` alone.
 3. Present one proposal (files, settings, checks) and obtain approval before copying anything.
 
@@ -36,9 +36,9 @@ Telegram is an option: set it up only if the project approves it, by giving the 
 
 ## Upgrade
 
-Inventory the installed paths and `VERSION`. Merge the approved changes without overwriting project customizations. Remove files the new version no longer ships only after checking that they are unchanged.
+Inventory the installed paths. Merge the approved changes without overwriting project customizations. Remove files the new version no longer ships only after checking that they are unchanged.
 
-From 0.2, finish the active delivery first. Then rewrite `project/settings.json` as schema 2: `name` from `project.name`, the module IDs as the `modules` list, `workflow` and `last_card_id` unchanged, without `board_layout`, `shared` and `execution`. The boards stay in `project/modules/<module>/`.
+From settings schema 1, finish the active delivery first. Then rewrite `project/settings.json` as schema 2: `name` from `project.name`, the module IDs as the `modules` list, `workflow` and `last_card_id` unchanged, without `board_layout`, `shared` and `execution`. The boards stay in `project/modules/<module>/`.
 
 ## Verify
 
