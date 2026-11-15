@@ -1,6 +1,9 @@
 """Risky behavior of kr.py: Card IDs, moves, validation, one phase from start to publish, the report, setup."""
 
+from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime
+import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -15,6 +18,9 @@ KIT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(KIT / "orchestrator/tools"))
 from kanban import report  # noqa: E402
 
+spec = importlib.util.spec_from_file_location("kr", KIT / "orchestrator/tools/kr.py")
+KR = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(KR)
 WORKFLOW = json.loads((KIT / "project/settings.json").read_text())["workflow"]
 
 
@@ -23,10 +29,13 @@ class KrTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         self.base = Path(directory.name).resolve()
-        for name in ("KR_CLAUDE_HOME", "KR_CODEX_HOME"):  # never read the real session logs
-            patcher = mock.patch.dict(os.environ, {name: str(self.base / name)})
-            patcher.start()
-            self.addCleanup(patcher.stop)
+        # Never read the real session logs, never reach the real Telegram configuration.
+        environment = {name: str(self.base / name) for name in ("KR_CLAUDE_HOME", "KR_CODEX_HOME", "HOME", "LOCALAPPDATA")}
+        environment.update(GIT_AUTHOR_NAME="Fixture", GIT_AUTHOR_EMAIL="fixture@example.invalid",
+                           GIT_COMMITTER_NAME="Fixture", GIT_COMMITTER_EMAIL="fixture@example.invalid")
+        patcher = mock.patch.dict(os.environ, environment)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.settings = {"schema_version": 2, "name": "Fixture", "modules": ["a", "b", "misc"],
                          "workflow": WORKFLOW, "last_card_id": 0}
         self.proposal = self.base / "proposal.json"
@@ -42,21 +51,23 @@ class KrTests(unittest.TestCase):
         root = self.base / name
         shutil.copytree(KIT / "orchestrator/tools", root / "orchestrator/tools",
                         ignore=shutil.ignore_patterns("__pycache__", "test-*.py"))
-        shutil.copytree(KIT / "orchestrator/templates", root / "orchestrator/templates")
         (root / ".gitignore").write_text("__pycache__/\n")
         self.git(root, "init", "-q", "-b", "main")
         return root
 
     def git(self, cwd, *args):
-        return subprocess.check_output(
-            ["git", "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
-             "-c", "commit.gpgsign=false", *map(str, args)], cwd=cwd, text=True, stderr=subprocess.PIPE).strip()
+        return subprocess.check_output(["git", "-c", "commit.gpgsign=false", *map(str, args)], cwd=cwd, text=True,
+                                       stderr=subprocess.PIPE).strip()
 
-    def kr(self, cwd, *args, expected=0):
-        result = subprocess.run([sys.executable, "orchestrator/tools/kr.py", *map(str, args)], cwd=cwd,
-                                capture_output=True, text=True)
-        self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
-        return result.stdout + result.stderr
+    def kr(self, root, *args, expected=0, stdin=""):
+        output = io.StringIO()
+        with redirect_stdout(output), redirect_stderr(output), mock.patch.object(sys, "stdin", io.StringIO(stdin)):
+            try:
+                code = KR.main([str(arg) for arg in args], root)
+            except SystemExit as exit:
+                code = exit.code
+        self.assertEqual(code or 0, expected, output.getvalue())
+        return output.getvalue()
 
     def commit(self, cwd, message):
         self.git(cwd, "add", "-A")
@@ -77,8 +88,10 @@ class KrTests(unittest.TestCase):
         self.kr(self.root, "new", "First", "--module", "a")
         first = self.board("a") / "backlog/card-00000001-first.md"
         self.assertIn('id: "CARD-00000001"\nmodule: "a"\n---\n\n# CARD-00000001 — First\n', first.read_text())
-        self.kr(self.root, "new", "Default")
-        self.assertTrue((self.board("misc") / "backlog/card-00000002-default.md").is_file())
+        self.kr(self.root, "new", "Default", "--body", stdin="- Dependencies: None.\n\n## Acceptance criteria\n")
+        self.assertTrue((self.board("misc") / "backlog/card-00000002-default.md").read_text().endswith(
+            "# CARD-00000002 — Default\n\n- Dependencies: None.\n\n## Acceptance criteria\n"))
+        self.assertIn("empty Card body", self.kr(self.root, "new", "Empty", "--body", expected=1))
         (self.root / "project/settings.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))
         self.kr(self.root, "new", "Later", "--module", "b")
         self.assertTrue((self.board("b") / "backlog/card-00000041-later.md").is_file())
@@ -156,23 +169,32 @@ class KrTests(unittest.TestCase):
                 expected=3)
         self.assertIn("verified: no", self.kr(root, "show"))
         (root / "src.txt").write_text("fixed\n")
-        candidate = self.commit(root, "Fix")
-        self.assertIn("is not verified", self.kr(root, "close", "--summary", "S.", "--approval", "Yes", expected=1))
+        candidate = self.commit(root, "Fix\n\nCo-Authored-By: Fixture Agent <agent@example.invalid>")
+        self.assertIn("is not verified", self.kr(root, "publish", "--summary", "S.", "--approval", "Yes", expected=1))
         self.assertIn(f"Verified revision: {candidate}", self.kr(root, "check", "--", sys.executable, "-c", "pass"))
-        self.kr(root, "close", "--summary", "Alpha and Beta.", "--approval", "Oui, fusionne")
-        closing = self.commit(root, "Close")
-        for task_id in ("CARD-00000001", "CARD-00000002"):
-            self.assertIn(f"verified candidate `{candidate}`: “Oui, fusionne”", self.card(root, task_id).read_text())
-        self.assertNotIn("Merge approved", self.card(root, "CARD-00000004").read_text())
-        journal = "".join(day.read_text() for day in (root / "project/rememory").glob("*.md"))
-        self.assertRegex(journal, r"## a/CARD-00000001\n\nAlpha and Beta\.\n\nPhase Cards: CARD-00000001, "
-                                  r"CARD-00000004, CARD-00000002\.\n\nDuration: .+ Tokens \(Claude Code\): unavailable\.")
-        self.assertIn(f"Verified revision: `{candidate}`. [Card](<../modules/a/completion/", journal)
         (root / "src.txt").write_text("unapproved\n")
         self.commit(root, "Change after approval")
         self.assertIn("only Cards and the journal: src.txt", self.kr(root, "publish", expected=1))
-        self.git(root, "reset", "-q", "--hard", closing)
-        self.assertIn(f"Published {closing}", self.kr(root, "publish"))
+        self.git(root, "reset", "-q", "--hard", candidate)
+        hook = self.base / "origin.git/hooks/pre-receive"
+        hook.write_text("#!/bin/sh\nexit 1\n")
+        hook.chmod(0o755)
+        self.kr(root, "publish", "--summary", "Alpha and Beta.", "--approval", "Oui, fusionne", expected=1)
+        hook.unlink()  # the push failed after the closing commit: publishing again must not close twice
+        closing = self.git(root, "rev-parse", "HEAD")
+        self.assertIn("Co-Authored-By: Fixture Agent <agent@example.invalid>", self.git(root, "log", "-1", "--format=%B"))
+        output = self.kr(root, "publish", "--summary", "Alpha and Beta.", "--notify", "Chat", "--language", "fr")
+        self.assertIn(f"Published {closing}", output)
+        self.assertIn("nothing was sent", output)  # no Telegram configuration in this HOME: the publication stands
+        for task_id in ("CARD-00000001", "CARD-00000002"):
+            self.assertEqual(self.card(root, task_id).read_text().count(
+                f"verified candidate `{candidate}`: “Oui, fusionne”"), 1)
+        self.assertNotIn("Merge approved", self.card(root, "CARD-00000004").read_text())
+        journal = "".join(day.read_text() for day in (root / "project/rememory").glob("*.md"))
+        self.assertEqual(journal.count("## a/CARD-00000001"), 1)
+        self.assertRegex(journal, r"## a/CARD-00000001\n\nAlpha and Beta\.\n\nPhase Cards: CARD-00000001, "
+                                  r"CARD-00000004, CARD-00000002\.\n\nDuration: .+ Tokens \(Claude Code\): unavailable\.")
+        self.assertIn(f"Verified revision: `{candidate}`. [Card](<../modules/a/completion/", journal)
         self.assertEqual(self.git(root, "ls-remote", "origin", "refs/heads/main").split()[0], closing)
         self.assertEqual((self.git(root, "branch", "--show-current"), self.git(root, "rev-parse", "HEAD")),
                          ("main", closing))

@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 from .board import add_history, find_card, local, move
@@ -14,6 +15,7 @@ from .report import report
 from .validation import validate
 
 RECORDS = (f"{MODULES.as_posix()}/", f"{JOURNAL.as_posix()}/")
+NO_ACTION = {"en": "No action required.", "fr": "Aucune action requise."}
 
 
 def is_ancestor(root, ancestor, revision):
@@ -147,15 +149,8 @@ class Phase:
         print(f"Verified revision: {head}")
         return 0
 
-    def close(self, summary, approval):
-        """After the approval of the verified revision: complete the Cards, record the approval and the journal."""
-        if any(not text.strip() or "\n" in text or "\r" in text for text in (summary, approval)):
-            raise ValueError("Give --summary and --approval as nonempty single lines.")
-        state = self.here()
-        require_clean(self.root)
-        head = git(self.root, "rev-parse", "HEAD")
-        if state["verified"] != head:
-            raise ValueError(f"HEAD {head} is not verified: run check, then ask for approval of that revision.")
+    def close(self, state, head, summary, approval):
+        """Complete the phase Cards, write the approval on each and the journal milestone; return the closed IDs."""
         workflow = self.project.workflow
         completed = workflow["completed"]
         found = [(card, *find_card(self.project, card)[1:]) for card in state["cards"]]
@@ -163,7 +158,7 @@ class Phase:
         for card, stage, path in live:
             if stage != completed and (completed not in workflow["transitions"].get(stage, [])
                                        or unchecked(path.read_text(encoding="utf-8"))):
-                raise ValueError(f"Check every acceptance criterion of {card} before close.")
+                raise ValueError(f"Check every acceptance criterion of {card} before publishing.")
         now = self.project.now()
         paths = []
         for card, stage, path in live:
@@ -185,16 +180,32 @@ class Phase:
         current = day.read_text(encoding="utf-8") if day.exists() else f"# {now.date()} ({workflow['timezone']})\n"
         title, _, rest = current.partition("\n")
         day.write_text(f"{title}\n\n{entry}\n\n{rest.strip()}".rstrip() + "\n", encoding="utf-8")
-        print("Commit the closing records, then run publish.")
-        return 0
+        return [card for card, _ in paths]
 
-    def publish(self):
-        """Push the closing commit to origin/main, end the phase and return to an up-to-date main."""
+    def publish(self, summary=None, approval=None, notify=None, language="en"):
+        """Close the verified Cards, commit, push to origin/main, return to an up-to-date main and end the phase."""
+        if any(text is not None and (not text.strip() or "\n" in text or "\r" in text) for text in (summary, approval)):
+            raise ValueError("Give --summary and --approval as nonempty single lines.")
+        if notify and not summary:
+            raise ValueError("--notify needs --summary: it is the text of the alert.")
         state = self.here()
         require_clean(self.root)
         head, verified = git(self.root, "rev-parse", "HEAD"), state["verified"]
-        if not verified or head == verified or not is_ancestor(self.root, verified, head):
-            raise ValueError("Publish the closing commit made on the verified revision: run close, then commit.")
+        if not verified or not is_ancestor(self.root, verified, head):
+            raise ValueError(f"HEAD {head} is not verified: run check, then ask for approval of that revision.")
+        upstream = origin_main(self.root)
+        if not is_ancestor(self.root, upstream, head):
+            raise ValueError("origin/main moved: merge it, check again and ask for a new approval.")
+        if head == verified:
+            if not summary or not approval:
+                raise ValueError("Give --summary and --approval to close the verified revision.")
+            closed = self.close(state, head, summary, approval)
+            git(self.root, "add", "--all", "--", *RECORDS)
+            # The closing commit keeps the authorship trailers of the verified candidate.
+            trailers = git(self.root, "log", "-1", "--format=%(trailers:key=Co-Authored-By)")
+            git(self.root, "commit", "--quiet", "-m",
+                f"Close {', '.join(closed)} with recorded merge approval" + (f"\n\n{trailers}" if trailers else ""))
+            head = git(self.root, "rev-parse", "HEAD")
         outside = [path for path in git(self.root, "diff", "--name-only", verified, head).splitlines()
                    if not path.startswith(RECORDS)]
         if outside:
@@ -204,16 +215,13 @@ class Phase:
             _, stage, path = find_card(self.project, card)
             if stage not in self.cancelled and (stage != self.project.workflow["completed"]
                                                 or marker not in path.read_text(encoding="utf-8")):
-                raise ValueError(f"Close {card} before publishing.")
+                raise ValueError(f"{card} lacks its closure: reset to the verified revision and publish again.")
         if not any(f"Verified revision: `{verified}`" in day.read_text(encoding="utf-8")
                    for day in self.project.journal.glob("*.md")):
-            raise ValueError("The closing commit lacks the journal milestone: run close.")
+            raise ValueError("The closing commit lacks the journal milestone.")
         if validate(self.project):
-            raise ValueError("Fix the findings in the closing commit before publishing.")
-        upstream = origin_main(self.root)
+            raise ValueError("Fix the findings, amend the closing commit, then publish again.")
         if upstream != head:
-            if not is_ancestor(self.root, upstream, head):
-                raise ValueError("origin/main moved: merge it, check again and ask for a new approval.")
             git(self.root, "push", "--quiet", "origin", "HEAD:refs/heads/main")
             if origin_main(self.root) != head:
                 raise ValueError("Could not confirm the publication on origin/main.")
@@ -226,4 +234,11 @@ class Phase:
                              f"then delete {state['branch']}.") from None
         git(self.root, "branch", "--quiet", "--delete", state["branch"])
         print(f"Published {head} on origin/main; main is up to date and the phase is over.")
+        if notify:
+            alert = subprocess.run(
+                [sys.executable, str(self.root / "orchestrator/tools/telegram.py"), "completed", "--card",
+                 state["cards"][0], "--id", "delivery", "--text", summary, "--next-action", NO_ACTION[language],
+                 "--chat-name", notify, "--language", language, "--send"],
+                cwd=self.root, capture_output=True, text=True)
+            print((alert.stdout + alert.stderr).strip())
         return 0

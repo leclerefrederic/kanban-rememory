@@ -10,7 +10,7 @@ Ask in the chat first, then send one alert per event before waiting.
 | --- | --- | --- |
 | A decision, an access or a manual action only the user can provide | `attention` | `intervention-1`, `intervention-2`, …: one per distinct request, noted on the Card |
 | A verified candidate waits for merge approval | `attention` | `merge-<full revision>`; `--text` names the revision and what merging triggers |
-| The agreed delivery is verified | `completed` | `delivery` |
+| The agreed delivery is verified | `completed` | `delivery`, sent by `kr publish --notify "<chat>"` |
 
 Send nothing else: no progress, routine results, recoverable errors or reminders. A Card completed inside a phase is not the delivery. When the approval already covers the candidate, send no merge alert.
 
@@ -32,7 +32,7 @@ python3 orchestrator/tools/telegram.py attention --card CARD-00000042 --id inter
 | `not sent, the request was refused` | Fix the cause, then retry. |
 | `delivery not confirmed and the outcome is unknown` | Tell the user. Resend with `--confirm-retry` only once it is known that the alert did not arrive. |
 
-Record the result on the Card. A missing configuration or a failed send never removes the request from the chat.
+The alert ledger keeps the results; do not copy them to the Card. A missing configuration or a failed send never removes the request from the chat.
 
 ## Setup
 

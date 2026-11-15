@@ -76,7 +76,7 @@ def show(project, module=None, phase=None):
     return 0
 
 
-def new(project, title, module):
+def new(project, title, module, body=None):
     title = title.strip()
     if not title or "\n" in title or "\r" in title:
         raise ValueError("The title must be a nonempty single line.")
@@ -96,8 +96,13 @@ def new(project, title, module):
     slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")[:80].rstrip("-") or "card"
     content = (TEMPLATE.read_text(encoding="utf-8").replace('"MODULE"', json.dumps(module))
                .replace("CARD-NNNNNNNN", task_id).replace("TITLE", title, 1))
-    if f'id: "{task_id}"' not in content or f"module: {json.dumps(module)}" not in content:
-        raise ValueError("The Card template needs its id and module placeholders.")
+    heading = f"# {task_id} — {title}\n"
+    if f'id: "{task_id}"' not in content or f"module: {json.dumps(module)}" not in content or heading not in content:
+        raise ValueError("The Card template needs its id, module and heading placeholders.")
+    if body is not None:
+        if not body.strip():
+            raise ValueError("--body read an empty Card body from stdin.")
+        content = content[:content.index(heading) + len(heading)] + "\n" + body.strip() + "\n"
     target = local(board / project.workflow["stages"][0]) / f"{task_id.lower()}-{slug}.md"
     with target.open("x", encoding="utf-8") as stream:
         stream.write(content)

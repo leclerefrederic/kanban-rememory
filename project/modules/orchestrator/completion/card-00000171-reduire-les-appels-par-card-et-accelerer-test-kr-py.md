@@ -23,11 +23,11 @@ Décision de l’utilisateur du 2026-11-15 (« Oui, 2 à 4 »), points 2 et 4 pr
 
 ## Acceptance criteria
 
-- [ ] `kr new --body` crée la Card avec le contenu fourni ; c’est testé.
-- [ ] Sur la révision vérifiée, `kr publish --summary --approval` clôt, commite et publie en un appel ; relancé sur un commit de clôture, il publie sans reclore ; c’est testé.
-- [ ] `--notify` lance l’alerte de livraison, et un Telegram absent ne fait pas échouer la publication ; c’est testé sans configuration réelle.
-- [ ] La séquence documentée d’une phase à une Card compte au plus 6 commandes, et `workflow.md` ne demande plus de recopier dans la Card ce que gardent git, le journal ou le registre Telegram.
-- [ ] `test-kr.py` passe en moins de 11 s ; la durée mesurée est notée.
+- [x] `kr new --body` crée la Card avec le contenu fourni ; c’est testé.
+- [x] Sur la révision vérifiée, `kr publish --summary --approval` clôt, commite et publie en un appel ; relancé sur un commit de clôture, il publie sans reclore ; c’est testé.
+- [x] `--notify` lance l’alerte de livraison, et un Telegram absent ne fait pas échouer la publication ; c’est testé sans configuration réelle.
+- [x] La séquence documentée d’une phase à une Card compte au plus 6 commandes, et `workflow.md` ne demande plus de recopier dans la Card ce que gardent git, le journal ou le registre Telegram.
+- [x] `test-kr.py` passe en moins de 11 s ; la durée mesurée est notée.
 
 ## Execution and evidence
 
@@ -37,3 +37,9 @@ Décision de l’utilisateur du 2026-11-15 (« Oui, 2 à 4 »), points 2 et 4 pr
 ## History
 
 - 2026-11-15 — Créée à la demande de l’utilisateur.
+
+- 2026-11-15T23:46:24+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-15 — `test-kr.py` : 11 s → 8,2 s (6 tests, même processus). Objectif de 6 s non atteint : les appels `git` dominent.
+
+- 2026-11-15T23:54:45+01:00 — Stage moved from `development` to `completion`.
