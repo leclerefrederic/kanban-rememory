@@ -4,7 +4,7 @@ Use when adopting a new board or explicitly migrating policy. [Installation](ins
 
 ## Choose the policy
 
-Offer express or custom setup. Recommend the shortest template that exposes actual queues/handoffs.
+Use the mode agreed in [installation](install.md#inspect-and-agree) for both express and custom setup. Recommend the shortest template that exposes actual queues/handoffs.
 
 | Template | Use when | Ordered stages | Active |
 | --- | --- | --- | --- |
@@ -21,6 +21,8 @@ Define entry/exit criteria and allowed rework moves. Short verifies in Developme
 Present stage order/folders, transitions, active stages/WIP, timezone, ownership and finish evidence in the concrete adoption/migration proposal. Obtain the User's approval through the installation/current project workflow before applying it.
 
 ## Apply and verify
+
+The commands below set up a single-project board. For multi-module installation, use the agreed workflow JSON with [module setup](project-modules.md).
 
 From the approved target repository, preview the exact selected configuration:
 

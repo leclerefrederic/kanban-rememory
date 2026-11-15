@@ -5,8 +5,10 @@ Output: approved core setup and selected options, verified in the target reposit
 ## Inspect and agree
 
 1. Check Python 3.9+, Git, target path, existing code/instructions, board, kit version and requested hosts. Use an existing Git repository or obtain authorization to initialize one. If a prerequisite is absent, report the exact missing dependency, recovery action and untouched state; resume after it is available.
-2. For a new board, use [workflow setup](configure-workflow.md) to propose stages, transitions, WIP, journal owner/timezone, delivery evidence and selection policy. For an existing board, preserve its policy unless an explicit migration is approved. Establish project Git permissions and whether work uses standalone Cards or Batches.
-3. Present one concrete proposal: target files/configuration, workflow, chosen options and checks. Obtain approval before copying/configuring. Reuse an already explicit approval. A procedure, preview or copied file is not permission to execute product work.
+2. Identify the installed mode. A root `project.json` selects multi-module mode; validate it and report errors before proceeding. An existing `project/kanban/workflow.json` without a manifest selects single-project mode. Preserve the installed mode and workflows on upgrades unless the User explicitly requests and approves a migration.
+3. On initial installation, offer express or custom setup. In either flow, ask once: “Do you want one project with a single Kanban board and journal, or a multi-module project with separate boards and journals plus shared project memory?” Use the User’s language and reuse an explicit choice. For multi-module, confirm module names and workspace paths.
+4. Use [workflow setup](configure-workflow.md) to agree on stages, transitions, WIP, journal owner/timezone, delivery evidence and selection policy for the selected layout. Establish project Git permissions and whether work uses standalone Cards or Batches.
+5. Present one concrete proposal with the selected mode, target files/configuration, workflow, options and checks. Obtain approval before copying/configuring. Reuse an already explicit approval. A procedure, preview or copied file is not permission to execute product work.
 
 ## Copy and configure the core
 
@@ -28,7 +30,10 @@ In a normal primary project session, act as [KR Orchestrator](agents/roles/orche
 
 Record the approved project ownership, journal conventions and Git permissions there. For Claude Code merge `@AGENTS.md` into root `CLAUDE.md`; Codex reads `AGENTS.md`. [Layout](project-layout.md) describes the resulting structure.
 
-For optional multi-module setup, use [module activation](project-modules.md). Otherwise run the [workflow preview/application](configure-workflow.md#apply-and-verify) in the target. If the preview matches the approved proposal, apply it without another approval. Stop on a discrepancy or changed scope. Record configuration and actual validation results in Rememory.
+- **Single-project:** run the [workflow preview/application](configure-workflow.md#apply-and-verify) for `project/kanban/` and create the agreed journal folder. Leave the root manifest absent.
+- **Multi-module:** run the [module setup preview/application](project-modules.md) with the proposed manifest and agreed workflow JSON. Set up the module boards and journals and the shared journal through that procedure.
+
+For a new setup, apply the preview when it matches the approved proposal. Stop on a discrepancy or changed scope. For upgrades without an approved migration, verify the installed layout. Record configuration and actual validation results in Rememory.
 
 ## Add selected options
 
@@ -45,4 +50,4 @@ Options can be added later. Run each option's own preview/check before applicati
 
 Inventory current paths/version before copying. Compare source and installed bytes with the known distributed revision; preserve custom roles, instructions, adapters, skills, extra files and settings. Merge approved changes deliberately rather than overwrite a directory. Old launch IDs resolve to canonical policies. Never keep competing customized policies unnoticed: reconcile them before claiming successful role migration.
 
-Run board validate/show; check the selected options and rerun setup to verify no unintended change. Open a fresh target-project chat and confirm default Orchestrator, explicit-role precedence, state and next authorized action. Native delegation must actually be available before a handoff runs. Record each result as verified, awaiting User action, or blocked, with exact recovery steps. Automated tests and simulated alerts do not prove native discovery or real delivery.
+Run board validate/show for the single board or each configured module (`--module <id>`). Check the selected options; a second setup review should recognize the installed mode and require no layout changes. Open a fresh target-project chat and confirm default Orchestrator, installed mode, applicable module, explicit-role precedence, state and next authorized action. Native delegation must actually be available before a handoff runs. Record each result as verified, awaiting User action, or blocked, with exact recovery steps. Automated tests and simulated alerts do not prove native discovery or real delivery.

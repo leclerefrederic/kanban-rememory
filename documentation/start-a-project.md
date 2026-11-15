@@ -2,6 +2,15 @@
 
 Begin by telling your agent which repository you want to use and that you want to adopt Kanban Rememory. The agent handles the installation and configuration. Your part is to describe how you want work to move and agree on the resulting setup.
 
+## Choose a project mode
+
+On a new installation the agent asks which layout you want, whether you choose express or custom setup.
+
+- **Single project** gives you one Kanban board and one journal in `project/`.
+- **Multi-module** gives each named module its own board and journal, plus shared project memory. The agent shows the proposed layout before it creates `project.json` and configures the workspaces.
+
+If you already specified a mode, the agent uses that choice. Upgrades keep the installed mode unless you request a migration.
+
 ## Agree on the workflow
 
 The agent offers short, standard and long starting workflows, or helps define a custom one. Choose according to the work you actually do. A separate review or deployment stage is useful when it represents a distinct activity or queue that you need to see.
