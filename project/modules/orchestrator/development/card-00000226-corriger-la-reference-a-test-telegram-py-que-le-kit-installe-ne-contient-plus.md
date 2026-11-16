@@ -19,3 +19,7 @@ module: "orchestrator"
 
 - `kr validate` passe dans un dépôt où le ZIP est installé.
 - `kr validate` passe dans ce dépôt.
+
+## History
+
+- 2026-11-16T19:19:43+01:00 — Stage moved from `backlog` to `development`.

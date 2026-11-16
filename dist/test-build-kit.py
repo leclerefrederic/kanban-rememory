@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -40,6 +41,34 @@ class BuildKitTests(unittest.TestCase):
         self.assertIn(prefix + "kanban-rememory/orchestrator/templates/GUARDRAILS.md", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
         self.assertNotIn(prefix + "kanban-rememory/orchestrator/tools/test-kr.py", names)
+
+
+    def test_the_real_kit_validates_once_installed(self):
+        """Build this repository's kit, install it into an empty folder with its own installer, and run validate."""
+        proposal = {"name": "T", "directory": "work", "modules": ["misc"],
+                    "workflow": {"stages": ["backlog", "development", "completion", "cancellation"],
+                                 "active": ["development"], "completed": "completion", "wip_limit": 1,
+                                 "timezone": "Europe/Paris",
+                                 "transitions": {"backlog": ["development", "cancellation"],
+                                                 "development": ["completion", "cancellation"]}},
+                    "version": "0.0.0"}
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory)
+            archive = build_kit.build(build_kit.ROOT, target / "kit.zip")
+            with zipfile.ZipFile(archive) as kit:
+                kit.extractall(target / "unpacked")
+            folder = next((target / "unpacked").iterdir())
+            project = target / "project"
+            project.mkdir()
+            (target / "proposal.json").write_text(json.dumps(proposal))
+            shutil.copytree(folder / "kanban-rememory", project / "kanban-rememory")
+            subprocess.check_call(["git", "init", "-q"], cwd=project)
+            subprocess.check_call(["python3", str(folder / "installer/init.py"), str(target / "proposal.json"), "--apply"],
+                                  cwd=project, stdout=subprocess.DEVNULL)
+            result = subprocess.run(["python3", "kanban-rememory/orchestrator/tools/kr.py", "validate"], cwd=project,
+                                    capture_output=True, text=True)
+            self.assertEqual((result.returncode, result.stdout.strip().splitlines()[-1]),
+                             (0, "Kanban validation passed."), result.stdout)
 
 
 if __name__ == "__main__":
