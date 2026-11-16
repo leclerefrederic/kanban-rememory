@@ -2,20 +2,22 @@
 
 Your own rules for the agent. The agent reads this file before each Card and follows it. Where it conflicts with `orchestrator/workflow.md`, this file wins. The agent changes it only when you ask.
 
-Replace each comment with your rules, one per line. Leave a section empty if you have none.
+Edit, add or delete any line below.
 
 ## Never do
 
-<!-- Example: never push to a branch other than main. -->
+- Never force-push, and never rewrite published history.
+- Never write secrets (keys, tokens, passwords) in the repository.
 
 ## Ask me first
 
-<!-- Example: before adding a dependency or deleting a file. -->
+- Before adding a dependency.
+- Before deleting files or data you did not ask to delete.
 
 ## Protected files and folders
 
-<!-- Example: `.env`, `infra/`. -->
+- `.env*` and any file holding credentials.
 
 ## Style and conventions
 
-<!-- Example: write commit messages in English. -->
+- Keep changes small and in the style of the code around them.
