@@ -27,3 +27,7 @@ Décision de l'utilisateur : « on continue les modifications » ; s'ajoutent le
 ## History
 
 - 2026-11-16T13:55:39+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:56:42+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:56:42+01:00 — Merge approved for the verified candidate `d8624e7ec5a7fbdbb58839ff26c39c6b7dd2c52d`: “corrige les 6 points. et commit.”.
