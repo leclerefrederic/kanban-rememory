@@ -23,3 +23,7 @@ Dans `install.md` :
 - Étape 2 : le plan est présenté puis approuvé avant l'étape 3 ; sans approbation, STOP et rien n'est modifié.
 - Étape 3 : seule la proposition de configuration reste à approuver.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T13:36:55+01:00 — Stage moved from `backlog` to `development`.

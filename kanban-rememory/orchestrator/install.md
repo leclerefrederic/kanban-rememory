@@ -37,15 +37,17 @@ Any check fails: STOP.
 
 ## 2. Diagnosis
 
-Set MODE and show the plan to the user.
+Set MODE, show the plan to the user and get approval.
 
+- `kanban-rememory/` absent and `project/` present → STOP: `project/` is the KR working folder.
 - `kanban-rememory/` absent → MODE = install.
 - `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
 - List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`, `project/settings.json` exist. In upgrade mode `project/` is left as it is.
+- ASK for approval of the plan. No approval: STOP. Change nothing before approval.
 
 ## 3. Decisions
 
-Skip items 1 to 3 when `project/settings.json` exists.
+Skip this step when `project/settings.json` exists.
 
 1. Read the target's existing instructions.
 2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
@@ -53,7 +55,7 @@ Skip items 1 to 3 when `project/settings.json` exists.
    - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
    - WIP limit: 1 Card per module for solo work.
 3. Present one proposal: settings, plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
-4. ASK for approval of the plan and the proposal. No approval: STOP. Change nothing before approval.
+4. ASK for approval of the proposal. No approval: STOP.
 
 Workflows:
 
