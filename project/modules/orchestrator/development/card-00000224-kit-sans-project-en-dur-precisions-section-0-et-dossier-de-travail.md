@@ -20,3 +20,7 @@ module: "orchestrator"
 - Aucun `project/` en dur dans le kit (hors modèles).
 - `kr validate` passe.
 - Le ZIP contient les deux textes corrigés.
+
+## History
+
+- 2026-11-16T18:58:06+01:00 — Stage moved from `backlog` to `development`.

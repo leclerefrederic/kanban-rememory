@@ -39,7 +39,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 
 ## 0. Unpack the kit
 
-1. Exactly one `kanban-rememory-kit-*.zip` is in the root of TARGET: `ls kanban-rememory-kit-*.zip` prints one name. Otherwise STOP.
+1. Exactly one `kanban-rememory-kit-*.zip` is in the root of TARGET: `ls kanban-rememory-kit-*.zip` prints one name. Otherwise STOP and say: keep exactly one kit ZIP in the root of the repository, remove the others, and rerun.
 2. Unpack it outside TARGET, never inside:
 
    ```sh
@@ -110,9 +110,9 @@ Upgrade mode: skip this section.
    - It exists as a file: refuse it, ASK for another name.
    - It exists as a folder: ASK `Use another name, or use this folder and keep its content?`.
      - Another name: ASK for the name, then check it again here.
-     - Use this folder: run the four checks below from the root of TARGET. Any output is a path that `kr validate` would reject: show the paths, then treat the answer as `Another name`: ASK for the name and check it again here, with no `Confirm?`. With no output, list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
+     - Use this folder: run the four checks below from the root of TARGET. A check on `DIR/modules` that prints `No such file or directory` passes: that folder does not exist yet. Any output is a path that `kr validate` would reject: show the paths, then treat the answer as `Another name`: ASK for the name and check it again here, with no `Confirm?`. With no output, list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
 
-       | Check | Command (`DIR` = the folder; list the allowed names in the `-name` tests) | Expected |
+       | Check | Command (`DIR` = the folder; list the allowed names in the `-name` tests: every module, `misc` included, then every stage of the chosen workflow plus `resources`) | Expected |
        | --- | --- | --- |
        | Only chosen modules | `find DIR/modules -mindepth 1 -maxdepth 1 -not -name '.*' -not -name <module> ...` | no output |
        | Only stages and `resources` | `find DIR/modules -mindepth 2 -maxdepth 2 -not -name '.*' -not -name <stage> ... -not -name resources` | no output |
