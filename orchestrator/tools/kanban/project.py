@@ -15,7 +15,6 @@ MODULES = Path("project/modules")
 JOURNAL = Path("project/rememory")
 MISC = "misc"
 KEYS = ("schema_version", "name", "modules", "workflow", "version")
-LEGACY_KEYS = ("last_card_id",)  # installed settings may still carry it; it is ignored
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -81,7 +80,7 @@ def unique_keys(pairs):
 def parse_settings(root, source):
     try:
         data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_keys)
-        if not isinstance(data, dict) or not set(KEYS) <= set(data) <= {*KEYS, *LEGACY_KEYS}:
+        if not isinstance(data, dict) or set(data) != set(KEYS):
             raise ValueError(f"Settings must contain exactly: {', '.join(KEYS)}.")
         if type(data["schema_version"]) is not int or data["schema_version"] != 2:
             raise ValueError("Unsupported schema_version; expected 2. See orchestrator/install.md to upgrade.")

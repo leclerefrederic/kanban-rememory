@@ -88,7 +88,9 @@ class KrTests(unittest.TestCase):
         self.assertTrue((self.board("misc") / "backlog/card-00000002-default.md").read_text().endswith(
             "# CARD-00000002 — Default\n\n- Dependencies: None.\n\n## Acceptance criteria\n"))
         self.assertIn("empty Card body", self.kr(self.root, "new", "Empty", "--body", expected=1))
-        (self.root / "project/settings.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))  # legacy key
+        (self.root / "project/settings.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))
+        self.assertIn("Settings must contain exactly", self.kr(self.root, "new", "Refused", expected=1))
+        (self.root / "project/settings.json").write_text(json.dumps(self.settings))
         self.kr(self.root, "new", "Later", "--module", "b")
         self.assertTrue((self.board("b") / "backlog/card-00000003-later.md").is_file())
         shutil.copy(first, self.board("b") / "backlog" / first.name)
