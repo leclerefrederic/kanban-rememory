@@ -9,11 +9,15 @@ import sys
 import tempfile
 
 from .board import add_history, find_card, local, move
-from .project import JOURNAL, MODULES, SETTINGS, bump, common_directory, git, load_project
+from .project import bump, journal_path, modules_path, settings_path, common_directory, git, load_project
 from .report import report
 from .validation import validate
 
-RECORDS = (f"{MODULES.as_posix()}/", f"{JOURNAL.as_posix()}/")
+
+def records(root):
+    return (f"{modules_path(root).as_posix()}/", f"{journal_path(root).as_posix()}/")
+
+
 NO_ACTION = {"en": "No action required.", "fr": "Aucune action requise."}
 
 
@@ -201,7 +205,7 @@ class Phase:
         return [card for card, _ in paths]
 
     def write_version(self, version):
-        path = self.root / SETTINGS
+        path = self.root / settings_path(self.root)
         data = json.loads(path.read_text(encoding="utf-8"))
         path.write_text(json.dumps({**data, "version": version}, indent=2, ensure_ascii=False) + "\n",
                         encoding="utf-8")
@@ -229,13 +233,13 @@ class Phase:
             closed = self.close(state, head, summary, approval)
             if release:
                 self.write_version(bump(self.project.version, state.get("bump", "patch")))
-            git(self.root, "add", "--all", "--", *RECORDS, SETTINGS.as_posix())
+            git(self.root, "add", "--all", "--", *records(self.root), settings_path(self.root).as_posix())
             # The closing commit keeps the authorship trailers of the verified candidate.
             trailers = git(self.root, "log", "-1", "--format=%(trailers:key=Co-Authored-By)")
             git(self.root, "commit", "--quiet", "-m",
                 f"Close {', '.join(closed)} with recorded merge approval" + (f"\n\n{trailers}" if trailers else ""))
             head = git(self.root, "rev-parse", "HEAD")
-        allowed = RECORDS + ((SETTINGS.as_posix(),) if release else ())
+        allowed = records(self.root) + ((settings_path(self.root).as_posix(),) if release else ())
         outside = [path for path in git(self.root, "diff", "--name-only", verified, head).splitlines()
                    if not path.startswith(allowed)]
         if outside:

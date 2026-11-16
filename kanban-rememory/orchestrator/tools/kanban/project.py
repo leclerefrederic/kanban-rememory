@@ -10,9 +10,7 @@ import subprocess
 import tempfile
 from zoneinfo import ZoneInfo
 
-SETTINGS = Path("project/settings.json")
-MODULES = Path("project/modules")
-JOURNAL = Path("project/rememory")
+WORK = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 MISC = "misc"
 KEYS = ("name", "modules", "workflow", "version")
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
@@ -31,11 +29,11 @@ class Project:
     def board(self, module):
         if module not in self.modules:
             raise ValueError(f"Unknown module: {module!r}.")
-        return self.root / MODULES / module
+        return self.root / modules_path(self.root) / module
 
     @property
     def journal(self):
-        return self.root / JOURNAL
+        return self.root / journal_path(self.root)
 
     @property
     def frozen(self):
@@ -44,6 +42,27 @@ class Project:
 
     def now(self):
         return datetime.now(ZoneInfo(self.workflow["timezone"]))
+
+
+def workdir(root):
+    """The working folder: the name in `.kr` at the root, `project` without that file."""
+    file = root / ".kr"
+    name = file.read_text(encoding="utf-8").strip() if file.is_file() else "project"
+    if not WORK.fullmatch(name) or name == "kanban-rememory":
+        raise ValueError(f"Invalid working folder in .kr: {name!r}. Use one plain folder name, not kanban-rememory.")
+    return name
+
+
+def settings_path(root):
+    return Path(workdir(root)) / "settings.json"
+
+
+def modules_path(root):
+    return Path(workdir(root)) / "modules"
+
+
+def journal_path(root):
+    return Path(workdir(root)) / "rememory"
 
 
 def bump(version, part):
@@ -62,9 +81,9 @@ def common_directory(root):
 
 
 def load_project(root):
-    settings = root / SETTINGS
+    settings = root / settings_path(root)
     if settings.is_symlink() or not settings.is_file():
-        raise ValueError("Create project/settings.json first: see kanban-rememory/orchestrator/install.md.")
+        raise ValueError(f"Create {settings_path(root)} first: see kanban-rememory/orchestrator/install.md.")
     return parse_settings(root, settings.read_bytes())
 
 
@@ -141,7 +160,7 @@ def check_new_workflow(workflow):
 
 def init(root, proposal, apply):
     """Create the settings and the empty boards from an approved proposal, once."""
-    settings = root / SETTINGS
+    settings = root / settings_path(root)
     if settings.exists() or settings.is_symlink():
         raise ValueError("Project settings already exist.")
     source = proposal.read_bytes()  # validate and write the same bytes

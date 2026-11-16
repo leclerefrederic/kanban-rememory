@@ -9,7 +9,8 @@ Installing is approved work: a copied file is not permission to execute product 
 - ASK = ask the user, wait for the answer.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`, run from the repository root.
 - KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates.
-- Write only: `kanban-rememory/`, `project/`, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
+- DIR = the folder named on the first line of `.kr` at the repository root, `project` when `.kr` is absent.
+- Write only: `kanban-rememory/`, DIR, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
 - NEVER create a repository, a branch or a remote. NEVER push.
 
@@ -39,15 +40,15 @@ Any check fails: STOP.
 
 Set MODE, show the plan to the user and get approval.
 
-- `kanban-rememory/` absent and `project/` present → STOP: `project/` is the KR working folder.
+- `kanban-rememory/` absent and DIR present → STOP: DIR is the KR working folder. Ask the user to write another folder name in `.kr`, then rerun.
 - `kanban-rememory/` absent → MODE = install.
 - `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
-- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`, `project/settings.json` exist. In upgrade mode `project/` is left as it is.
+- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`, `DIR/settings.json` exist. In upgrade mode DIR is left as it is.
 - ASK for approval of the plan. No approval: STOP. Change nothing before approval.
 
 ## 3. Decisions
 
-Skip this step when `project/settings.json` exists.
+Skip this step when `DIR/settings.json` exists.
 
 1. Read the target's existing instructions.
 2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
@@ -82,7 +83,7 @@ Run in this order:
 4. `GUARDRAILS.md`: copy from KIT if absent. Write the approved Git permissions under `## Overrides` and remove the comment markers around that section.
 5. `.gitignore`: append `__pycache__/`, creating the file if absent.
 6. `.gitattributes`: append `* text=auto`, creating the file if absent.
-7. `project/` (not in the kit, changes over time): generate once, last, only when `project/settings.json` is absent. Write the approved settings to a file outside the repository, then run:
+7. DIR (not in the kit, changes over time): generate once, last, only when `DIR/settings.json` is absent. Write the approved settings to a file outside the repository, then run:
 
    ```sh
    python3 kanban-rememory/orchestrator/tools/kr.py init /path/to/settings.json

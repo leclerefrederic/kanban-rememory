@@ -5,7 +5,7 @@ from urllib.parse import unquote, urlsplit
 
 from .markdown import (LINK, anchors, card_id, front_matter,
                        markdown_files, prose_lines, resource_links)
-from .project import MISC, MODULES
+from .project import MISC, modules_path, workdir
 
 TOOL = re.compile(r"kanban-rememory/orchestrator/tools/[\w./-]+\.py")
 
@@ -14,7 +14,7 @@ def validate(project):
     """Print every finding; return 1 when there is one."""
     root = project.root
     findings = [f"{path.relative_to(root)}: symbolic link in the records"
-                for path in (root / "project").rglob("*") if path.is_symlink()]
+                for path in (root / workdir(root)).rglob("*") if path.is_symlink()]
     findings += board_findings(project)
     history = {project.board(module) / stage for module in project.modules for stage in project.frozen}
     for path in markdown_files(root):
@@ -31,7 +31,7 @@ def validate(project):
 def board_findings(project):
     root, workflow = project.root, project.workflow
     findings, seen = [], {}
-    boards = root / MODULES
+    boards = root / modules_path(root)
     for path in sorted(boards.iterdir()) if boards.is_dir() else ():
         if path.name not in project.modules and not path.name.startswith("."):
             findings.append(f"{path.relative_to(root)}: module missing from the settings")
@@ -91,7 +91,7 @@ def document_findings(path, root):
     findings = []
     name = path.relative_to(root)
     source = path.read_text(encoding="utf-8")
-    if not path.is_relative_to(root / "project"):
+    if not path.is_relative_to(root / workdir(root)):
         findings += [f"{name}: missing tool {tool}" for tool in sorted(set(TOOL.findall(source)))
                      if not (root / tool).is_file()]
     for _, line in prose_lines(source.splitlines()):

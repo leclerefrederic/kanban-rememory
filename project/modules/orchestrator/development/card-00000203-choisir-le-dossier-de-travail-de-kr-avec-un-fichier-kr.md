@@ -20,5 +20,9 @@ Le dossier où KR range ses Kanbans (`settings.json`, `modules/`, `rememory/`) n
 - Avec `.kr` contenant `work`, `kr init`, `show`, `validate`, `new`, `start`, `check` et `publish` utilisent `work/`.
 - Sans `.kr`, le comportement est inchangé (`project/`).
 - Un nom invalide dans `.kr` est refusé avec un message clair.
-- `install.md` : l'étape 2 teste le dossier choisi, l'étape 3 le demande (défaut `project`), l'étape 4 écrit `.kr` si le nom diffère.
+- `install.md` : le dossier est DIR (nom dans `.kr`, `project` par défaut). Si DIR existe sans `kanban-rememory/`, l’étape 2 s’arrête et demande un autre nom dans `.kr`. Aucune question de plus à l’étape 3.
 - Tests de `kr.py` et `kr validate` passent.
+
+## History
+
+- 2026-11-16T13:41:22+01:00 — Stage moved from `backlog` to `development`.
