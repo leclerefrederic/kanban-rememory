@@ -24,3 +24,7 @@ Dans `install.md`, la présence de `kanban-rememory.json` à la racine signale u
 ## History
 
 - 2026-11-16T13:54:17+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:54:35+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:54:35+01:00 — Merge approved for the verified candidate `e345e81aaadec39cba61b53f49b191389a68db5b`: “commit”.
