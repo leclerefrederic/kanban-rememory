@@ -12,7 +12,6 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
 - KIT = the folder `kanban-rememory-kit-<version>` inside the folder created in section 0.
-- GUARDRAILS_TEMPLATE = `KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md`.
 - KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
 - `init` = `python3 KIT/installer/init.py`, the installation script. It shares nothing with `kr`.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
@@ -20,7 +19,8 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - DIR = the `directory` in CONFIG; in install mode, the working folder chosen in step 3.
 - MODE = `install` when CONFIG is absent, `upgrade` when it exists.
 - Write only: `kanban-rememory/`, CONFIG, DIR, `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`.
-- Add-line rule: append the line at the end of the file, on its own line, unless an identical line already exists in it. Create the file if absent.
+- TEMPLATES = `KIT/kanban-rememory/orchestrator/templates`.
+- Template rule, for a root file and its template in TEMPLATES: the file is absent: copy the template. The file exists: append each non-blank line of the template that no line of the file equals, in the template's order.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`.
 - NEVER create a repository, a branch or a remote. NEVER push.
 
@@ -29,9 +29,11 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 | Item | Role | Install action |
 | --- | --- | --- |
 | `kanban-rememory/` | procedure, tools, templates, user guide, lean principles, Telegram guide | replace with the folder from KIT |
-| `AGENTS.md` | agent entry point | add-line rule |
-| `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | add-line rule |
-| `GUARDRAILS.md` | user rules for the agent | copy GUARDRAILS_TEMPLATE if absent |
+| `AGENTS.md` | agent entry point | template rule |
+| `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | template rule |
+| `GUARDRAILS.md` | user rules for the agent | copy the template if absent |
+| `.gitignore` | ignores Python caches | template rule |
+| `.gitattributes` | line endings | template rule |
 
 `kanban-rememory/` is never edited by the user: replace it as a whole, never merge it.
 
@@ -61,7 +63,7 @@ Run each command. A result other than the expected one: STOP.
 | Clean checkout | `git status --porcelain -- . ':(exclude)INSTALL.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
 | Remote readable | `git ls-remote origin main` | exit 0, prints one line |
 | Remote writable | `git push --dry-run origin main` | exit 0 |
-| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f KIT/installer/init.py && test -f GUARDRAILS_TEMPLATE` | exit 0 |
+| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f KIT/installer/init.py && test -f KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md` | exit 0 |
 | KIT is not TARGET | `test "$(cd KIT && pwd -P)" != "$(pwd -P)"` | exit 0 |
 
 ## 2. Diagnosis
@@ -127,16 +129,11 @@ Run in this order. A failing command: STOP and report the command and its output
    ```
 
    Upgrade mode: then set `kit` in CONFIG to KIT_VERSION, adding the key after `version` if absent. Change nothing else in CONFIG.
-2. `AGENTS.md`: add-line rule, with:
-
-   ```markdown
-   Act as the Orchestrator and follow the [workflow](kanban-rememory/orchestrator/workflow.md).
-   ```
-
-3. `CLAUDE.md`: add-line rule, with `@AGENTS.md`.
-4. `GUARDRAILS.md`: copy GUARDRAILS_TEMPLATE to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
-5. `.gitignore`: add-line rule, with `__pycache__/`.
-6. `.gitattributes`: add-line rule, with `* text=auto`.
+2. `AGENTS.md`: template rule, with `TEMPLATES/AGENTS.md`.
+3. `CLAUDE.md`: template rule, with `TEMPLATES/CLAUDE.md`.
+4. `GUARDRAILS.md`: copy `TEMPLATES/GUARDRAILS.md` to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
+5. `.gitignore`: template rule, with `TEMPLATES/.gitignore`.
+6. `.gitattributes`: template rule, with `TEMPLATES/.gitattributes`.
 7. Install mode: run `init <the path of proposal.json> --apply`. Expected: exit 0 and the last line `Project modules are ready.`
 8. Commit. Stage the paths of the write scope that exist, then commit without pushing:
 

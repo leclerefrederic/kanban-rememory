@@ -22,3 +22,5 @@ Les cinq modèles, `dist/INSTALL.md`, `dist/build-kit.py` et son test, ZIP recon
 - `kr validate` passe.
 
 ## History
+
+- 2026-11-16T15:26:27+01:00 — Stage moved from `backlog` to `development`.

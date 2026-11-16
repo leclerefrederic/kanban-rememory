@@ -1,12 +1,14 @@
 """Checks of the records and documents of one checkout."""
 
 import re
+from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from .markdown import (LINK, anchors, card_id, front_matter,
                        markdown_files, prose_lines, resource_links)
 from .project import MISC, modules_path, workdir
 
+TEMPLATES = Path("kanban-rememory/orchestrator/templates")
 TOOL = re.compile(r"kanban-rememory/orchestrator/tools/[\w./-]+\.py")
 
 
@@ -90,6 +92,8 @@ def document_findings(path, root):
     """Missing link targets, anchors and, outside the records, named tools."""
     findings = []
     name = path.relative_to(root)
+    if path.is_relative_to(root / TEMPLATES):  # written for another repository: its links resolve there
+        return findings
     source = path.read_text(encoding="utf-8")
     if not path.is_relative_to(root / workdir(root)):
         findings += [f"{name}: missing tool {tool}" for tool in sorted(set(TOOL.findall(source)))

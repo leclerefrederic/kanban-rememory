@@ -17,9 +17,8 @@ class BuildKitTests(unittest.TestCase):
     def test_zip_holds_the_committed_kit_files_under_kanban_rememory(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            files = {"kanban-rememory.json": json.dumps({"version": "1.2.3"}), "GUARDRAILS.md": "rules\n",
-                     "AGENTS.md": "agents\n", "notes.md": "not in the kit\n",
-                     "kanban-rememory/orchestrator/tools/kr.py": "print()\n", "dist/installer/init.py": "installer\n"}
+            files = {"kanban-rememory.json": json.dumps({"version": "1.2.3"}), "notes.md": "not in the kit\n",
+                     "kanban-rememory/orchestrator/tools/kr.py": "print()\n", "kanban-rememory/orchestrator/templates/GUARDRAILS.md": "rules\n", "dist/installer/init.py": "installer\n"}
             for name, text in files.items():
                 (root / name).parent.mkdir(parents=True, exist_ok=True)
                 (root / name).write_text(text)

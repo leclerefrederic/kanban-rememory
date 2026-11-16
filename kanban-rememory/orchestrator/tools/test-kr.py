@@ -114,6 +114,12 @@ class KrTests(unittest.TestCase):
         self.assertRegex(moved.read_text(), r"## History\n\n- \S+ — Stage moved from `backlog` to `cancellation`\.\n$")
         self.assertIn("history", self.kr(self.root, "move", "CARD-00000001", "backlog", expected=1))
 
+    def test_validate_skips_the_templates_written_for_other_repositories(self):
+        template = self.root / "kanban-rememory/orchestrator/templates/AGENTS.md"
+        template.parent.mkdir(parents=True, exist_ok=True)
+        template.write_text("[workflow](kanban-rememory/orchestrator/workflow.md)\n")
+        self.kr(self.root, "validate")
+
     def test_validate_reports_each_record_and_document_problem(self):
         self.kr(self.root, "new", "Example", "--module", "a")
         self.kr(self.root, "new", "Shared")

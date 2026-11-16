@@ -2,7 +2,7 @@
 
 The kit sits under kanban-rememory/, the one folder the install replaces; installer/init.py, the installation script,
 is the only other file. Both stay inside the archive's own folder. kanban-rememory.json is this repository's own configuration and stays out; VERSION
-carries the kit version and the GUARDRAILS.md template is the file of HEAD."""
+carries the kit version."""
 
 import json
 from pathlib import Path
@@ -26,8 +26,6 @@ def build(root, output=None):
         kit.writestr(f"{folder}/installer/init.py",
                      subprocess.check_output(["git", "show", "HEAD:dist/installer/init.py"], cwd=root))
         kit.writestr(f"{folder}/kanban-rememory/VERSION", f"{version}\n")
-        kit.writestr(f"{folder}/kanban-rememory/orchestrator/templates/GUARDRAILS.md",
-                     subprocess.check_output(["git", "show", "HEAD:GUARDRAILS.md"], cwd=root))
     return target
 
 
