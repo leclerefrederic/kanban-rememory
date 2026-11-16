@@ -26,3 +26,7 @@ Le dossier où KR range ses Kanbans (`settings.json`, `modules/`, `rememory/`) n
 ## History
 
 - 2026-11-16T13:41:22+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:45:50+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:45:50+01:00 — Merge approved for the verified candidate `5d7043ca17d3af46afabef97da41d05637f323d1`: “oui valide et commit”.
