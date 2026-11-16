@@ -29,3 +29,7 @@ Demande de l'utilisateur du 2026-11-16, première étape de la relecture pas à 
 ## History
 
 - 2026-11-16T12:02:13+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T12:57:06+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T12:57:06+01:00 — Merge approved for the verified candidate `4b1c07e91d8d206b18235bc9ba6e6f18b1526f9a`: “Approuvé”.
