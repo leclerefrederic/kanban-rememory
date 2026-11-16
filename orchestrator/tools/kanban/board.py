@@ -83,7 +83,7 @@ def new(project, title, module, body=None):
     if not title or "\n" in title or "\r" in title:
         raise ValueError("The title must be a nonempty single line.")
     board = project.board(module)
-    highest, seen = project.last_card_id, set()
+    highest, seen = 0, set()
     for stage in project.workflow["stages"]:
         for path in cards(project, stage):
             task_id = card_id(path)

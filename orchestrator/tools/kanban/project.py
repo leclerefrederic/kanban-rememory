@@ -14,7 +14,8 @@ SETTINGS = Path("project/settings.json")
 MODULES = Path("project/modules")
 JOURNAL = Path("project/rememory")
 MISC = "misc"
-KEYS = ("schema_version", "name", "modules", "workflow", "last_card_id", "version")
+KEYS = ("schema_version", "name", "modules", "workflow", "version")
+LEGACY_KEYS = ("last_card_id",)  # installed settings may still carry it; it is ignored
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -26,7 +27,6 @@ class Project:
     name: str
     modules: tuple
     workflow: dict
-    last_card_id: int
     version: str
 
     def board(self, module):
@@ -81,7 +81,7 @@ def unique_keys(pairs):
 def parse_settings(root, source):
     try:
         data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_keys)
-        if not isinstance(data, dict) or set(data) != set(KEYS):
+        if not isinstance(data, dict) or not set(KEYS) <= set(data) <= {*KEYS, *LEGACY_KEYS}:
             raise ValueError(f"Settings must contain exactly: {', '.join(KEYS)}.")
         if type(data["schema_version"]) is not int or data["schema_version"] != 2:
             raise ValueError("Unsupported schema_version; expected 2. See orchestrator/install.md to upgrade.")
@@ -94,13 +94,10 @@ def parse_settings(root, source):
             raise ValueError("modules must list unique lowercase module IDs.")
         if MISC not in modules:
             raise ValueError(f"modules must include {MISC}.")
-        last = data["last_card_id"]
-        if type(last) is not int or not 0 <= last <= 99999999:
-            raise ValueError("last_card_id must be an integer from 0 to 99999999.")
         version = data["version"]
         if not isinstance(version, str) or not VERSION.fullmatch(version):
             raise ValueError("version must be a release number such as 0.1.0.")
-        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), last, version)
+        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), version)
     except ValueError as error:
         raise ValueError(f"Invalid project settings: {error}") from None
 

@@ -37,7 +37,7 @@ class KrTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         self.settings = {"schema_version": 2, "name": "Fixture", "modules": ["a", "b", "misc"],
-                         "workflow": WORKFLOW, "last_card_id": 0, "version": "0.0.0"}
+                         "workflow": WORKFLOW, "version": "0.0.0"}
         self.proposal = self.base / "proposal.json"
         self.proposal.write_text(json.dumps(self.settings))
         self.root = self.repository("repo")
@@ -88,9 +88,9 @@ class KrTests(unittest.TestCase):
         self.assertTrue((self.board("misc") / "backlog/card-00000002-default.md").read_text().endswith(
             "# CARD-00000002 — Default\n\n- Dependencies: None.\n\n## Acceptance criteria\n"))
         self.assertIn("empty Card body", self.kr(self.root, "new", "Empty", "--body", expected=1))
-        (self.root / "project/settings.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))
+        (self.root / "project/settings.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))  # legacy key
         self.kr(self.root, "new", "Later", "--module", "b")
-        self.assertTrue((self.board("b") / "backlog/card-00000041-later.md").is_file())
+        self.assertTrue((self.board("b") / "backlog/card-00000003-later.md").is_file())
         shutil.copy(first, self.board("b") / "backlog" / first.name)
         self.assertIn("Duplicate CARD-00000001", self.kr(self.root, "new", "Collision", expected=1))
         self.assertIn("Unknown module", self.kr(self.root, "new", "Elsewhere", "--module", "z", expected=1))
