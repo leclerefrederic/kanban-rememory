@@ -22,3 +22,7 @@ Demande de l'utilisateur du 2026-11-16 : fichier `GUARDRAILS.md` en majuscules �
 - `GUARDRAILS.md` existe à la racine avec des sections à remplir.
 - `workflow.md` demande de le lire avant chaque Card, de le suivre et de ne le modifier que sur demande.
 - `validate` passe.
+
+## History
+
+- 2026-11-16T09:21:45+01:00 — Stage moved from `backlog` to `development`.
