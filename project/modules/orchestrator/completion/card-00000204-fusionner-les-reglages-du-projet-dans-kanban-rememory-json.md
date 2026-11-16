@@ -27,3 +27,7 @@ Un seul fichier de configuration à la racine, `kanban-rememory.json`, remplace 
 ## History
 
 - 2026-11-16T13:46:30+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:48:25+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:48:25+01:00 — Merge approved for the verified candidate `e6534aebd900d8cef7d48310bdc766e06c72e29e`: “commit”.
