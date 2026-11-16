@@ -21,3 +21,7 @@ module: "orchestrator"
 - Le fichier de ce dépôt contient `"directory": "project"`.
 - `install.md` écrit toujours `directory` dans la proposition, `project` par défaut.
 - Tests de `kr.py` et `kr validate` passent.
+
+## History
+
+- 2026-11-16T13:49:57+01:00 — Stage moved from `backlog` to `development`.

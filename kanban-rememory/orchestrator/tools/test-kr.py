@@ -37,7 +37,7 @@ class KrTests(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         self.settings = {"name": "Fixture", "modules": ["a", "b", "misc"],
-                         "workflow": WORKFLOW, "version": "0.0.0"}
+                         "workflow": WORKFLOW, "version": "0.0.0", "directory": "project"}
         self.proposal = self.base / "proposal.json"
         self.proposal.write_text(json.dumps(self.settings))
         self.root = self.repository("repo")

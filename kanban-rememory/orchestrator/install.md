@@ -9,8 +9,8 @@ Installing is approved work: a copied file is not permission to execute product 
 - ASK = ask the user, wait for the answer.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`, run from the repository root.
 - KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates.
-- CONFIG = `kanban-rememory.json` at the repository root: the project settings (`name`, `modules`, `workflow`, `version`) and, optional, `directory` and `kit`.
-- DIR = the `directory` in CONFIG, `project` when CONFIG or the key is absent.
+- CONFIG = `kanban-rememory.json` at the repository root: the project settings (`name`, `modules`, `workflow`, `version`), `directory` (the working folder, `project` by default) and, optional, `kit`.
+- DIR = the `directory` in CONFIG, `project` when CONFIG is absent.
 - Write only: `kanban-rememory/`, CONFIG, DIR, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
 - NEVER create a repository, a branch or a remote. NEVER push.
@@ -57,7 +57,7 @@ Skip this step when CONFIG exists.
    - Group independent questions. Suggest defaults from the project's real flow. Ask a dependent question after the answer it depends on.
    - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
    - WIP limit: 1 Card per module for solo work.
-3. Present one proposal: the CONFIG content, with `kit` = the `version` in KIT's CONFIG and, when `project` is taken, a `directory`, plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
+3. Present one proposal: the CONFIG content, with `kit` = the `version` in KIT's CONFIG and `directory` (`project`, or another name when `project/` is taken), plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
 4. ASK for approval of the proposal. No approval: STOP.
 
 Workflows:

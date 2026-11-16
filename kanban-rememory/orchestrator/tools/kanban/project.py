@@ -13,8 +13,8 @@ from zoneinfo import ZoneInfo
 CONFIG = "kanban-rememory.json"
 WORK = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 MISC = "misc"
-KEYS = ("name", "modules", "workflow", "version")
-OPTIONAL = ("directory", "kit")
+KEYS = ("name", "modules", "workflow", "version", "directory")
+OPTIONAL = ("kit",)
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -108,7 +108,7 @@ def parse_settings(root, source):
         data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_keys)
         if not isinstance(data, dict) or not set(KEYS) <= set(data) <= set(KEYS + OPTIONAL):
             raise ValueError(f"The file must contain {', '.join(KEYS)} and may add {', '.join(OPTIONAL)}.")
-        directory = data.get("directory", "project")
+        directory = data["directory"]
         if not isinstance(directory, str) or not WORK.fullmatch(directory) or directory == "kanban-rememory":
             raise ValueError("directory must be one plain folder name, not kanban-rememory.")
         if "kit" in data and (not isinstance(data["kit"], str) or not VERSION.fullmatch(data["kit"])):

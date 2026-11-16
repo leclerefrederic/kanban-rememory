@@ -1,5 +1,6 @@
 {
   "name": "Kanban Rememory",
+  "directory": "project",
   "modules": [
     "misc",
     "notifications",
