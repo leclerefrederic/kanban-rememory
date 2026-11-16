@@ -24,3 +24,7 @@ L'utilisateur demande une réécriture complète du README, notamment pour les p
 ## History
 
 - 2026-11-16T08:48:36+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T08:49:39+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T08:49:39+01:00 — Merge approved for the verified candidate `d738d06774d0173d02eca6a1f7d56e19826b786a`: “Oui, publie d738d06 sur origin/main.”.
