@@ -1,0 +1,21 @@
+---
+id: "CARD-00000226"
+module: "orchestrator"
+---
+
+# CARD-00000226 — Corriger la référence à test-telegram.py que le kit installé ne contient plus
+
+- Dependencies: None. Régression de la Card 225, trouvée par l'essai de mise à jour.
+
+## Expected outcome
+
+`kr validate` passe dans un projet installé depuis le ZIP. `telegram-setup.md` ne cite plus le chemin de `test-telegram.py` (absent du kit) sous une forme que `validate` lit comme un outil à vérifier ; ZIP reconstruit.
+
+## Scope and authorization
+
+`kanban-rememory/documentation/telegram-setup.md`, ZIP. Défaut introduit par la Card 225 ; correction à la suite des essais demandés (« jusqu'à ce que tout passe »).
+
+## Acceptance criteria
+
+- `kr validate` passe dans un dépôt où le ZIP est installé.
+- `kr validate` passe dans ce dépôt.
