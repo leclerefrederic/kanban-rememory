@@ -1,7 +1,7 @@
 """Build the installation kit as a ZIP archive from the committed files of HEAD.
 
-The kit sits under kanban-rememory/, the one folder the install replaces; installer/init.py, the installation script,
-is the only other file. Both stay inside the archive's own folder. kanban-rememory.json is this repository's own configuration and stays out; VERSION
+The kit sits under kanban-rememory/, the one folder the install replaces; installer/ holds every file of
+dist/installer/ except the tests (test-*). Both stay inside the archive's own folder. kanban-rememory.json is this repository's own configuration and stays out; VERSION
 carries the kit version."""
 
 import json
@@ -23,8 +23,13 @@ def build(root, output=None):
     subprocess.check_call(["git", "archive", "--format=zip", f"--prefix={folder}/", "-o", str(target),
                            "HEAD", "--", "kanban-rememory"], cwd=root)
     with zipfile.ZipFile(target, "a") as kit:
-        kit.writestr(f"{folder}/installer/init.py",
-                     subprocess.check_output(["git", "show", "HEAD:dist/installer/init.py"], cwd=root))
+        listing = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "HEAD", "--", "dist/installer"],
+                                          cwd=root, text=True).splitlines()
+        for name in listing:
+            relative = Path(name).relative_to("dist/installer")
+            if not relative.name.startswith("test-"):
+                kit.writestr(f"{folder}/installer/{relative.as_posix()}",
+                             subprocess.check_output(["git", "show", f"HEAD:{name}"], cwd=root))
         kit.writestr(f"{folder}/kanban-rememory/VERSION", f"{version}\n")
     return target
 
