@@ -24,3 +24,7 @@ Chaque `kr publish` monte `version` dans le commit de clôture, pose le tag `vX.
 ## History
 
 - 2026-11-16T20:16:21+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T20:23:28+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T20:23:28+01:00 — Merge approved for the verified candidate `63651892183bfaff51cdbd20149553480e27d8f6`: “Mets 0.1.48 et publie”.
