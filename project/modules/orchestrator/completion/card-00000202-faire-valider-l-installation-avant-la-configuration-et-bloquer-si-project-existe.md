@@ -27,3 +27,7 @@ Dans `install.md` :
 ## History
 
 - 2026-11-16T13:36:55+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:37:53+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:37:53+01:00 — Merge approved for the verified candidate `0f4df1cea1689bc9e044590cd67f78184d4ccdd6`: “oui valide et commit.”.
