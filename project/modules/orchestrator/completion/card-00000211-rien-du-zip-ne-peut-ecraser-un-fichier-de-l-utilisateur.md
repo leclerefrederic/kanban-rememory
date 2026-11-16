@@ -24,3 +24,7 @@ Tout le contenu du ZIP est sous `kanban-rememory/`, le seul dossier que le kit r
 ## History
 
 - 2026-11-16T14:38:11+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T14:41:08+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T14:41:08+01:00 — Merge approved for the verified candidate `9b3128d465b9863545dde7ef895521e5bb8d96d6`: “Oui, commit”.
