@@ -6,7 +6,7 @@ Kanban Rememory keeps your project's agreed work, its state and its evidence in 
 
 - **Card**: one outcome, with its scope, acceptance criteria, decisions and delivery evidence. Its folder on the module's Kanban is its stage: Backlog, Development, Completion or Cancellation, plus any stage your workflow adds, such as a review. A Card in progress can be waiting or blocked. Blocked work stays visible and counts toward the work-in-progress limit.
 - **Module**: each part of the project has its own Kanban. Work without a natural owner, including a change that spans modules, goes to `misc`.
-- **Rememory**: the journal in `project/rememory/` (the working folder is `project/`, or the name written in a `.kr` file at the root), one file per day, with decisions and each publication linked to its Cards.
+- **Rememory**: the journal in `project/rememory/` (the working folder is `project/`, or the folder named in `kanban-rememory.json` at the root), one file per day, with decisions and each publication linked to its Cards.
 - **Phase**: the agent works on one or more Cards, directly on `main` or on a release branch, and asks for your approval once, before publishing.
 
 Completed Cards are history. A correction or a new idea gets a new Card that refers to the old one.

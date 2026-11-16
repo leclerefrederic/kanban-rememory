@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 from zoneinfo import ZoneInfo
 
+CONFIG = "kanban-rememory.json"
 WORK = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 MISC = "misc"
 KEYS = ("name", "modules", "workflow", "version")
@@ -45,11 +46,12 @@ class Project:
 
 
 def workdir(root):
-    """The working folder: the name in `.kr` at the root, `project` without that file."""
-    file = root / ".kr"
-    name = file.read_text(encoding="utf-8").strip() if file.is_file() else "project"
-    if not WORK.fullmatch(name) or name == "kanban-rememory":
-        raise ValueError(f"Invalid working folder in .kr: {name!r}. Use one plain folder name, not kanban-rememory.")
+    """The working folder, read from `kanban-rememory.json` at the root: {"directory": "project"} by default."""
+    file = root / CONFIG
+    config = json.loads(file.read_text(encoding="utf-8")) if file.is_file() else {}
+    name = config.get("directory", "project") if isinstance(config, dict) and set(config) <= {"directory"} else None
+    if not isinstance(name, str) or not WORK.fullmatch(name) or name == "kanban-rememory":
+        raise ValueError(f'Invalid {CONFIG}: use {{"directory": "<one plain folder name>"}}, not kanban-rememory.')
     return name
 
 

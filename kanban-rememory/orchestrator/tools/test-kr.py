@@ -302,16 +302,17 @@ class KrTests(unittest.TestCase):
         self.assertTrue((self.board("a", fresh) / "resources/.gitkeep").is_file())
         self.assertIn("already exist", self.kr(fresh, "init", self.proposal, "--apply", expected=1))
 
-    def test_kr_file_picks_the_working_folder(self):
+    def test_config_file_picks_the_working_folder(self):
         fresh = self.repository("fresh")
-        (fresh / ".kr").write_text("work\n")
+        (fresh / "kanban-rememory.json").write_text('{"directory": "work"}')
         self.kr(fresh, "init", self.proposal, "--apply")
         self.assertTrue((fresh / "work/settings.json").is_file())
         self.assertFalse((fresh / "project").exists())
         self.assertIn("Kanban validation passed", self.kr(fresh, "validate"))
-        for name in ("../x", "kanban-rememory", ".git", ""):
-            (fresh / ".kr").write_text(name)
-            self.assertIn("Invalid working folder", self.kr(fresh, "validate", expected=1))
+        for config in ('{"directory": "../x"}', '{"directory": "kanban-rememory"}', '{"directory": ".git"}', '{"directory": ""}',
+                       '{"dir": "x"}', '[]'):
+            (fresh / "kanban-rememory.json").write_text(config)
+            self.assertIn("Invalid kanban-rememory.json", self.kr(fresh, "validate", expected=1))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ Installing is approved work: a copied file is not permission to execute product 
 - ASK = ask the user, wait for the answer.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`, run from the repository root.
 - KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates.
-- DIR = the folder named on the first line of `.kr` at the repository root, `project` when `.kr` is absent.
+- DIR = the `directory` in `kanban-rememory.json` at the repository root, `project` when the file is absent.
 - Write only: `kanban-rememory/`, DIR, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
 - NEVER create a repository, a branch or a remote. NEVER push.
@@ -40,7 +40,7 @@ Any check fails: STOP.
 
 Set MODE, show the plan to the user and get approval.
 
-- `kanban-rememory/` absent and DIR present → STOP: DIR is the KR working folder. Ask the user to write another folder name in `.kr`, then rerun.
+- `kanban-rememory/` absent and DIR present → STOP: DIR is the KR working folder. Ask the user to create `kanban-rememory.json` with `{"directory": "<other name>"}`, then rerun.
 - `kanban-rememory/` absent → MODE = install.
 - `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
 - List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`, `DIR/settings.json` exist. In upgrade mode DIR is left as it is.

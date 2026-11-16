@@ -3,13 +3,13 @@ id: "CARD-00000203"
 module: "orchestrator"
 ---
 
-# CARD-00000203 — Choisir le dossier de travail de KR avec un fichier .kr
+# CARD-00000203 — Choisir le dossier de travail de KR avec un fichier de configuration
 
 - Dependencies: None.
 
 ## Expected outcome
 
-Le dossier où KR range ses Kanbans (`settings.json`, `modules/`, `rememory/`) n'est plus figé à `project/`. Un fichier `.kr` à la racine du dépôt en donne le nom ; sans fichier, le défaut reste `project`.
+Le dossier où KR range ses Kanbans (`settings.json`, `modules/`, `rememory/`) n'est plus figé à `project/`. Un fichier `kanban-rememory.json` à la racine du dépôt en donne le nom ; sans fichier, le défaut reste `project`.
 
 ## Scope and authorization
 
@@ -17,10 +17,10 @@ Le dossier où KR range ses Kanbans (`settings.json`, `modules/`, `rememory/`) n
 
 ## Acceptance criteria
 
-- Avec `.kr` contenant `work`, `kr init`, `show`, `validate`, `new`, `start`, `check` et `publish` utilisent `work/`.
-- Sans `.kr`, le comportement est inchangé (`project/`).
-- Un nom invalide dans `.kr` est refusé avec un message clair.
-- `install.md` : le dossier est DIR (nom dans `.kr`, `project` par défaut). Si DIR existe sans `kanban-rememory/`, l’étape 2 s’arrête et demande un autre nom dans `.kr`. Aucune question de plus à l’étape 3.
+- Avec `kanban-rememory.json` contenant `work`, `kr init`, `show`, `validate`, `new`, `start`, `check` et `publish` utilisent `work/`.
+- Sans `kanban-rememory.json`, le comportement est inchangé (`project/`).
+- Un nom invalide dans `kanban-rememory.json` est refusé avec un message clair.
+- `install.md` : le dossier est DIR (nom dans `kanban-rememory.json`, `project` par défaut). Si DIR existe sans `kanban-rememory/`, l’étape 2 s’arrête et demande un autre nom dans `kanban-rememory.json`. Aucune question de plus à l’étape 3.
 - Tests de `kr.py` et `kr validate` passent.
 
 ## History
