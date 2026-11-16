@@ -37,3 +37,7 @@ Card créée dans le backlog sur demande explicite, sans démarrage.
 - 2026-11-16 — Décision de l'utilisateur : retirer `kr module add` après l'essai sur une copie, la Card devient de la documentation seule.
 
 - 2026-11-16T08:21:41+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T08:23:56+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T08:23:56+01:00 — Merge approved for the verified candidate `98b58184f6510fc7e3d7ff376709c86e0c2ccfd3`: “Oui, publie”.
