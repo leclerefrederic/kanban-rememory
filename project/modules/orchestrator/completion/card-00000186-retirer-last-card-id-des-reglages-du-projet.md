@@ -39,3 +39,7 @@ Hors périmètre, à décider séparément : `workflow.completed` (constante `co
 - 2026-11-16 — Décision de l'utilisateur : retirer `last_card_id`, exécuter la Card et fusionner dans `main`.
 
 - 2026-11-16T08:40:27+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T08:41:17+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T08:41:17+01:00 — Merge approved for the verified candidate `df124b7d79de1d791b3e2d0a2a0971ed69caa767`: “Oui, crée la Card dans le backlog execute la et fusionne sur main.”.
