@@ -36,3 +36,5 @@ Hors périmètre : `workflow.completed` et toute autre clé.
 ## History
 
 - 2026-11-16 — Décision de l'utilisateur : retirer `schema_version` et la section « Upgrade ».
+
+- 2026-11-16T08:44:16+01:00 — Stage moved from `backlog` to `development`.
