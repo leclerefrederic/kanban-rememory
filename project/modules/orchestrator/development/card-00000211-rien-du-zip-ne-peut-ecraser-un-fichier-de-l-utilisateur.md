@@ -22,3 +22,5 @@ Tout le contenu du ZIP est sous `kanban-rememory/`, le seul dossier que le kit r
 - `kr validate` passe.
 
 ## History
+
+- 2026-11-16T14:38:11+01:00 — Stage moved from `backlog` to `development`.

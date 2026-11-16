@@ -10,7 +10,8 @@ Installing is approved work: a copied file is not permission to execute product 
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
 - KIT = the unpacked kit ZIP whose path the user gave. If they gave none, ASK for it.
-- KIT_VERSION = the content of `KIT/VERSION`, one release number.
+- GUARDRAILS_TEMPLATE = `KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md`.
+- KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
 - CONFIG = `kanban-rememory.json` at the root of TARGET. It holds `name`, `directory`, `modules`, `workflow`, `version` and, installed by this procedure, `kit`.
 - DIR = the `directory` in CONFIG; in install mode, the working folder chosen in step 3.
@@ -27,7 +28,7 @@ Installing is approved work: a copied file is not permission to execute product 
 | `kanban-rememory/` | procedure, tools, templates, user guide, lean principles, Telegram guide | replace with the folder from KIT |
 | `AGENTS.md` | agent entry point | add-line rule |
 | `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | add-line rule |
-| `GUARDRAILS.md` | user rules for the agent | copy from KIT if absent |
+| `GUARDRAILS.md` | user rules for the agent | copy GUARDRAILS_TEMPLATE if absent |
 
 `kanban-rememory/` is never edited by the user: replace it as a whole, never merge it.
 
@@ -43,7 +44,7 @@ Run each command. A result other than the expected one: STOP.
 | Clean checkout | `git status --porcelain` | prints nothing |
 | Remote readable | `git ls-remote origin main` | exit 0, prints one line |
 | Remote writable | `git push --dry-run origin main` | exit 0 |
-| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/VERSION && test -f KIT/AGENTS.md && test -f KIT/CLAUDE.md && test -f KIT/GUARDRAILS.md` | exit 0 |
+| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f GUARDRAILS_TEMPLATE` | exit 0 |
 | KIT is not TARGET | `test "$(cd KIT && pwd -P)" != "$(pwd -P)"` | exit 0 |
 
 ## 2. Diagnosis
@@ -116,7 +117,7 @@ Run in this order. A failing command: STOP and report the command and its output
    ```
 
 4. `CLAUDE.md`: add-line rule, with `@AGENTS.md`.
-5. `GUARDRAILS.md`: copy `KIT/GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
+5. `GUARDRAILS.md`: copy GUARDRAILS_TEMPLATE to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
 6. `.gitignore`: add-line rule, with `__pycache__/`.
 7. `.gitattributes`: add-line rule, with `* text=auto`.
 8. Install mode: run `kr init <that path> --apply`. Expected: exit 0 and the last line `Project modules are ready.`

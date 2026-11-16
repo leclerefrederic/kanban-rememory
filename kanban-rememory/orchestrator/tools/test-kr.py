@@ -293,7 +293,7 @@ class KrTests(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("build_kit", KIT / "kanban-rememory/orchestrator/tools/build-kit.py")
         build_kit = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(build_kit)
-        for name in ("AGENTS.md", "CLAUDE.md", "GUARDRAILS.md"):
+        for name in ("AGENTS.md", "GUARDRAILS.md"):
             (self.root / name).write_text("kit\n")
         (self.root / "notes.md").write_text("not in the kit\n")
         self.commit(self.root, "Add kit files")
@@ -302,11 +302,10 @@ class KrTests(unittest.TestCase):
         with zipfile.ZipFile(archive) as kit:
             names = set(kit.namelist())
         prefix = "kanban-rememory-kit-0.0.0/"
-        self.assertIn(prefix + "AGENTS.md", names)
-        self.assertIn(prefix + "VERSION", names)
-        self.assertNotIn(prefix + "kanban-rememory.json", names)
+        self.assertTrue(all(name.startswith(prefix + "kanban-rememory/") for name in names - {prefix}))
+        self.assertIn(prefix + "kanban-rememory/VERSION", names)
+        self.assertIn(prefix + "kanban-rememory/orchestrator/templates/GUARDRAILS.md", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
-        self.assertFalse(any(name.endswith("notes.md") or "project/" in name for name in names))
 
     def test_init_previews_then_creates_the_boards_once(self):
         fresh = self.repository("fresh")

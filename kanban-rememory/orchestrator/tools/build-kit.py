@@ -1,6 +1,8 @@
 """Build the installation kit as a ZIP archive from the committed files of HEAD.
 
-kanban-rememory.json is this repository's own configuration, so it stays out; VERSION carries the kit version."""
+Everything sits under kanban-rememory/, the one folder the install replaces, so unpacking the kit in a repository
+cannot overwrite a user file. kanban-rememory.json is this repository's own configuration and stays out; VERSION
+carries the kit version and the GUARDRAILS.md template is the file of HEAD."""
 
 import json
 from pathlib import Path
@@ -9,7 +11,6 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[3]
-KIT_FILES = ("kanban-rememory", "AGENTS.md", "CLAUDE.md", "GUARDRAILS.md")
 
 
 def build(root, output=None):
@@ -20,9 +21,11 @@ def build(root, output=None):
     target = Path(output) if output else root / "dist" / f"{folder}.zip"
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.check_call(["git", "archive", "--format=zip", f"--prefix={folder}/", "-o", str(target),
-                           "HEAD", "--", *KIT_FILES], cwd=root)
+                           "HEAD", "--", "kanban-rememory"], cwd=root)
     with zipfile.ZipFile(target, "a") as kit:
-        kit.writestr(f"{folder}/VERSION", f"{version}\n")
+        kit.writestr(f"{folder}/kanban-rememory/VERSION", f"{version}\n")
+        kit.writestr(f"{folder}/kanban-rememory/orchestrator/templates/GUARDRAILS.md",
+                     subprocess.check_output(["git", "show", "HEAD:GUARDRAILS.md"], cwd=root))
     return target
 
 
