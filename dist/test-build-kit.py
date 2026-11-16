@@ -18,7 +18,7 @@ class BuildKitTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             files = {"kanban-rememory.json": json.dumps({"version": "1.2.3"}), "notes.md": "not in the kit\n",
-                     "kanban-rememory/orchestrator/tools/kr.py": "print()\n", "kanban-rememory/orchestrator/templates/GUARDRAILS.md": "rules\n", "dist/installer/init.py": "installer\n",
+                     "kanban-rememory/orchestrator/tools/kr.py": "print()\n", "kanban-rememory/orchestrator/tools/test-kr.py": "tests\n", "kanban-rememory/orchestrator/templates/GUARDRAILS.md": "rules\n", "dist/installer/init.py": "installer\n",
                      "dist/installer/more.py": "second\n", "dist/installer/test-init.py": "test\n"}
             for name, text in files.items():
                 (root / name).parent.mkdir(parents=True, exist_ok=True)
@@ -39,6 +39,7 @@ class BuildKitTests(unittest.TestCase):
         self.assertEqual(version, "1.2.3\n")
         self.assertIn(prefix + "kanban-rememory/orchestrator/templates/GUARDRAILS.md", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
+        self.assertNotIn(prefix + "kanban-rememory/orchestrator/tools/test-kr.py", names)
 
 
 if __name__ == "__main__":

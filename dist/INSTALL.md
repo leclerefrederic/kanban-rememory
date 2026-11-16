@@ -53,7 +53,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 
 ## 1. Prerequisites
 
-Run every command, in order, even after a failure: they only read. If any result differs from the expected one: STOP, and list every failing check with its fix below.
+Run every command, in order, even after a failure: they only read. If any result differs from the expected one: STOP, and list every failing check with its fix below, in your message to the user.
 
 | Check | Command | Expected |
 | --- | --- | --- |
@@ -73,14 +73,14 @@ Fixes to give the user, one per failing check:
 - Git repository: run the installation in a Git repository.
 - Branch: switch to `main`.
 - Clean checkout: commit or stash your changes.
-- Remote readable or writable: fix the access to `origin` and the branch `main` there.
+- Remote readable or writable: fix the access to `origin` and the branch `main` there. With no `origin` remote, add one yourself that has a `main` branch; this procedure never creates a remote.
 - KIT checks: unpack a valid kit ZIP.
 - No foreign `kanban-rememory/`: the message in its row.
 
 ## 2. Diagnosis
 
-1. Set MODE.
-2. Show the plan, with exactly these lines:
+1. Set MODE. Upgrade mode and the installed `kit` is newer than KIT_VERSION, comparing the dot-separated numbers one by one: STOP and say: the installed kit is newer than this ZIP; use a ZIP of version at least the installed one, and rerun. Nothing is downgraded.
+2. Compute each `N` below first, by applying the template rule in memory. Show the plan, with exactly these lines:
    - `MODE`, and `KIT_VERSION`; in upgrade mode also the installed `kit` from CONFIG, or `none` when CONFIG has no `kit`.
    - `kanban-rememory/`: `replaced` in upgrade mode, `created` in install mode.
    - For each of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`: `created` if absent, `kept` if it exists. Add `, N lines appended` when the template rule appends N non-blank lines. `GUARDRAILS.md` takes no `N`; in install mode add `, permission lines added after your answers` to its `created` or `kept`.

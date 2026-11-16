@@ -1,7 +1,7 @@
 """Build the installation kit as a ZIP archive from the committed files of HEAD.
 
 The kit sits under kanban-rememory/, the one folder the install replaces; installer/ holds every file of
-dist/installer/ except the tests (test-*). Both stay inside the archive's own folder. kanban-rememory.json is this repository's own configuration and stays out; VERSION
+dist/installer/ except the tests (test-*). The kit's own tests (tools/test-*.py) stay out too. Both stay inside the archive's own folder. kanban-rememory.json is this repository's own configuration and stays out; VERSION
 carries the kit version."""
 
 import json
@@ -21,7 +21,7 @@ def build(root, output=None):
     target = Path(output) if output else root / "dist" / f"{folder}.zip"
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.check_call(["git", "archive", "--format=zip", f"--prefix={folder}/", "-o", str(target),
-                           "HEAD", "--", "kanban-rememory"], cwd=root)
+                           "HEAD", "--", "kanban-rememory", ":(exclude)kanban-rememory/orchestrator/tools/test-*.py"], cwd=root)
     with zipfile.ZipFile(target, "a") as kit:
         listing = subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "HEAD", "--", "dist/installer"],
                                           cwd=root, text=True).splitlines()

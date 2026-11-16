@@ -20,3 +20,7 @@ module: "orchestrator"
 - Le ZIP ne contient aucun `test-*.py` du kit.
 - Le test du builder le prouve.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T19:16:43+01:00 — Stage moved from `backlog` to `development`.

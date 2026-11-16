@@ -69,7 +69,7 @@ On Windows, replace `python3` with `py -3`. `test` without `--send` displays the
 
 ## Verification
 
-Run `python3 kanban-rememory/orchestrator/tools/test-telegram.py` on macOS or `py -3 kanban-rememory/orchestrator/tools/test-telegram.py` on Windows. Tests use fake credentials and simulated Telegram responses; they send no Telegram messages. On macOS, the regression test runs a real terminal session with hidden input. Windows exercises its native ACL handling when the suite is run there; a mocked ACL test alone is not proof of a Windows run.
+In the kit's source repository, which alone ships the tests, run `python3 kanban-rememory/orchestrator/tools/test-telegram.py` on macOS or `py -3 kanban-rememory/orchestrator/tools/test-telegram.py` on Windows. Tests use fake credentials and simulated Telegram responses; they send no Telegram messages. On macOS, the regression test runs a real terminal session with hidden input. Windows exercises its native ACL handling when the suite is run there; a mocked ACL test alone is not proof of a Windows run.
 
 Record live bot delivery and Windows execution separately from automated test results. An unexecuted platform check or real Telegram test is not a pass.
 
