@@ -19,8 +19,7 @@ Installing is approved work: a copied file is not permission to execute product 
 
 | Item | Role | Install action |
 | --- | --- | --- |
-| `kanban-rememory/orchestrator/` | procedure, tools, templates | replace with the folder from KIT |
-| `kanban-rememory/documentation/` | user guide, lean principles, Telegram guide | replace with the folder from KIT |
+| `kanban-rememory/` | procedure, tools, templates, user guide, lean principles, Telegram guide | replace with the folder from KIT |
 | `AGENTS.md` | agent entry point | append workflow line |
 | `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | append `@AGENTS.md` |
 | `GUARDRAILS.md` | user rules for the agent | copy if absent |

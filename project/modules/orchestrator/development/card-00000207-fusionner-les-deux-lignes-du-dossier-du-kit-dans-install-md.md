@@ -19,3 +19,7 @@ Dans le tableau « Kit contents » de `install.md`, les lignes `kanban-rememory/
 
 - Une ligne `kanban-rememory/` : « procedure, tools, templates, user guide, lean principles, Telegram guide », action « replace with the folder from KIT ».
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T13:55:39+01:00 — Stage moved from `backlog` to `development`.
