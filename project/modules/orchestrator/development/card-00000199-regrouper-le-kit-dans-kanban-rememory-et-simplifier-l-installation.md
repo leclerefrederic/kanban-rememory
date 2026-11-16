@@ -27,3 +27,7 @@ Demande de l'utilisateur du 2026-11-16, qui remplace CARD-00000198 (annulée). T
 - Aucune référence à un ancien chemin dans les outils, les tests et les documents vivants.
 - `kr validate`, `test-kr.py` et `test-telegram.py` passent depuis le nouvel emplacement.
 - Suivre `install.md` dans un dépôt vierge donne un `kr show` valide.
+
+## History
+
+- 2026-11-16T13:17:56+01:00 — Stage moved from `backlog` to `development`.

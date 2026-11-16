@@ -277,7 +277,7 @@ class Phase:
               + "; main is up to date and the phase is over.")
         if alerting:
             alert = subprocess.run(
-                [sys.executable, str(self.root / "orchestrator/tools/telegram.py"), "completed", "--card",
+                [sys.executable, str(self.root / "kanban-rememory/orchestrator/tools/telegram.py"), "completed", "--card",
                  state["cards"][0], "--id", "delivery", "--text", summary, "--next-action", NO_ACTION[language],
                  "--chat-name", notify or self.project.name, "--language", language, "--send"],
                 cwd=self.root, capture_output=True, text=True)

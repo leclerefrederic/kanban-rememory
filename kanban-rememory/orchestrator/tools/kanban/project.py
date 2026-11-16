@@ -64,7 +64,7 @@ def common_directory(root):
 def load_project(root):
     settings = root / SETTINGS
     if settings.is_symlink() or not settings.is_file():
-        raise ValueError("Create project/settings.json first: see orchestrator/install.md.")
+        raise ValueError("Create project/settings.json first: see kanban-rememory/orchestrator/install.md.")
     return parse_settings(root, settings.read_bytes())
 
 

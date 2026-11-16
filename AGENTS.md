@@ -1,6 +1,6 @@
 # Working instructions
 
-Act as the Orchestrator and follow the [workflow](orchestrator/workflow.md).
+Act as the Orchestrator and follow the [workflow](kanban-rememory/orchestrator/workflow.md).
 
 ## Project policy
 

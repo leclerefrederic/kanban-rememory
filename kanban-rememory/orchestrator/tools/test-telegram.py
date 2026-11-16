@@ -15,8 +15,8 @@ import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-KIT = Path(__file__).resolve().parents[2]
-SCRIPT = KIT / "orchestrator/tools/telegram.py"
+KIT = Path(__file__).resolve().parents[3]
+SCRIPT = KIT / "kanban-rememory/orchestrator/tools/telegram.py"
 spec = importlib.util.spec_from_file_location("telegram", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -168,7 +168,7 @@ class TelegramTests(unittest.TestCase):
 
     def test_alert_command_previews_the_card_and_refuses_bad_input(self):
         root = self.base / "repo"
-        shutil.copytree(KIT / "orchestrator/tools", root / "orchestrator/tools",
+        shutil.copytree(KIT / "kanban-rememory/orchestrator/tools", root / "kanban-rememory/orchestrator/tools",
                         ignore=shutil.ignore_patterns("__pycache__", "test-*.py"))
         card = root / "project/modules/a/backlog/card-00000001-export.md"
         card.parent.mkdir(parents=True)
@@ -178,7 +178,7 @@ class TelegramTests(unittest.TestCase):
         environment = {**os.environ, "HOME": str(self.base / "home"), "LOCALAPPDATA": str(self.base / "home")}
 
         def run(*args):
-            return subprocess.run([sys.executable, "orchestrator/tools/telegram.py", *args], cwd=root,
+            return subprocess.run([sys.executable, "kanban-rememory/orchestrator/tools/telegram.py", *args], cwd=root,
                                   env=environment, capture_output=True, text=True)
         full = ("completed", "--card", "card-00000001", "--id", "delivery", "--text", "Export vérifié.",
                 "--next-action", "Aucune action requise.", "--chat-name", "Codex · Export", "--language", "fr")

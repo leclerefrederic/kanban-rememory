@@ -14,11 +14,11 @@ import tempfile
 import unittest
 from unittest import mock
 
-KIT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(KIT / "orchestrator/tools"))
+KIT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(KIT / "kanban-rememory/orchestrator/tools"))
 from kanban import report  # noqa: E402
 
-spec = importlib.util.spec_from_file_location("kr", KIT / "orchestrator/tools/kr.py")
+spec = importlib.util.spec_from_file_location("kr", KIT / "kanban-rememory/orchestrator/tools/kr.py")
 KR = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(KR)
 WORKFLOW = json.loads((KIT / "project/settings.json").read_text())["workflow"]
@@ -49,7 +49,7 @@ class KrTests(unittest.TestCase):
 
     def repository(self, name):
         root = self.base / name
-        shutil.copytree(KIT / "orchestrator/tools", root / "orchestrator/tools",
+        shutil.copytree(KIT / "kanban-rememory/orchestrator/tools", root / "kanban-rememory/orchestrator/tools",
                         ignore=shutil.ignore_patterns("__pycache__", "test-*.py"))
         (root / ".gitignore").write_text("__pycache__/\n")
         self.git(root, "init", "-q", "-b", "main")
@@ -122,15 +122,15 @@ class KrTests(unittest.TestCase):
             "[Old link](gone.md)\n")
         shutil.copy(card, self.board("b") / "cancellation" / card.name)
         (self.root / "project/modules/z").mkdir()
-        guide = self.root / "documentation/guide.md"
+        guide = self.root / "kanban-rememory/documentation/guide.md"
         guide.parent.mkdir()
-        guide.write_text("[Missing](missing.md) [Anchor](#nowhere) `orchestrator/tools/gone.py`\n")
+        guide.write_text("[Missing](missing.md) [Anchor](#nowhere) `kanban-rememory/orchestrator/tools/gone.py`\n")
         os.symlink(self.root, self.board("a") / "resources/link")
         output = self.kr(self.root, "validate", expected=1)
         for finding in ("needs exactly one module field set to a", "attachment ../resources/other.png",
                         "affected_modules must list", "notes.md: expected card-NNNNNNNN",
                         "duplicate CARD-00000001", "project/modules/z: module missing", "missing link target missing.md",
-                        "missing heading anchor #nowhere", "missing tool orchestrator/tools/gone.py", "symbolic link"):
+                        "missing heading anchor #nowhere", "missing tool kanban-rememory/orchestrator/tools/gone.py", "symbolic link"):
             self.assertIn(finding, output)
         self.assertNotIn("gone.md", output)  # completed Cards keep the links of their time
 

@@ -28,14 +28,14 @@ On this project, five cards went from request to merge in one pass. The owner ne
 
 You’ll need a Git repository and Python 3.9 or later. To check and publish work, your repository needs a remote named `origin` with a `main` branch. That remote can be on GitHub, another Git host, or your own machine.
 
-[Set up Kanban Rememory with your agent](documentation/guide.md#start-a-project). Setup starts no background service.
+[Set up Kanban Rememory with your agent](kanban-rememory/documentation/guide.md#start-a-project). Setup starts no background service.
 
 Then try a request like this.
 
 > Add a contact form with name, email, and message. A visitor should see a confirmation after submitting it. Show me what you checked and ask me before you publish.
 
-- [User guide](documentation/guide.md) for giving work, approving changes, and picking up in a new chat.
-- [Agent workflow](orchestrator/workflow.md) for the rules your agent follows.
-- [Lean Specifications manifesto](documentation/lean-specifications.md) for keeping a contact form from turning into a whole admin panel.
+- [User guide](kanban-rememory/documentation/guide.md) for giving work, approving changes, and picking up in a new chat.
+- [Agent workflow](kanban-rememory/orchestrator/workflow.md) for the rules your agent follows.
+- [Lean Specifications manifesto](kanban-rememory/documentation/lean-specifications.md) for keeping a contact form from turning into a whole admin panel.
 
 This repository uses Kanban Rememory to build Kanban Rememory.

@@ -1,7 +1,7 @@
 # Guardrails
 
 These are the project owner’s rules for the agent. Read them before each
-Card. Follow them if they conflict with `orchestrator/workflow.md`.
+Card. Follow them if they conflict with `kanban-rememory/orchestrator/workflow.md`.
 Change this file only at the owner’s request.
 
 ## Hard limits

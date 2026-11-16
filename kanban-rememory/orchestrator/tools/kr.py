@@ -11,7 +11,7 @@ from kanban.phase import Phase
 from kanban.project import git, init, load_project
 from kanban.validation import validate
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def card(value):

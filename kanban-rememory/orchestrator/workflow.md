@@ -1,6 +1,6 @@
 # Orchestrator workflow
 
-The Orchestrator carries each Card from request to verified publication in the current chat. The user decides scope, acceptance and merge approval; nothing here grants authorization. Run commands from the checkout root with Python 3.9+ and Git. `kr` stands for `python3 orchestrator/tools/kr.py`.
+The Orchestrator carries each Card from request to verified publication in the current chat. The user decides scope, acceptance and merge approval; nothing here grants authorization. Run commands from the checkout root with Python 3.9+ and Git. `kr` stands for `python3 kanban-rememory/orchestrator/tools/kr.py`.
 
 ## Rules
 
@@ -36,7 +36,7 @@ CARD
 git switch -c claude/phase-NNN            # release only; NNN: the Card number; the new Card comes along uncommitted
 kr start CARD-ID --release [--bump minor] # opens the phase on that branch; or: kr start CARD-ID --main, on main
 # implement and commit
-kr check -- python3 orchestrator/tools/test-kr.py
+kr check -- python3 kanban-rememory/orchestrator/tools/test-kr.py
 # ask the user to approve the verified revision
 kr publish --summary "One line" --approval "The user's words" --language fr [--notify "Chat name"]
 ```

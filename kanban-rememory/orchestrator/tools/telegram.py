@@ -18,7 +18,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 import warnings
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 TOKEN = re.compile(r"[0-9]+:[A-Za-z0-9_-]+")
 TEST = "Remy: Kanban Rememory setup test."
 UNCERTAIN = "Delivery uncertain. Check Telegram before sending again."
@@ -102,7 +102,7 @@ def load_config(path):
         return check_config(json.loads(path.read_text(encoding="utf-8")))
     except FileNotFoundError:
         raise TelegramError("Telegram is not configured; nothing was sent. "
-                            "Set it up with: python3 orchestrator/tools/telegram.py") from None
+                            "Set it up with: python3 kanban-rememory/orchestrator/tools/telegram.py") from None
     except (OSError, ValueError):
         raise TelegramError("Could not read the configuration. Run the setup again.") from None
 
@@ -251,7 +251,7 @@ def deliver(ledger, key, send, confirm_retry=False):
 
 
 def alert(args, path, call=api):
-    sys.path.insert(0, str(ROOT / "orchestrator/tools"))
+    sys.path.insert(0, str(ROOT / "kanban-rememory/orchestrator/tools"))
     from kanban.board import find_card
     from kanban.project import common_directory, load_project
 
@@ -312,8 +312,8 @@ def main():
     try:
         if args.command in (None, "setup"):
             if not sys.stdin.isatty():
-                raise TelegramError("Run this file in an interactive terminal: python3 orchestrator/tools/telegram.py "
-                                    "on macOS, py -3 orchestrator/tools/telegram.py on Windows. "
+                raise TelegramError("Run this file in an interactive terminal: python3 kanban-rememory/orchestrator/tools/telegram.py "
+                                    "on macOS, py -3 kanban-rememory/orchestrator/tools/telegram.py on Windows. "
                                     "Piped input and python - are unsupported.")
             return setup(path)
         if args.command in ICONS:

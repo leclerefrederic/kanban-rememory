@@ -7,8 +7,8 @@ Installing is approved work: a copied file is not permission to execute product 
 - Execute steps 1 to 5 in order. Finish a step before starting the next.
 - STOP = end the installation, report what the user must fix, ask them to rerun it. Modify nothing.
 - ASK = ask the user, wait for the answer.
-- Act only on the gaps listed in step 2 and approved in step 3.
-- Write only: kit items, `project/`, lines added to `.gitignore` and `.gitattributes`.
+- KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates.
+- Write only: `kanban-rememory/`, `project/`, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
 - NEVER create a repository, a branch or a remote. NEVER push.
 
@@ -16,11 +16,13 @@ Installing is approved work: a copied file is not permission to execute product 
 
 | Item | Role | Install action |
 | --- | --- | --- |
-| `orchestrator/` | procedure, tools, templates | copy |
-| `documentation/` | user guide, lean principles, Telegram guide | copy |
+| `kanban-rememory/orchestrator/` | procedure, tools, templates | replace with the folder from KIT |
+| `kanban-rememory/documentation/` | user guide, lean principles, Telegram guide | replace with the folder from KIT |
 | `AGENTS.md` | agent entry point | append workflow line |
 | `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | append `@AGENTS.md` |
 | `GUARDRAILS.md` | user rules for the agent | copy if absent |
+
+`kanban-rememory/` is never edited by the user: replace it as a whole, never merge it.
 
 ## 1. Prerequisites
 
@@ -34,26 +36,23 @@ Any check fails: STOP.
 
 ## 2. Diagnosis
 
-Build the gap table, one row per element, state = `absent` | `identical` | `different`. Show it to the user: it is the plan.
+Set MODE and show the plan to the user.
 
-| Element | Compare with the kit |
-| --- | --- |
-| `orchestrator/`, `documentation/` | each file |
-| `AGENTS.md` | workflow line present |
-| `CLAUDE.md` | `@AGENTS.md` present |
-| `GUARDRAILS.md` | file exists |
-| `.gitignore` | `__pycache__/` listed |
-| `.gitattributes` | `* text=auto` present |
+- `kanban-rememory/` absent → MODE = install.
+- `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
+- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`, `project/settings.json` exist. In upgrade mode `project/` is left as it is.
 
 ## 3. Decisions
+
+Skip items 1 to 3 when `project/settings.json` exists.
 
 1. Read the target's existing instructions.
 2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
    - Group independent questions. Suggest defaults from the project's real flow. Ask a dependent question after the answer it depends on.
    - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
    - WIP limit: 1 Card per module for solo work.
-3. Present one proposal: files to copy or append, settings, checks, lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
-4. No approval: STOP. Copy nothing before approval.
+3. Present one proposal: settings, plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
+4. ASK for approval of the plan and the proposal. No approval: STOP. Change nothing before approval.
 
 Workflows:
 
@@ -67,24 +66,24 @@ Every workflow ends with `cancellation` as a terminal stage. `transitions` maps 
 
 ## 4. Application
 
-Run in this order, for the rows of the gap table only:
+Run in this order:
 
-1. `orchestrator/`, `documentation/`: copy absent files. For each `different` file, show the `diff`; the user keeps theirs or takes the kit's.
+1. `kanban-rememory/`: delete it if present, then copy the folder from KIT.
 2. `AGENTS.md`: append, creating the file if absent:
 
    ```markdown
-   Act as the Orchestrator and follow the [workflow](orchestrator/workflow.md).
+   Act as the Orchestrator and follow the [workflow](kanban-rememory/orchestrator/workflow.md).
    ```
 
 3. `CLAUDE.md`: append `@AGENTS.md`, creating the file if absent.
-4. `GUARDRAILS.md`: copy if absent. Write the approved Git permissions under `## Overrides` and remove the comment markers around that section.
+4. `GUARDRAILS.md`: copy from KIT if absent. Write the approved Git permissions under `## Overrides` and remove the comment markers around that section.
 5. `.gitignore`: append `__pycache__/`, creating the file if absent.
 6. `.gitattributes`: append `* text=auto`, creating the file if absent.
-7. `project/` (not in the kit, changes over time): generate once, last. Write the approved settings to a file outside the repository, then run:
+7. `project/` (not in the kit, changes over time): generate once, last, only when `project/settings.json` is absent. Write the approved settings to a file outside the repository, then run:
 
    ```sh
-   python3 orchestrator/tools/kr.py init /path/to/settings.json
-   python3 orchestrator/tools/kr.py init /path/to/settings.json --apply
+   python3 kanban-rememory/orchestrator/tools/kr.py init /path/to/settings.json
+   python3 kanban-rememory/orchestrator/tools/kr.py init /path/to/settings.json --apply
    ```
 
 8. Commit the installation. Do not push: pushing follows normal delivery with the user's approval.

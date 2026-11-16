@@ -7,7 +7,7 @@ from .markdown import (LINK, anchors, card_id, front_matter,
                        markdown_files, prose_lines, resource_links)
 from .project import MISC, MODULES
 
-TOOL = re.compile(r"orchestrator/tools/[\w./-]+\.py")
+TOOL = re.compile(r"kanban-rememory/orchestrator/tools/[\w./-]+\.py")
 
 
 def validate(project):
