@@ -90,7 +90,7 @@ def common_directory(root):
 def load_project(root):
     settings = root / settings_path(root)
     if settings.is_symlink() or not settings.is_file():
-        raise ValueError(f"Create {CONFIG} first: see kanban-rememory/orchestrator/install.md.")
+        raise ValueError(f"Create {CONFIG} first: run the installation from INSTALL.md of the kit.")
     return parse_settings(root, settings.read_bytes())
 
 

@@ -1,15 +1,17 @@
 # Install or upgrade Kanban Rememory
 
-Installing is approved work: a copied file is not permission to execute product work. User explanations: [the user guide](../documentation/guide.md#start-a-project).
+Installing is approved work: a copied file is not permission to execute product work.
+
+User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your repository, which is on `main` with a clean checkout. Open your agent there and tell it: `Follow INSTALL.md.` The user guide is `kanban-rememory/documentation/guide.md#start-a-project` in the kit.
 
 ## Instructions
 
-- Run sections 1 to 5 in order. Finish a section before starting the next. Do not skip, merge or reorder steps.
+- Run sections 0 to 5 in order. Finish a section before starting the next. Do not skip, merge or reorder steps.
 - A step with no ASK has no choice: do what it says. Never ask the user something the step does not ask.
 - STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else. Before section 4 nothing has changed.
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
-- KIT = the unpacked kit ZIP whose path the user gave. If they gave none, ASK for it.
+- KIT = the folder `kanban-rememory-kit-<version>` inside the folder created in section 0.
 - GUARDRAILS_TEMPLATE = `KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md`.
 - KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
@@ -32,6 +34,20 @@ Installing is approved work: a copied file is not permission to execute product 
 
 `kanban-rememory/` is never edited by the user: replace it as a whole, never merge it.
 
+## 0. Unpack the kit
+
+1. Exactly one `kanban-rememory-kit-*.zip` is in the root of TARGET: `ls kanban-rememory-kit-*.zip` prints one name. Otherwise STOP.
+2. Unpack it outside TARGET, never inside:
+
+   ```sh
+   W=$(mktemp -d)
+   unzip -q kanban-rememory-kit-*.zip -d "$W"
+   ```
+
+3. KIT = the one folder `$W/kanban-rememory-kit-*`.
+
+`INSTALL.md` and the ZIP are not repository content: never stage them.
+
 ## 1. Prerequisites
 
 Run each command. A result other than the expected one: STOP.
@@ -41,7 +57,7 @@ Run each command. A result other than the expected one: STOP.
 | Python 3.9+ | `python3 -c "import sys; sys.exit(sys.version_info < (3, 9))"` | exit 0 |
 | Git repository | `git rev-parse --is-inside-work-tree` | prints `true` |
 | Branch | `git branch --show-current` | prints `main` |
-| Clean checkout | `git status --porcelain -- . ':(exclude)START.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
+| Clean checkout | `git status --porcelain -- . ':(exclude)INSTALL.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
 | Remote readable | `git ls-remote origin main` | exit 0, prints one line |
 | Remote writable | `git push --dry-run origin main` | exit 0 |
 | KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f GUARDRAILS_TEMPLATE` | exit 0 |
@@ -139,7 +155,7 @@ Run each check. A failure: STOP. The commit stays; the user decides what to do w
 | Boards valid | `kr validate` | exit 0 |
 | Tools answer | `kr show` | exit 0 |
 | Guardrails | `test -f GUARDRAILS.md` | exit 0 |
-| Clean checkout | `git status --porcelain -- . ':(exclude)START.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
+| Clean checkout | `git status --porcelain -- . ':(exclude)INSTALL.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
 
 Then:
 
@@ -152,8 +168,9 @@ Then:
    Mode: MODE. `kr validate` passed. Fresh chat check approved by the user.
    ```
 
-3. Report to the user, in this order: MODE, KIT_VERSION, the files written, the commit hashes, and `Nothing is pushed`.
+3. ASK: `Delete INSTALL.md and the kit ZIP? yes / no`. `yes`: delete both files. `no`: leave both.
+4. Report to the user, in this order: MODE, KIT_VERSION, the files written, the commit hashes, and `Nothing is pushed`.
 
 ## Option: Telegram
 
-Only if the project approves: give the user [the Telegram guide](../documentation/telegram-setup.md).
+Only if the project approves: give the user `kanban-rememory/documentation/telegram-setup.md`.

@@ -2,8 +2,7 @@
 
 Everything sits under kanban-rememory/, the one folder the install replaces, so unpacking the kit in a repository
 cannot overwrite a user file. kanban-rememory.json is this repository's own configuration and stays out; VERSION
-carries the kit version and the GUARDRAILS.md template is the file of HEAD. START.md, the instructions to give the
-agent, is written next to the archive and is not part of it."""
+carries the kit version and the GUARDRAILS.md template is the file of HEAD."""
 
 import json
 from pathlib import Path
@@ -11,7 +10,7 @@ import subprocess
 import sys
 import zipfile
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def build(root, output=None):
@@ -27,8 +26,6 @@ def build(root, output=None):
         kit.writestr(f"{folder}/kanban-rememory/VERSION", f"{version}\n")
         kit.writestr(f"{folder}/kanban-rememory/orchestrator/templates/GUARDRAILS.md",
                      subprocess.check_output(["git", "show", "HEAD:GUARDRAILS.md"], cwd=root))
-    start = subprocess.check_output(["git", "show", "HEAD:kanban-rememory/orchestrator/templates/start.md"], cwd=root, text=True)
-    (target.parent / "START.md").write_text(start.format(version=version, zip=target.name, folder=folder))
     return target
 
 
