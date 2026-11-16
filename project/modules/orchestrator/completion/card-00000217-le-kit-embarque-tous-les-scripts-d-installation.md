@@ -24,3 +24,7 @@ module: "orchestrator"
 ## History
 
 - 2026-11-16T16:24:36+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T16:34:01+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T16:34:01+01:00 — Merge approved for the verified candidate `def446171aeac77aca04b9b152227510a606067c`: “Oui, commit”.
