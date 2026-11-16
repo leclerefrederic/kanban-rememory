@@ -1,35 +1,39 @@
 # Kanban Rememory
 
-**You bring the intent. The agent ships the work. The repository remembers.**
+**You call the shots. The agent does the work. The repo remembers.**
 
-Five cards went through in one pass, merge included. The project owner didn't have to touch the board or step in while the agent worked. The next session can open the repository and see what shipped.
+Building software with AI, even though you don’t code for a living? Kanban Rememory is for you. It’s a Git and Markdown toolkit that gives your agent a place to keep track of what you asked for, what you agreed to, and what shipped. You can run the project in plain language while the agent keeps the records beside the code.
 
-Kanban Rememory is a Git and Markdown toolkit for running software projects with AI agents. It keeps the work beside the code so it can survive the chat that started it.
+## 🧠 Stop being the project’s human RAM
 
-## Stop being the project's human RAM
+You ask for a contact form. Two chats later, you’re explaining the same form again and trying to remember which version you tested. Somehow there’s a settings screen now.
 
-You ask for a form. You get two extra buttons and a settings screen. Then you open a new chat and find yourself explaining the form again, trying to remember which build you tested.
+Kanban Rememory gives that information somewhere to live.
 
-Put the agreement in the repository. Give each record one job.
+- **The card** records the job, what’s in scope, and how you’ll know it’s done. Its place on the board shows where the work stands.
+- **The journal** records decisions and milestones you’ll want to find later.
+- **Git** identifies the exact revision that passed the checks and the one that shipped.
 
-- **The card** says what should happen, what's in scope, and how to tell when it's done. Each module has its own board, and the card's folder shows its stage.
-- **The journal** records decisions and milestones that matter beyond one card.
-- **Git** keeps the history and identifies the exact revision that was checked and published.
+When you switch chats, ask the next agent to resume work in the repository. It can pick up from the card and the recorded checks. You can retire the recap speech.
 
-The agent keeps those records current. You can switch chats without having to reconstruct the project from memory.
+## 🌍 Keep world domination in the backlog
 
-## From request to merge
+You decide what gets built, what counts as done, and when the agent can publish. The agent writes down the agreement, builds the form, and runs the checks. If it thinks the form needs a settings screen, it asks before adding one.
 
-You decide what you want. The agent records the agreement, implements it, and runs the checks that apply. Work can happen directly on `main` or on a release branch.
+You can approve the exact revision after seeing what passed, or authorize publication up front. With that authorization, the agent can publish once the checks pass and the work stays within the agreed scope. You can work directly on `main` or group work on a release branch.
 
-You can approve the verified revision at the end or authorize publication up front. With approval up front, the agent can publish once the checks pass and the result stays within the agreed scope.
+On this project, five cards went from request to merge in one pass. The owner never had to move a card by hand.
 
-If you asked for a form, the card should tell the agent what makes the form ready to ship. The settings screen can wait until someone actually asks for it.
+## 🚀 Start with one real task
 
-## Start with a real task
+[Set up Kanban Rememory with your agent](documentation/guide.md#start-a-project). You’ll need Git and Python 3.9 or later. Setup starts no background service.
 
-[Start a project](documentation/guide.md#start-a-project) with your agent. You'll need Git and Python 3.9 or later. Installation starts no background service.
+Then try a request like this.
 
-The [user guide](documentation/guide.md) covers requests, approvals, and handoffs. The agent follows the [workflow](orchestrator/workflow.md). The [Lean Specifications manifesto](documentation/lean-specifications.md) explains how to keep scope under control.
+> Add a contact form with name, email, and message. A visitor should see a confirmation after submitting it. Show me what you checked and ask me before you publish.
+
+- [User guide](documentation/guide.md) for giving work, approving changes, and picking up in a new chat.
+- [Agent workflow](orchestrator/workflow.md) for the rules your agent follows.
+- [Lean Specifications manifesto](documentation/lean-specifications.md) for keeping a contact form from turning into a whole admin panel.
 
 This repository uses Kanban Rememory to build Kanban Rememory.
