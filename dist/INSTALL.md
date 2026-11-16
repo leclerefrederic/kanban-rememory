@@ -19,8 +19,8 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - DIR = the `directory` in CONFIG; in install mode, the working folder chosen in step 3.
 - MODE = `install` when CONFIG is absent, `upgrade` when it exists.
 - Write only: `kanban-rememory/`, CONFIG, DIR, `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`.
-- TEMPLATES = `KIT/kanban-rememory/orchestrator/templates`.
-- Template rule, for a root file and its template in TEMPLATES: the file is absent: copy the template. The file exists: append each non-blank line of the template that no line of the file equals, in the template's order.
+- TEMPLATES = `KIT/kanban-rememory/orchestrator/templates`. `.gitignore` and `.gitattributes` there are hidden files: list with `ls -a`.
+- Template rule, for a root file and its template in TEMPLATES: the file is absent: copy the template. The file exists: append each non-blank line of the template that no line of the file equals, in the template's order. If the existing file does not end with a newline, add one before appending.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`.
 - NEVER create a repository, a branch or a remote. NEVER push.
 
@@ -87,7 +87,7 @@ Upgrade mode: skip this section.
    | Field | Allowed answer | Default |
    | --- | --- | --- |
    | `name` | one line of text | the name of TARGET's folder |
-   | `modules` | unique IDs of letters `a-z`, digits and single `-` or `_` between them; `misc` is always added, as the last item | `misc` only |
+   | `modules` | unique IDs of letters `a-z`, digits and single `-` or `_` between them; `misc` is always in the JSON list, as the last item, even if the user does not name it | none: the list is `["misc"]` |
    | workflow | `Short`, `Standard` or `Long` (table below). Ask what counts as delivered to choose: publication only fits Short or Standard; testing or deployment after publication fits Long | `Short` |
    | WIP limit | a positive integer | `1` |
    | timezone | an IANA name such as `Europe/Paris` | none: required |
@@ -134,7 +134,7 @@ Run in this order. A failing command: STOP and report the command and its output
 4. `GUARDRAILS.md`: copy `TEMPLATES/GUARDRAILS.md` to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line, with no bullet, under `## Standing permissions`: after the comment block that follows that heading, one blank line, then the lines. If the file has no such heading, append a blank line, the heading, a blank line and the lines at the end.
 5. `.gitignore`: template rule, with `TEMPLATES/.gitignore`.
 6. `.gitattributes`: template rule, with `TEMPLATES/.gitattributes`.
-7. Install mode: run `init <the path of proposal.json> --apply`. Expected: exit 0 and the last line `Project modules are ready.`
+7. Install mode: run `init <the path of proposal.json> --apply` alone, not piped into another command, so that its exit code is visible. Expected: exit 0 and the last line `Project modules are ready.`
 8. Commit. Stage the paths of the write scope that exist, then commit without pushing:
 
    ```sh
