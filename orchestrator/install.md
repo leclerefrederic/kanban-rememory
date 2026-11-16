@@ -30,7 +30,6 @@ Result: the gap table.
 | `AGENTS.md` | the workflow line is present |
 | `CLAUDE.md` | `@AGENTS.md` is present |
 | `GUARDRAILS.md` | the file exists |
-| `project/` | `settings.json`, `modules/` and `rememory/` exist |
 | `.gitignore` | `__pycache__/` is listed |
 
 ## 3. Decisions
@@ -70,14 +69,14 @@ Act only on the rows of the gap table. Never overwrite an existing `AGENTS.md`, 
 
 - [ ] `CLAUDE.md`: add `@AGENTS.md`, creating the file when absent (Claude Code reads it; Codex reads `AGENTS.md`)
 - [ ] `GUARDRAILS.md`: copy it when absent, then write the approved Git permissions under `## Overrides`, removing the comment markers around that section
-- [ ] `project/`: write the approved settings to a file outside the repository, then run
+- [ ] `.gitignore`: add `__pycache__/`
+- [ ] `project/`: it is not part of the kit and it keeps changing, so generate it once, last. Write the approved settings to a file outside the repository, then run
 
   ```sh
   python3 orchestrator/tools/kr.py init /path/to/settings.json
   python3 orchestrator/tools/kr.py init /path/to/settings.json --apply
   ```
 
-- [ ] `.gitignore`: add `__pycache__/`
 - [ ] Commit the installation. Do not push: pushing follows the normal delivery, with the user's approval
 
 ## 5. Verification
