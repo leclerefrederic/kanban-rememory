@@ -10,7 +10,7 @@ Ask in the chat first, then send one alert per event before waiting.
 | --- | --- | --- |
 | A decision, an access or a manual action only the user can provide | `attention` | `intervention-1`, `intervention-2`, …: one per distinct request, noted on the Card |
 | A verified candidate waits for merge approval | `attention` | `merge-<full revision>`; `--text` names the revision and what merging triggers |
-| The agreed delivery is verified | `completed` | `delivery`, sent by `kr publish --notify "<chat>"` |
+| The agreed delivery is verified | `completed` | `delivery`, sent by `kr publish` itself whenever Telegram is configured; `--notify "<chat>"` names the chat, the project name otherwise |
 
 Send nothing else: no progress, routine results, recoverable errors or reminders. A Card completed inside a phase is not the delivery. When the approval already covers the candidate, send no merge alert.
 

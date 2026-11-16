@@ -210,8 +210,10 @@ class Phase:
         """Close the verified Cards, commit, push to origin/main, return to an up-to-date main and end the phase."""
         if any(text is not None and (not text.strip() or "\n" in text or "\r" in text) for text in (summary, approval)):
             raise ValueError("Give --summary and --approval as nonempty single lines.")
-        if notify and not summary:
-            raise ValueError("--notify needs --summary: it is the text of the alert.")
+        from telegram import config_path
+        alerting = bool(notify) or config_path().exists()  # a configured Telegram always gets the delivery alert
+        if alerting and not summary:
+            raise ValueError("The delivery alert needs --summary: it is the text of the alert.")
         state = self.here()
         release = state.get("mode", "release") == "release"
         require_clean(self.root)
@@ -273,11 +275,11 @@ class Phase:
             git(self.root, "branch", "--quiet", "--delete", state["branch"])
         print(f"Published {head} on origin/main" + (f" as {tag}" if release else "")
               + "; main is up to date and the phase is over.")
-        if notify:
+        if alerting:
             alert = subprocess.run(
                 [sys.executable, str(self.root / "orchestrator/tools/telegram.py"), "completed", "--card",
                  state["cards"][0], "--id", "delivery", "--text", summary, "--next-action", NO_ACTION[language],
-                 "--chat-name", notify, "--language", language, "--send"],
+                 "--chat-name", notify or self.project.name, "--language", language, "--send"],
                 cwd=self.root, capture_output=True, text=True)
             print((alert.stdout + alert.stderr).strip())
         return 0

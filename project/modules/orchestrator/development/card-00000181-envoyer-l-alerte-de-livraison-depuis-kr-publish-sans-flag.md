@@ -31,3 +31,7 @@ Demande de l'utilisateur du 2026-11-16 : aucune notification de livraison entre 
 - Un échec d'envoi est signalé et n'annule pas la publication ; une relance n'envoie pas de doublon.
 - `notify.md` et `workflow.md` décrivent le nouveau comportement.
 - `test-kr.py`, `test-telegram.py` et `validate` passent.
+
+## History
+
+- 2026-11-16T01:05:45+01:00 — Stage moved from `backlog` to `development`.

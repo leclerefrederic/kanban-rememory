@@ -234,8 +234,13 @@ class KrTests(unittest.TestCase):
         self.commit(root, "Fix record")
         self.kr(root, "check")
         self.assertIn("nonempty single lines", self.kr(root, "publish", "--summary", "a\nb", "--approval", "Oui", expected=1))
-        self.assertIn("needs --summary", self.kr(root, "publish", "--notify", "Chat", expected=1))
+        self.assertIn("alert needs --summary", self.kr(root, "publish", "--notify", "Chat", expected=1))
         self.assertIn("Give --summary and --approval", self.kr(root, "publish", expected=1))
+        configuration = self.base / "HOME/.config/kanban-rememory/telegram.json"
+        configuration.parent.mkdir(parents=True)
+        configuration.write_text("{}")  # configured Telegram: the delivery alert is automatic, so the summary is required
+        self.assertIn("alert needs --summary", self.kr(root, "publish", "--approval", "Oui", expected=1))
+        configuration.unlink()
         self.card(root, "CARD-00000001").open("a").write("Note.\n")
         self.commit(root, "Note")
         self.assertIn("lacks its closure", self.kr(root, "publish", "--summary", "S", "--approval", "Oui", expected=1))

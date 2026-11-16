@@ -62,7 +62,7 @@ def main(argv=None, root=ROOT):
     publish = sub.add_parser("publish", help="after approval: close the Cards, commit, push to origin/main, end the phase")
     publish.add_argument("--summary", help="one line for the journal and the delivery alert")
     publish.add_argument("--approval", help="the user's approval, quoted")
-    publish.add_argument("--notify", metavar="CHAT", help="send the Remy delivery alert, naming the chat to return to")
+    publish.add_argument("--notify", metavar="CHAT", help="chat to return to in the Remy delivery alert (default: the project name)")
     publish.add_argument("--language", choices=("en", "fr"), default="en", help="language of the alert labels")
     setup = sub.add_parser("init", help="create the settings and boards from an approved proposal")
     setup.add_argument("settings", type=Path)
