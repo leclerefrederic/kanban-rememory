@@ -7,6 +7,7 @@ Installing is approved work: a copied file is not permission to execute product 
 - Execute steps 1 to 5 in order. Finish a step before starting the next.
 - STOP = end the installation, report what the user must fix, ask them to rerun it. Modify nothing.
 - ASK = ask the user, wait for the answer.
+- `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`, run from the repository root.
 - KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates.
 - Write only: `kanban-rememory/`, `project/`, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
