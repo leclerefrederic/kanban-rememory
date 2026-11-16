@@ -33,3 +33,7 @@ README réécrit en anglais selon les conventions établies. Genèse fondée sur
 ## History
 
 - 2026-11-16T20:41:34+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T20:48:28+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T20:48:28+01:00 — Merge approved for the verified candidate `223ec55f7bdd2dbf4d0bc607ebe5280518a1e10d`: “Oui, publie sans changer la version”.
