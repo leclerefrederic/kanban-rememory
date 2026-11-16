@@ -10,3 +10,7 @@ Demande de l'utilisateur : retirer de `AGENTS.md` la section « Project policy �
 Critères :
 - `AGENTS.md` ne contient plus que la ligne du workflow.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T13:33:43+01:00 — Stage moved from `backlog` to `development`.
