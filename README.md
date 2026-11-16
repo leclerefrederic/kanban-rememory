@@ -26,7 +26,9 @@ On this project, five cards went from request to merge in one pass. The owner ne
 
 ## 🚀 Start with one real task
 
-[Set up Kanban Rememory with your agent](documentation/guide.md#start-a-project). You’ll need Git and Python 3.9 or later. Setup starts no background service.
+You’ll need a Git repository and Python 3.9 or later. To check and publish work, your repository needs a remote named `origin` with a `main` branch. That remote can be on GitHub, another Git host, or your own machine.
+
+[Set up Kanban Rememory with your agent](documentation/guide.md#start-a-project). Setup starts no background service.
 
 Then try a request like this.
 
