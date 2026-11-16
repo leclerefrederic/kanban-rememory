@@ -14,6 +14,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - KIT = the folder `kanban-rememory-kit-<version>` inside the folder created in section 0.
 - GUARDRAILS_TEMPLATE = `KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md`.
 - KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
+- `init` = `python3 KIT/installer/init.py`, the installation script. It shares nothing with `kr`.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
 - CONFIG = `kanban-rememory.json` at the root of TARGET. It holds `name`, `directory`, `modules`, `workflow`, `version` and, installed by this procedure, `kit`.
 - DIR = the `directory` in CONFIG; in install mode, the working folder chosen in step 3.
@@ -60,7 +61,7 @@ Run each command. A result other than the expected one: STOP.
 | Clean checkout | `git status --porcelain -- . ':(exclude)INSTALL.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
 | Remote readable | `git ls-remote origin main` | exit 0, prints one line |
 | Remote writable | `git push --dry-run origin main` | exit 0 |
-| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f GUARDRAILS_TEMPLATE` | exit 0 |
+| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f KIT/installer/init.py && test -f GUARDRAILS_TEMPLATE` | exit 0 |
 | KIT is not TARGET | `test "$(cd KIT && pwd -P)" != "$(pwd -P)"` | exit 0 |
 
 ## 2. Diagnosis
@@ -102,7 +103,8 @@ Upgrade mode: skip this section.
    - The CONFIG content, as JSON in this key order: `name`, `directory`, `modules`, `workflow`, `version`, `kit`. `version` = `0.0.0`. `kit` = KIT_VERSION. `workflow` = `stages`, `active`, `completed` = `completion`, `wip_limit`, `timezone`, `transitions`, from the table below; every transition list ends with `cancellation`. The first stage is `backlog`, and `cancellation` is the last stage and ends the board.
    - The permission lines for `GUARDRAILS.md`.
    - The lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
-5. ASK: `Approve this proposal? yes / no`. `yes`: continue. `no`: STOP.
+5. Write the CONFIG content to `proposal.json` in a new folder outside TARGET (`mktemp -d`). Run `init <that path>` from the root of TARGET: a preview that writes nothing. Expected: exit 0. A non-zero exit: show the message, ASK the user for a corrected answer to the field it names, rebuild the file and rerun the preview until it exits 0.
+6. Show the proposal and the preview output. ASK: `Approve this proposal? yes / no`. `yes`: continue. `no`: STOP.
 
 | Workflow | Stages | Active | Transitions (each also allows `cancellation`) |
 | --- | --- | --- | --- |
@@ -125,19 +127,18 @@ Run in this order. A failing command: STOP and report the command and its output
    ```
 
    Upgrade mode: then set `kit` in CONFIG to KIT_VERSION, adding the key after `version` if absent. Change nothing else in CONFIG.
-2. Install mode: write the approved CONFIG content to `proposal.json` in a new folder outside TARGET (`mktemp -d`). Then run `kr init <that path>` (preview). Expected: exit 0. A non-zero exit: show the message, ASK the user for a corrected answer to the field it names, rebuild the file and rerun the preview until it exits 0.
-3. `AGENTS.md`: add-line rule, with:
+2. `AGENTS.md`: add-line rule, with:
 
    ```markdown
    Act as the Orchestrator and follow the [workflow](kanban-rememory/orchestrator/workflow.md).
    ```
 
-4. `CLAUDE.md`: add-line rule, with `@AGENTS.md`.
-5. `GUARDRAILS.md`: copy GUARDRAILS_TEMPLATE to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
-6. `.gitignore`: add-line rule, with `__pycache__/`.
-7. `.gitattributes`: add-line rule, with `* text=auto`.
-8. Install mode: run `kr init <that path> --apply`. Expected: exit 0 and the last line `Project modules are ready.`
-9. Commit. Stage the paths of the write scope that exist, then commit without pushing:
+3. `CLAUDE.md`: add-line rule, with `@AGENTS.md`.
+4. `GUARDRAILS.md`: copy GUARDRAILS_TEMPLATE to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
+5. `.gitignore`: add-line rule, with `__pycache__/`.
+6. `.gitattributes`: add-line rule, with `* text=auto`.
+7. Install mode: run `init <the path of proposal.json> --apply`. Expected: exit 0 and the last line `Project modules are ready.`
+8. Commit. Stage the paths of the write scope that exist, then commit without pushing:
 
    ```sh
    git add kanban-rememory kanban-rememory.json AGENTS.md CLAUDE.md GUARDRAILS.md .gitignore .gitattributes DIR

@@ -3,11 +3,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 import json
-import os
 from pathlib import Path
 import re
 import subprocess
-import tempfile
 from zoneinfo import ZoneInfo
 
 CONFIG = "kanban-rememory.json"
@@ -156,48 +154,3 @@ def check_workflow(workflow):
     except (KeyError, OSError, TypeError, ValueError):
         raise ValueError(f"Unknown time zone: {timezone}") from None
     return workflow
-
-
-def check_new_workflow(workflow):
-    """A new board needs the stages the tools rely on; existing boards keep their approved stages."""
-    if missing := {"backlog", "development", "completion", "cancellation"}.difference(workflow["stages"]):
-        raise ValueError(f"Missing required stages: {', '.join(sorted(missing))}.")
-    if (workflow["stages"][0] != "backlog" or workflow["active"][0] != "development"
-            or workflow["completed"] != "completion"
-            or {"backlog", "cancellation"}.intersection(workflow["active"])
-            or workflow["transitions"].get("cancellation")):
-        raise ValueError("Use backlog for intake, development as the first active stage, "
-                         "completion for delivery and cancellation as a terminal stage.")
-
-
-def init(root, proposal, apply):
-    """Create kanban-rememory.json and the empty boards from an approved proposal, once."""
-    settings = root / settings_path(root)
-    if settings.exists() or settings.is_symlink():
-        raise ValueError("kanban-rememory.json already exists.")
-    source = proposal.read_bytes()  # validate and write the same bytes
-    project = parse_settings(root, source)
-    check_new_workflow(project.workflow)
-    paths = [project.journal] + [project.board(module) / stage for module in project.modules
-                                 for stage in (*project.workflow["stages"], "resources")]
-    for path in paths:
-        if path.resolve() != path or (path.exists() and not path.is_dir()):
-            raise ValueError(f"Not a local directory: {path.relative_to(root)}.")
-    print(f"{project.name}: {', '.join(project.modules)}")
-    for path in paths:
-        print(path.relative_to(root))
-    if not apply:
-        print("Preview only. Run again with --apply after approval.")
-        return 0
-    for path in paths:
-        path.mkdir(parents=True, exist_ok=True)
-        if not any(path.iterdir()):
-            (path / ".gitkeep").touch()
-    with tempfile.NamedTemporaryFile(dir=settings.parent, prefix=".kr-config-", delete=False) as pending:
-        pending.write(source)
-    try:
-        os.link(pending.name, settings)  # refuses to replace a settings file created meanwhile
-    finally:
-        os.unlink(pending.name)
-    print("Project modules are ready.")
-    return 0

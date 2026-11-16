@@ -1,4 +1,4 @@
-"""build-kit.py: the ZIP holds the committed kit under kanban-rememory/ and nothing else."""
+"""build-kit.py: the ZIP holds the committed kit under kanban-rememory/, the installer, and nothing else."""
 
 import importlib.util
 import json
@@ -19,7 +19,7 @@ class BuildKitTests(unittest.TestCase):
             root = Path(directory)
             files = {"kanban-rememory.json": json.dumps({"version": "1.2.3"}), "GUARDRAILS.md": "rules\n",
                      "AGENTS.md": "agents\n", "notes.md": "not in the kit\n",
-                     "kanban-rememory/orchestrator/tools/kr.py": "print()\n"}
+                     "kanban-rememory/orchestrator/tools/kr.py": "print()\n", "dist/installer/init.py": "installer\n"}
             for name, text in files.items():
                 (root / name).parent.mkdir(parents=True, exist_ok=True)
                 (root / name).write_text(text)
@@ -32,7 +32,8 @@ class BuildKitTests(unittest.TestCase):
                 names = set(kit.namelist())
                 version = kit.read("kanban-rememory-kit-1.2.3/kanban-rememory/VERSION").decode()
         prefix = "kanban-rememory-kit-1.2.3/"
-        self.assertTrue(all(name.startswith(prefix + "kanban-rememory/") for name in names - {prefix}))
+        self.assertTrue(all(name.startswith((prefix + "kanban-rememory/", prefix + "installer/")) for name in names - {prefix}))
+        self.assertIn(prefix + "installer/init.py", names)
         self.assertEqual(version, "1.2.3\n")
         self.assertIn(prefix + "kanban-rememory/orchestrator/templates/GUARDRAILS.md", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)

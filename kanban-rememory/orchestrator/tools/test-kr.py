@@ -38,14 +38,22 @@ class KrTests(unittest.TestCase):
         self.addCleanup(patcher.stop)
         self.settings = {"name": "Fixture", "modules": ["a", "b", "misc"],
                          "workflow": WORKFLOW, "version": "0.0.0", "directory": "project"}
-        self.proposal = self.base / "proposal.json"
-        self.proposal.write_text(json.dumps(self.settings))
         self.root = self.repository("repo")
-        self.kr(self.root, "init", self.proposal, "--apply")
+        self.install(self.root, self.settings)
         self.git(self.base, "init", "-q", "--bare", "origin.git")
         self.git(self.root, "remote", "add", "origin", self.base / "origin.git")
         self.commit(self.root, "Initialize")
         self.git(self.root, "push", "-q", "origin", "main")
+
+    def install(self, root, settings):
+        """The config file and empty boards the installer writes, without the installer."""
+        (root / "kanban-rememory.json").write_text(json.dumps(settings))
+        folders = [root / settings["directory"] / "rememory"] + [
+            root / settings["directory"] / "modules" / module / stage
+            for module in settings["modules"] for stage in (*settings["workflow"]["stages"], "resources")]
+        for folder in folders:
+            folder.mkdir(parents=True)
+            (folder / ".gitkeep").touch()
 
     def repository(self, name):
         root = self.base / name
@@ -288,26 +296,9 @@ class KrTests(unittest.TestCase):
         self.assertIn("Tokens (Codex): input 200, cached input 100, output 30.", text)
         self.assertIn("Tokens (Claude Code): unavailable.", report.report(start, end, [], [], "", {self.base}))
 
-    def test_init_previews_then_creates_the_boards_once(self):
-        fresh = self.repository("fresh")
-        self.assertIn("Preview only", self.kr(fresh, "init", self.proposal))
-        self.assertFalse((fresh / "project").exists())
-        bad = self.base / "bad.json"
-        for change, message in (({"workflow": dict(WORKFLOW, stages=["backlog", "development", "completion"])},
-                                 "stages"), ({"modules": ["a"]}, "include misc")):
-            bad.write_text(json.dumps(dict(self.settings, **change)))
-            self.assertIn(message, self.kr(fresh, "init", bad, expected=1))
-        self.kr(fresh, "init", self.proposal, "--apply")
-        self.assertEqual((fresh / "kanban-rememory.json").read_bytes(), self.proposal.read_bytes())
-        self.assertTrue((self.board("a", fresh) / "resources/.gitkeep").is_file())
-        self.assertIn("already exist", self.kr(fresh, "init", self.proposal, "--apply", expected=1))
-
     def test_config_file_holds_the_settings_and_picks_the_working_folder(self):
         fresh = self.repository("fresh")
-        work = self.base / "work.json"
-        work.write_text(json.dumps(dict(self.settings, directory="work", kit="0.3.0")))
-        self.kr(fresh, "init", work, "--apply")
-        self.assertEqual((fresh / "kanban-rememory.json").read_bytes(), work.read_bytes())
+        self.install(fresh, dict(self.settings, directory="work", kit="0.3.0"))
         self.assertTrue((fresh / "work/rememory").is_dir())
         self.assertFalse((fresh / "project").exists())
         self.assertIn("Kanban validation passed", self.kr(fresh, "validate"))

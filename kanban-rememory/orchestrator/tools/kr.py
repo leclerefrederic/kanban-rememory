@@ -1,4 +1,4 @@
-"""Kanban Rememory: the module boards, one delivery phase at a time, and project setup."""
+"""Kanban Rememory: the module boards and one delivery phase at a time."""
 
 import argparse
 from pathlib import Path
@@ -8,7 +8,7 @@ import sys
 
 from kanban import board
 from kanban.phase import Phase
-from kanban.project import git, init, load_project
+from kanban.project import git, load_project
 from kanban.validation import validate
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -64,15 +64,10 @@ def main(argv=None, root=ROOT):
     publish.add_argument("--approval", help="the user's approval, quoted")
     publish.add_argument("--notify", metavar="CHAT", help="chat to return to in the Remy delivery alert (default: the project name)")
     publish.add_argument("--language", choices=("en", "fr"), default="en", help="language of the alert labels")
-    setup = sub.add_parser("init", help="create kanban-rememory.json and the boards from an approved proposal")
-    setup.add_argument("settings", type=Path)
-    setup.add_argument("--apply", action="store_true")
     args = parser.parse_args(argv)
     if commands and args.command != "check":
         parser.error("Only check takes commands after --.")
     try:
-        if args.command == "init":
-            return init(root, args.settings, args.apply)
         project = load_project(root)
         phase = Phase(project)
         if args.command == "show":

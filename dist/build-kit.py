@@ -1,7 +1,7 @@
 """Build the installation kit as a ZIP archive from the committed files of HEAD.
 
-Everything sits under kanban-rememory/, the one folder the install replaces, so unpacking the kit in a repository
-cannot overwrite a user file. kanban-rememory.json is this repository's own configuration and stays out; VERSION
+The kit sits under kanban-rememory/, the one folder the install replaces; installer/init.py, the installation script,
+is the only other file. Both stay inside the archive's own folder. kanban-rememory.json is this repository's own configuration and stays out; VERSION
 carries the kit version and the GUARDRAILS.md template is the file of HEAD."""
 
 import json
@@ -23,6 +23,8 @@ def build(root, output=None):
     subprocess.check_call(["git", "archive", "--format=zip", f"--prefix={folder}/", "-o", str(target),
                            "HEAD", "--", "kanban-rememory"], cwd=root)
     with zipfile.ZipFile(target, "a") as kit:
+        kit.writestr(f"{folder}/installer/init.py",
+                     subprocess.check_output(["git", "show", "HEAD:dist/installer/init.py"], cwd=root))
         kit.writestr(f"{folder}/kanban-rememory/VERSION", f"{version}\n")
         kit.writestr(f"{folder}/kanban-rememory/orchestrator/templates/GUARDRAILS.md",
                      subprocess.check_output(["git", "show", "HEAD:GUARDRAILS.md"], cwd=root))

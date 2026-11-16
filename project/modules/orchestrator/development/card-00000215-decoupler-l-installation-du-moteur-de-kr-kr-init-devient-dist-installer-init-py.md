@@ -23,3 +23,5 @@ Le moteur `kr` ne contient plus rien d'installation : la sous-commande `init`, `
 - `kr validate` passe.
 
 ## History
+
+- 2026-11-16T15:02:21+01:00 — Stage moved from `backlog` to `development`.
