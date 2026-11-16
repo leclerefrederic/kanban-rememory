@@ -42,7 +42,6 @@ Any check fails: STOP.
 Set MODE, show the plan to the user and get approval.
 
 - `kanban-rememory/` absent, CONFIG present and DIR present → STOP: a KR project exists without its kit; report it.
-- `kanban-rememory/` absent, CONFIG absent and `project/` present → `project/` is taken: step 3 must set another `directory`.
 - `kanban-rememory/` absent → MODE = install.
 - `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
 - List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes` and CONFIG exist. In upgrade mode DIR is left as it is.
@@ -53,11 +52,12 @@ Set MODE, show the plan to the user and get approval.
 Skip this step when CONFIG exists.
 
 1. Read the target's existing instructions.
-2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking), and the working folder name when `project/` is taken.
+2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
    - Group independent questions. Suggest defaults from the project's real flow. Ask a dependent question after the answer it depends on.
    - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
    - WIP limit: 1 Card per module for solo work.
-3. Present one proposal: the CONFIG content, with `kit` = the `version` in KIT's CONFIG and `directory` (`project`, or another name when `project/` is taken), plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
+   - Working folder (`directory`): propose `project`. When `project/` or the chosen folder already exists, ASK the user to decide: another name, or that folder, with its content kept.
+3. Present one proposal: the CONFIG content, with `kit` = the `version` in KIT's CONFIG and `directory`, plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
 4. ASK for approval of the proposal. No approval: STOP.
 
 Workflows:
