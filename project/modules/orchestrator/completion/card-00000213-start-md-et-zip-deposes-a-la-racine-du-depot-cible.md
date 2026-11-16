@@ -24,3 +24,7 @@ Modèle `start.md`, `install.md` (prérequis et vérification « checkout propre
 ## History
 
 - 2026-11-16T14:52:43+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T14:54:49+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T14:54:49+01:00 — Merge approved for the verified candidate `a9fafd2510c62ad91c78f2483e9189dc3212432b`: “Oui, commit”.
