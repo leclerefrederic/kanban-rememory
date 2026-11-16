@@ -15,6 +15,10 @@ Dans le tableau « Kit contents » de `install.md`, les lignes `kanban-rememory/
 
 `install.md`, ce tableau seulement. Demande de l'utilisateur.
 
+## Scope change
+
+Décision de l'utilisateur : « on continue les modifications » ; s'ajoutent les six écarts de la relecture d'`install.md` : `name` demandé, permissions dans `GUARDRAILS.md`, définition de DIR, version du kit, droit de push et `__pycache__/`, vérification du chat neuf par l'utilisateur.
+
 ## Acceptance criteria
 
 - Une ligne `kanban-rememory/` : « procedure, tools, templates, user guide, lean principles, Telegram guide », action « replace with the folder from KIT ».

@@ -8,9 +8,9 @@ Installing is approved work: a copied file is not permission to execute product 
 - STOP = end the installation, report what the user must fix, ask them to rerun it. Modify nothing.
 - ASK = ask the user, wait for the answer.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`, run from the repository root.
-- KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates.
+- KIT = the kit checkout the user names. Its `kanban-rememory/` folder is the kit; its `AGENTS.md`, `CLAUDE.md` and `GUARDRAILS.md` are the root templates. The `version` in its CONFIG is the kit version.
 - CONFIG = `kanban-rememory.json` at the repository root: the project settings (`name`, `modules`, `workflow`, `version`), `directory` (the working folder, `project` by default) and, optional, `kit`.
-- DIR = the `directory` in CONFIG, `project` when CONFIG is absent.
+- DIR = the `directory` in CONFIG; in install mode, the folder chosen in step 3.
 - Write only: `kanban-rememory/`, CONFIG, DIR, and lines added to `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes`.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
 - NEVER create a repository, a branch or a remote. NEVER push.
@@ -35,6 +35,7 @@ Any check fails: STOP.
 - Working directory is a Git repository.
 - Branch `main` exists.
 - `git ls-remote origin main` answers.
+- `git push --dry-run origin main` succeeds: write access.
 
 ## 2. Diagnosis
 
@@ -50,7 +51,7 @@ Set MODE, show the plan to the user and get approval.
 Skip this step when CONFIG exists.
 
 1. Read the target's existing instructions.
-2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
+2. ASK the user for: project name, modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
    - Group independent questions. Suggest defaults from the project's real flow. Ask a dependent question after the answer it depends on.
    - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
    - WIP limit: 1 Card per module for solo work.
@@ -72,7 +73,7 @@ Every workflow ends with `cancellation` as a terminal stage. `transitions` maps 
 
 Run in this order:
 
-1. `kanban-rememory/`: delete it if present, then copy the folder from KIT. In upgrade mode set `kit` in CONFIG to the `version` in KIT's CONFIG.
+1. `kanban-rememory/`: delete it if present, then copy the folder from KIT, without any `__pycache__/`. In upgrade mode set `kit` in CONFIG to the `version` in KIT's CONFIG.
 2. `AGENTS.md`: append, creating the file if absent:
 
    ```markdown
@@ -80,7 +81,7 @@ Run in this order:
    ```
 
 3. `CLAUDE.md`: append `@AGENTS.md`, creating the file if absent.
-4. `GUARDRAILS.md`: copy from KIT if absent. Write the approved Git permissions under `## Overrides` and remove the comment markers around that section.
+4. `GUARDRAILS.md`: copy from KIT if absent. In install mode write the approved Git permissions under `## Overrides`: uncomment that section in the copy, or append it to the user's existing file.
 5. `.gitignore`: append `__pycache__/`, creating the file if absent.
 6. `.gitattributes`: append `* text=auto`, creating the file if absent.
 7. CONFIG and DIR (not in the kit, change over time): generate once, last, only when CONFIG is absent. Write the approved CONFIG content to a file outside the repository, then run:
@@ -98,7 +99,7 @@ Record the result in the journal.
 
 - `kr validate` passes.
 - `kr show` answers.
-- A fresh chat in the target names the Orchestrator, the boards and the next authorized action.
+- ASK the user to open a fresh chat in the target and check that it names the Orchestrator, the boards and the next authorized action.
 - `GUARDRAILS.md` exists.
 
 ## Option: Telegram
