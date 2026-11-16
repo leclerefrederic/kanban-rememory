@@ -45,7 +45,7 @@ Set MODE, show the plan to the user and get approval.
 - `kanban-rememory/` absent, CONFIG absent and `project/` present → `project/` is taken: step 3 must set another `directory`.
 - `kanban-rememory/` absent → MODE = install.
 - `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
-- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`, CONFIG exists. In upgrade mode DIR is left as it is.
+- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes` and CONFIG exist. In upgrade mode DIR is left as it is.
 - ASK for approval of the plan. No approval: STOP. Change nothing before approval.
 
 ## 3. Decisions
@@ -74,7 +74,7 @@ Every workflow ends with `cancellation` as a terminal stage. `transitions` maps 
 
 Run in this order:
 
-1. `kanban-rememory/`: delete it if present, then copy the folder from KIT.
+1. `kanban-rememory/`: delete it if present, then copy the folder from KIT. In upgrade mode set `kit` in CONFIG to the `version` in KIT's CONFIG.
 2. `AGENTS.md`: append, creating the file if absent:
 
    ```markdown
