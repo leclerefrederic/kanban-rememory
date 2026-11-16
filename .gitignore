@@ -11,3 +11,6 @@ Obsidian/
 
 # Python caches
 __pycache__/
+
+# Kit archives
+/dist/

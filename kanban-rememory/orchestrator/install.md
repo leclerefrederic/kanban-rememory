@@ -9,7 +9,7 @@ Installing is approved work: a copied file is not permission to execute product 
 - STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else. Before section 4 nothing has changed.
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
-- KIT = the kit checkout whose path the user gave. If they gave none, ASK for it.
+- KIT = the kit checkout, or the unpacked kit ZIP, whose path the user gave. If they gave none, ASK for it.
 - KIT_VERSION = `version` in `KIT/kanban-rememory.json`.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
 - CONFIG = `kanban-rememory.json` at the root of TARGET. It holds `name`, `directory`, `modules`, `workflow`, `version` and, installed by this procedure, `kit`.

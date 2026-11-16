@@ -23,3 +23,5 @@ Script `kanban-rememory/orchestrator/tools/build-kit.py`, son test dans `test-kr
 - `kr validate` passe.
 
 ## History
+
+- 2026-11-16T14:04:03+01:00 — Stage moved from `backlog` to `development`.

@@ -13,6 +13,7 @@ import sys
 import tempfile
 import unittest
 from unittest import mock
+import zipfile
 
 KIT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(KIT / "kanban-rememory/orchestrator/tools"))
@@ -287,6 +288,24 @@ class KrTests(unittest.TestCase):
         self.assertIn("Tokens (Claude Code): input 3, cache write 6, cache read 9, output 12.", text)
         self.assertIn("Tokens (Codex): input 200, cached input 100, output 30.", text)
         self.assertIn("Tokens (Claude Code): unavailable.", report.report(start, end, [], [], "", {self.base}))
+
+    def test_build_kit_zips_the_committed_kit_files(self):
+        spec = importlib.util.spec_from_file_location("build_kit", KIT / "kanban-rememory/orchestrator/tools/build-kit.py")
+        build_kit = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(build_kit)
+        for name in ("AGENTS.md", "CLAUDE.md", "GUARDRAILS.md"):
+            (self.root / name).write_text("kit\n")
+        (self.root / "notes.md").write_text("not in the kit\n")
+        self.commit(self.root, "Add kit files")
+        archive = build_kit.build(self.root)
+        self.assertEqual(archive, self.root / "dist/kanban-rememory-kit-0.0.0.zip")
+        with zipfile.ZipFile(archive) as kit:
+            names = set(kit.namelist())
+        prefix = "kanban-rememory-kit-0.0.0/"
+        self.assertIn(prefix + "AGENTS.md", names)
+        self.assertIn(prefix + "kanban-rememory.json", names)
+        self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
+        self.assertFalse(any(name.endswith("notes.md") or "project/" in name for name in names))
 
     def test_init_previews_then_creates_the_boards_once(self):
         fresh = self.repository("fresh")
