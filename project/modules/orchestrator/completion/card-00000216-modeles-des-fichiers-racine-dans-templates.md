@@ -24,3 +24,7 @@ Les cinq modèles, `dist/INSTALL.md`, `dist/build-kit.py` et son test, ZIP recon
 ## History
 
 - 2026-11-16T15:26:27+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T15:30:18+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T15:30:18+01:00 — Merge approved for the verified candidate `a4781859e37f7ae2e8d6346859f6b59a930f6dbf`: “Oui, commit”.
