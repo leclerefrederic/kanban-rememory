@@ -38,3 +38,7 @@ Hors périmètre : `workflow.completed` et toute autre clé.
 - 2026-11-16 — Décision de l'utilisateur : retirer `schema_version` et la section « Upgrade ».
 
 - 2026-11-16T08:44:16+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T08:44:56+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T08:44:56+01:00 — Merge approved for the verified candidate `d077e335c4083fb09e675d9fac8ca4ba2d4e0474`: “Oui, exécute-la et fusionne sur main”.
