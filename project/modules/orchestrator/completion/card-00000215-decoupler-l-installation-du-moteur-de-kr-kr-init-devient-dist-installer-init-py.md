@@ -25,3 +25,7 @@ Le moteur `kr` ne contient plus rien d'installation : la sous-commande `init`, `
 ## History
 
 - 2026-11-16T15:02:21+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T15:04:11+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T15:04:11+01:00 — Merge approved for the verified candidate `fb019e3880b648b99bc120747359dabb887a55e3`: “Oui, commit”.
