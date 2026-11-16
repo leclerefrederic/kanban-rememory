@@ -35,3 +35,7 @@ Demande de l'utilisateur du 2026-11-16 : aucune notification de livraison entre 
 ## History
 
 - 2026-11-16T01:05:45+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T01:07:15+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T01:07:15+01:00 — Merge approved for the verified candidate `e6319be6b3f90e4d51190160747360230b6228fb`: “Approuvé”.
