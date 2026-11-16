@@ -24,3 +24,7 @@ Le ZIP ne contient plus `kanban-rememory.json` : c'est la configuration de ce d�
 ## History
 
 - 2026-11-16T14:09:34+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T14:10:35+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T14:10:35+01:00 — Merge approved for the verified candidate `a9e082b8fe2b31a3d61b2fba25763f04ce2f5667`: “Oui, commit”.
