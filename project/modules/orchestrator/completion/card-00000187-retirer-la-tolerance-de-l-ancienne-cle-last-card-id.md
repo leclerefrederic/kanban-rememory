@@ -30,3 +30,7 @@ Hors périmètre : `schema_version` et la section « Upgrade » de `install.md`.
 - 2026-11-16 — Décision de l'utilisateur : retirer la tolérance, exécuter la Card et fusionner dans `main`.
 
 - 2026-11-16T08:42:42+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T08:43:08+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T08:43:08+01:00 — Merge approved for the verified candidate `4b5ca8af91b113035297060d4226b9c076ac5b0f`: “Oui, crée la Card, exécute-la et fusionne sur main.”.
