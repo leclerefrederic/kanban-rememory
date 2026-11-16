@@ -26,3 +26,7 @@ Demande de l'utilisateur du 2026-11-16 : fichier `GUARDRAILS.md` en majuscules �
 ## History
 
 - 2026-11-16T09:21:45+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T09:22:05+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T09:22:05+01:00 — Merge approved for the verified candidate `31a3b97897f13d650a4b738758f56ce8d9e328b4`: “Approuvé”.
