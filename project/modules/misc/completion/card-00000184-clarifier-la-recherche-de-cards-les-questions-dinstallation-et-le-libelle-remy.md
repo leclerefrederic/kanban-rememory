@@ -25,3 +25,7 @@ Les trois corrections textuelles de l’audit sont autorisées par « Fais les 3
 ## History
 
 - 2026-11-16T07:44:27+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T07:50:44+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T07:50:44+01:00 — Merge approved for the verified candidate `1e5c93a296328d8925e027f188eef4394dd613c8`: “Oui, publie 1e5c93a sur origin/main.”.
