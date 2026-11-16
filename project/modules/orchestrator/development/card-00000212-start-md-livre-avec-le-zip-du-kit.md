@@ -22,3 +22,5 @@ Modèle `kanban-rememory/orchestrator/templates/start.md`, `build-kit.py`, son t
 - `kr validate` passe.
 
 ## History
+
+- 2026-11-16T14:42:15+01:00 — Stage moved from `backlog` to `development`.

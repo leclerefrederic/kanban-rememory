@@ -295,6 +295,8 @@ class KrTests(unittest.TestCase):
         spec.loader.exec_module(build_kit)
         for name in ("AGENTS.md", "GUARDRAILS.md"):
             (self.root / name).write_text("kit\n")
+        (self.root / "kanban-rememory/orchestrator/templates").mkdir(parents=True, exist_ok=True)
+        shutil.copy(KIT / "kanban-rememory/orchestrator/templates/start.md", self.root / "kanban-rememory/orchestrator/templates/start.md")
         (self.root / "notes.md").write_text("not in the kit\n")
         self.commit(self.root, "Add kit files")
         archive = build_kit.build(self.root)
@@ -306,6 +308,9 @@ class KrTests(unittest.TestCase):
         self.assertIn(prefix + "kanban-rememory/VERSION", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/templates/GUARDRAILS.md", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
+        start = (archive.parent / "START.md").read_text()
+        self.assertIn("kanban-rememory-kit-0.0.0.zip", start)
+        self.assertIn("/path/to/kanban-rememory-kit-0.0.0/kanban-rememory/orchestrator/install.md", start)
 
     def test_init_previews_then_creates_the_boards_once(self):
         fresh = self.repository("fresh")
