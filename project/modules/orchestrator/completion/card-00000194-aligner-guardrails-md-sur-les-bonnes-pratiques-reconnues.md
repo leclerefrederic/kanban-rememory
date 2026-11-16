@@ -29,3 +29,7 @@ Demande de l'utilisateur du 2026-11-16, successeur de CARD-00000193. Travail sur
 ## History
 
 - 2026-11-16T09:26:22+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T09:28:57+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T09:28:57+01:00 — Merge approved for the verified candidate `e6aaa5a5a0453d035639c937f51dede575ff87de`: “Approuvé”.
