@@ -8,7 +8,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 
 - Run sections 0 to 5 in order. Finish a section before starting the next. Do not skip, merge or reorder steps.
 - A step with no ASK has no choice: do what it says. Never ask the user something the step does not ask.
-- STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else. Before section 4 nothing has changed.
+- STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else except delete the temporary folders this procedure created. Before section 4 nothing in TARGET has changed.
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
 - KIT = the absolute path of the folder `kanban-rememory-kit-<version>` inside the folder created in section 0. In every command, replace `KIT`, `DIR` and `KIT_VERSION` by their values: shell variables do not persist between commands.
@@ -20,7 +20,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - MODE = `install` when CONFIG is absent, `upgrade` when it exists.
 - Write only: `kanban-rememory/`, CONFIG, DIR, `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`.
 - TEMPLATES = `KIT/kanban-rememory/orchestrator/templates`. `.gitignore` and `.gitattributes` there are hidden files: list with `ls -a`.
-- Template rule, for a root file and its template in TEMPLATES: the file is absent: copy the template. The file exists: append each non-blank line of the template that no line of the file equals, in the template's order. If the existing file does not end with a newline, add one before appending.
+- Template rule, for a root file and its template in TEMPLATES: the file is absent: copy the template. The file exists: take the template's lines in order, drop each non-blank line that a line of the file equals, drop the leading and trailing blank lines, and collapse each run of blank lines into one. Nothing left: change nothing. Otherwise append what is left to the file. If the file does not end with a newline, add one first. For `AGENTS.md` and `CLAUDE.md` also add one blank line first when the file is not empty.
 - NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`.
 - NEVER create a repository, a branch or a remote. NEVER push.
 
@@ -65,14 +65,15 @@ Run each command. A result other than the expected one: STOP.
 | Remote writable | `git push --dry-run origin main` | exit 0 |
 | KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f KIT/installer/init.py && test -f KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md` | exit 0 |
 | KIT is not TARGET | `test "$(cd KIT && pwd -P)" != "$(pwd -P)"` | exit 0 |
+| No foreign `kanban-rememory/` | `test -e kanban-rememory.json \|\| test ! -e kanban-rememory` | exit 0. Otherwise STOP and say: `kanban-rememory/` is not from this kit; move or remove it yourself, commit that, and rerun |
 
 ## 2. Diagnosis
 
-1. Set MODE. Install mode and `kanban-rememory/` exists: STOP and tell the user it is not from this kit, to move or remove it themselves.
+1. Set MODE.
 2. Show the plan, with exactly these lines:
    - `MODE`, and `KIT_VERSION`; in upgrade mode also the installed `kit` from CONFIG, or `none` when CONFIG has no `kit`.
    - `kanban-rememory/`: `replaced` in upgrade mode, `created` in install mode.
-   - For each of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`: `created` if absent, `kept, lines appended` if it exists (`kept` alone for `GUARDRAILS.md` in upgrade mode).
+   - For each of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`: `created` if absent, `kept` if it exists. Add `, N lines appended` when the template rule appends N lines. `GUARDRAILS.md` is `kept`; in install mode add `, permission lines added after your answers`.
    - Install mode: `CONFIG and DIR created after your answers`. Upgrade mode: `CONFIG: only kit changes; DIR left as it is`.
    - `One commit on main. Nothing is pushed.`
 3. ASK: `Approve this plan? yes / no`. `yes`: continue. `no`: STOP.
@@ -99,7 +100,7 @@ Upgrade mode: skip this section.
    - It exists as a file: refuse it, ASK for another name.
    - It exists as a folder: ASK `Use another name, or use this folder and keep its content?`.
      - Another name: ASK for the name, then check it again here.
-     - Use this folder: run the four checks below from the root of TARGET. Any output is a path that `kr validate` would reject: show the paths, then treat the answer as `Another name`. With no output, list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
+     - Use this folder: run the four checks below from the root of TARGET. Any output is a path that `kr validate` would reject: show the paths, then treat the answer as `Another name`: ASK for the name and check it again here, with no `Confirm?`. With no output, list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
 
        | Check | Command (`DIR` = the folder; list the allowed names in the `-name` tests) | Expected |
        | --- | --- | --- |
@@ -149,7 +150,7 @@ Run in this order. A failing command: STOP and report the command and its output
    git commit -m "Install Kanban Rememory KIT_VERSION"
    ```
 
-   Replace `DIR` and `KIT_VERSION` by their values. Upgrade mode: the message is `Upgrade Kanban Rememory to KIT_VERSION`.
+   Replace `DIR` and `KIT_VERSION` by their values. `DIR` includes the `.gitkeep` files that `init` creates in empty folders: they are tracked. Upgrade mode: the message is `Upgrade Kanban Rememory to KIT_VERSION`.
 
 ## 5. Verification
 

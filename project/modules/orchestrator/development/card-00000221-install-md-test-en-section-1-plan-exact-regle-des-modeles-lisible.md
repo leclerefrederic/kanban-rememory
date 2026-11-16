@@ -19,3 +19,7 @@ module: "orchestrator"
 
 - Les six points sont écrits sans équivoque dans `INSTALL.md`.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T18:37:51+01:00 — Stage moved from `backlog` to `development`.
