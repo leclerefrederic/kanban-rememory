@@ -36,7 +36,7 @@ class KrTests(unittest.TestCase):
         patcher = mock.patch.dict(os.environ, environment)
         patcher.start()
         self.addCleanup(patcher.stop)
-        self.settings = {"schema_version": 2, "name": "Fixture", "modules": ["a", "b", "misc"],
+        self.settings = {"name": "Fixture", "modules": ["a", "b", "misc"],
                          "workflow": WORKFLOW, "version": "0.0.0"}
         self.proposal = self.base / "proposal.json"
         self.proposal.write_text(json.dumps(self.settings))

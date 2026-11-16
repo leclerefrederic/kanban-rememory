@@ -14,7 +14,7 @@ SETTINGS = Path("project/settings.json")
 MODULES = Path("project/modules")
 JOURNAL = Path("project/rememory")
 MISC = "misc"
-KEYS = ("schema_version", "name", "modules", "workflow", "version")
+KEYS = ("name", "modules", "workflow", "version")
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -82,8 +82,6 @@ def parse_settings(root, source):
         data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_keys)
         if not isinstance(data, dict) or set(data) != set(KEYS):
             raise ValueError(f"Settings must contain exactly: {', '.join(KEYS)}.")
-        if type(data["schema_version"]) is not int or data["schema_version"] != 2:
-            raise ValueError("Unsupported schema_version; expected 2. See orchestrator/install.md to upgrade.")
         name = data["name"]
         if not isinstance(name, str) or not name.strip() or "\n" in name or "\r" in name:
             raise ValueError("name must be a single-line display name.")
@@ -145,7 +143,7 @@ def init(root, proposal, apply):
     """Create the settings and the empty boards from an approved proposal, once."""
     settings = root / SETTINGS
     if settings.exists() or settings.is_symlink():
-        raise ValueError("Project settings already exist; an upgrade needs an approved migration.")
+        raise ValueError("Project settings already exist.")
     source = proposal.read_bytes()  # validate and write the same bytes
     project = parse_settings(root, source)
     check_new_workflow(project.workflow)
