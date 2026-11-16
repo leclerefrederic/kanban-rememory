@@ -1,52 +1,61 @@
 # Install or upgrade Kanban Rememory
 
-Installing is approved work like any other: a copied file is not permission to execute product work. Human explanations are in [the user guide](../documentation/guide.md#start-a-project).
+Installing is approved work: a copied file is not permission to execute product work. User explanations: [the user guide](../documentation/guide.md#start-a-project).
 
-Each step has an action, an expected result and what to do when it is not met: **STOP** (tell the user what to fix and to rerun the installation) or **ASK**.
+## Instructions
 
-The kit is `orchestrator/`, `documentation/`, `CLAUDE.md`, `AGENTS.md` and `GUARDRAILS.md`. `project/` is not part of it: `kr init` creates it with the user.
+- Execute steps 1 to 5 in order. Finish a step before starting the next.
+- STOP = end the installation, report what the user must fix, ask them to rerun it. Modify nothing.
+- ASK = ask the user, wait for the answer.
+- Act only on the gaps listed in step 2 and approved in step 3.
+- Write only: kit items, `project/`, lines added to `.gitignore` and `.gitattributes`.
+- NEVER overwrite an existing `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` or `.gitattributes`. Append the proposal's lines.
+- NEVER create a repository, a branch or a remote. NEVER push.
+
+## Kit contents
+
+| Item | Role | Install action |
+| --- | --- | --- |
+| `orchestrator/` | procedure, tools, templates | copy |
+| `documentation/` | user guide, lean principles, Telegram guide | copy |
+| `AGENTS.md` | agent entry point | append workflow line |
+| `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | append `@AGENTS.md` |
+| `GUARDRAILS.md` | user rules for the agent | copy if absent |
 
 ## 1. Prerequisites
 
-Any failure: **STOP**. Do not create a repository, a branch or a remote.
+Any check fails: STOP.
 
-- [ ] Python 3.9+ is available
-- [ ] Git is available
-- [ ] The working directory is a Git repository
-- [ ] The branch `main` exists
-- [ ] `git ls-remote origin main` answers
+- Python 3.9+ available.
+- Git available.
+- Working directory is a Git repository.
+- Branch `main` exists.
+- `git ls-remote origin main` answers.
 
 ## 2. Diagnosis
 
-Result: the gap table.
-
-- [ ] Fill one row per element with its state: absent, identical or different
-- [ ] Show the table to the user: it is the plan
+Build the gap table, one row per element, state = `absent` | `identical` | `different`. Show it to the user: it is the plan.
 
 | Element | Compare with the kit |
 | --- | --- |
-| `orchestrator/` | each file |
-| `documentation/` | each file |
-| `AGENTS.md` | the workflow line is present |
-| `CLAUDE.md` | `@AGENTS.md` is present |
-| `GUARDRAILS.md` | the file exists |
-| `.gitignore` | `__pycache__/` is listed |
+| `orchestrator/`, `documentation/` | each file |
+| `AGENTS.md` | workflow line present |
+| `CLAUDE.md` | `@AGENTS.md` present |
+| `GUARDRAILS.md` | file exists |
+| `.gitignore` | `__pycache__/` listed |
+| `.gitattributes` | `* text=auto` present |
 
 ## 3. Decisions
 
-Result: one approved proposal. No approval: **STOP**.
+1. Read the target's existing instructions.
+2. ASK the user for: modules, workflow, WIP limit, timezone, what counts as delivered, Git permissions (for example: commit on `main`, merge without asking).
+   - Group independent questions. Suggest defaults from the project's real flow. Ask a dependent question after the answer it depends on.
+   - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
+   - WIP limit: 1 Card per module for solo work.
+3. Present one proposal: files to copy or append, settings, checks, lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
+4. No approval: STOP. Copy nothing before approval.
 
-- [ ] Read the target's existing instructions
-- [ ] Agree with the user on:
-  - [ ] the modules (lowercase IDs, `misc` included; a small project can use `misc` alone)
-  - [ ] the workflow (see below)
-  - [ ] the WIP limit (one Card per module for solo work)
-  - [ ] the timezone
-  - [ ] what counts as delivered
-  - [ ] the Git permissions, such as committing on `main` or merging without asking
-- [ ] Group the independent questions, suggest defaults from the project's real flow, and ask dependent questions after the answers they rely on
-- [ ] Present the proposal: files, settings, checks, and the `__pycache__/` line added to their `.gitignore`
-- [ ] Obtain the approval before copying anything
+Workflows:
 
 | Workflow | Use when | Stages | Active |
 | --- | --- | --- | --- |
@@ -54,40 +63,41 @@ Result: one approved proposal. No approval: **STOP**.
 | Standard | A distinct review precedes delivery. | backlog → development → code-review → completion | development, code-review |
 | Long | Preparation, verification and release have their own queues. | backlog → refinement → development → code-review → testing → deployment → completion | development, code-review, testing, deployment |
 
-Every workflow also has `cancellation` as a terminal stage. `transitions` maps each stage to its permitted destinations; review failures return to development. `version` is the current release number, `0.0.0` for a new project; each published release raises it and tags `vX.Y.Z`. This kit's `project/settings.json` shows the format.
+Every workflow ends with `cancellation` as a terminal stage. `transitions` maps each stage to its allowed destinations; review failures return to development. `version` = current release, `0.0.0` for a new project; each published release raises it and tags `vX.Y.Z`. Format: this kit's `project/settings.json`.
 
 ## 4. Application
 
-Act only on the rows of the gap table. Never overwrite an existing `AGENTS.md`, `CLAUDE.md` or `GUARDRAILS.md`. Never copy this kit's Cards, journal or `README.md`.
+Run in this order, for the rows of the gap table only:
 
-- [ ] `orchestrator/`, `documentation/`: copy the absent files; for each different file, show the `diff` and let the user keep theirs or take the kit's
-- [ ] `AGENTS.md`: add the workflow line, creating the file when absent
+1. `orchestrator/`, `documentation/`: copy absent files. For each `different` file, show the `diff`; the user keeps theirs or takes the kit's.
+2. `AGENTS.md`: append, creating the file if absent:
 
-  ```markdown
-  Act as the Orchestrator and follow the [workflow](orchestrator/workflow.md).
-  ```
+   ```markdown
+   Act as the Orchestrator and follow the [workflow](orchestrator/workflow.md).
+   ```
 
-- [ ] `CLAUDE.md`: add `@AGENTS.md`, creating the file when absent (Claude Code reads it; Codex reads `AGENTS.md`)
-- [ ] `GUARDRAILS.md`: copy it when absent, then write the approved Git permissions under `## Overrides`, removing the comment markers around that section
-- [ ] `.gitignore`: add `__pycache__/`
-- [ ] `project/`: it is not part of the kit and it keeps changing, so generate it once, last. Write the approved settings to a file outside the repository, then run
+3. `CLAUDE.md`: append `@AGENTS.md`, creating the file if absent.
+4. `GUARDRAILS.md`: copy if absent. Write the approved Git permissions under `## Overrides` and remove the comment markers around that section.
+5. `.gitignore`: append `__pycache__/`, creating the file if absent.
+6. `.gitattributes`: append `* text=auto`, creating the file if absent.
+7. `project/` (not in the kit, changes over time): generate once, last. Write the approved settings to a file outside the repository, then run:
 
-  ```sh
-  python3 orchestrator/tools/kr.py init /path/to/settings.json
-  python3 orchestrator/tools/kr.py init /path/to/settings.json --apply
-  ```
+   ```sh
+   python3 orchestrator/tools/kr.py init /path/to/settings.json
+   python3 orchestrator/tools/kr.py init /path/to/settings.json --apply
+   ```
 
-- [ ] Commit the installation. Do not push: pushing follows the normal delivery, with the user's approval
+8. Commit the installation. Do not push: pushing follows normal delivery with the user's approval.
 
 ## 5. Verification
 
-Result: the installation is proven. Record it in the journal.
+Record the result in the journal.
 
-- [ ] `kr validate` passes
-- [ ] `kr show` answers
-- [ ] A fresh chat in the target names the Orchestrator, the boards and the next authorized action
-- [ ] `GUARDRAILS.md` exists
+- `kr validate` passes.
+- `kr show` answers.
+- A fresh chat in the target names the Orchestrator, the boards and the next authorized action.
+- `GUARDRAILS.md` exists.
 
 ## Option: Telegram
 
-Set it up only if the project approves it, by giving the user [the Telegram guide](../documentation/telegram-setup.md).
+Only if the project approves: give the user [the Telegram guide](../documentation/telegram-setup.md).
