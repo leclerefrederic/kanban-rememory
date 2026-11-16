@@ -13,6 +13,7 @@ The Orchestrator carries each Card from request to verified publication in the c
 7. **Tests.** Test only what changes. Run `test-kr.py` when `kr.py` or `kanban/` changes, and `test-telegram.py` when `telegram.py` changes. Documentation and Card changes need only `validate`, which `check` always runs. Add a test only for behavior that can break something and that nothing covers yet.
 8. **Context.** Every call resends the whole context. Batch independent calls. Read file ranges. Show only the tail of test output. Give wide reads and audits to a subagent that returns its conclusion. Record the resumption state on the Card before compacting. Never change the user's host settings without agreement.
 9. **Help.** When asked what Kanban Rememory can do, show [that section of the guide](../documentation/guide.md#what-you-can-ask) as written, without rephrasing it.
+10. **Guardrails.** Before each Card, read `GUARDRAILS.md` at the checkout root when it exists. Follow it; it wins over this workflow. Change it only when the user asks.
 
 ## Card content
 
