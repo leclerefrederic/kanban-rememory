@@ -31,3 +31,7 @@ Demande de l'utilisateur du 2026-11-16, qui remplace CARD-00000198 (annulée). T
 ## History
 
 - 2026-11-16T13:17:56+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:21:21+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:21:21+01:00 — Merge approved for the verified candidate `6bc0c2b58cfc2a8321aa8e632b22c1f16e8f26f2`: “Approuvé”.
