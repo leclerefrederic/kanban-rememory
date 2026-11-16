@@ -20,3 +20,7 @@ Dans `install.md`, la présence de `kanban-rememory.json` à la racine signale u
 - Étape 2 : fichier présent = upgrade, absent = install ; plus de STOP sur « projet sans kit ».
 - En upgrade, `kanban-rememory/` est remplacé en bloc, ou installé s'il manque ; le fichier et le dossier de travail restent, sauf `kit`.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T13:54:17+01:00 — Stage moved from `backlog` to `development`.

@@ -41,10 +41,9 @@ Any check fails: STOP.
 
 Set MODE, show the plan to the user and get approval.
 
-- `kanban-rememory/` absent, CONFIG present and DIR present → STOP: a KR project exists without its kit; report it.
-- `kanban-rememory/` absent → MODE = install.
-- `kanban-rememory/` present → MODE = upgrade. The plan says: the folder is replaced as a whole.
-- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes` and CONFIG exist. In upgrade mode DIR is left as it is.
+- CONFIG absent → MODE = install.
+- CONFIG present → MODE = upgrade: an installation exists, and CONFIG gives DIR, the modules and the workflow. The plan says: `kanban-rememory/` is replaced as a whole, or installed when missing; CONFIG and DIR are left as they are, except `kit`.
+- List which of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore` and `.gitattributes` exist.
 - ASK for approval of the plan. No approval: STOP. Change nothing before approval.
 
 ## 3. Decisions
