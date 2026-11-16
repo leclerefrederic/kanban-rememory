@@ -31,3 +31,7 @@ Demande de l'utilisateur du 2026-11-16, après audit et test dans un dépôt jet
 ## History
 
 - 2026-11-16T11:56:47+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T11:57:17+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T11:57:17+01:00 — Merge approved for the verified candidate `05167570670d72bcba4864e9051039ed0b42f91b`: “Approuvé”.
