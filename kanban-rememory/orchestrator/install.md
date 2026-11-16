@@ -9,8 +9,8 @@ Installing is approved work: a copied file is not permission to execute product 
 - STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else. Before section 4 nothing has changed.
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
-- KIT = the kit checkout, or the unpacked kit ZIP, whose path the user gave. If they gave none, ASK for it.
-- KIT_VERSION = `version` in `KIT/kanban-rememory.json`.
+- KIT = the unpacked kit ZIP whose path the user gave. If they gave none, ASK for it.
+- KIT_VERSION = the content of `KIT/VERSION`, one release number.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
 - CONFIG = `kanban-rememory.json` at the root of TARGET. It holds `name`, `directory`, `modules`, `workflow`, `version` and, installed by this procedure, `kit`.
 - DIR = the `directory` in CONFIG; in install mode, the working folder chosen in step 3.
@@ -43,7 +43,7 @@ Run each command. A result other than the expected one: STOP.
 | Clean checkout | `git status --porcelain` | prints nothing |
 | Remote readable | `git ls-remote origin main` | exit 0, prints one line |
 | Remote writable | `git push --dry-run origin main` | exit 0 |
-| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory.json && test -f KIT/AGENTS.md && test -f KIT/CLAUDE.md && test -f KIT/GUARDRAILS.md` | exit 0 |
+| KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/VERSION && test -f KIT/AGENTS.md && test -f KIT/CLAUDE.md && test -f KIT/GUARDRAILS.md` | exit 0 |
 | KIT is not TARGET | `test "$(cd KIT && pwd -P)" != "$(pwd -P)"` | exit 0 |
 
 ## 2. Diagnosis

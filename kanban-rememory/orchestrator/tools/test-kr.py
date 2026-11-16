@@ -303,7 +303,8 @@ class KrTests(unittest.TestCase):
             names = set(kit.namelist())
         prefix = "kanban-rememory-kit-0.0.0/"
         self.assertIn(prefix + "AGENTS.md", names)
-        self.assertIn(prefix + "kanban-rememory.json", names)
+        self.assertIn(prefix + "VERSION", names)
+        self.assertNotIn(prefix + "kanban-rememory.json", names)
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
         self.assertFalse(any(name.endswith("notes.md") or "project/" in name for name in names))
 

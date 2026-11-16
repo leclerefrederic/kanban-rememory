@@ -1,12 +1,15 @@
-"""Build the installation kit as a ZIP archive from the committed files of HEAD."""
+"""Build the installation kit as a ZIP archive from the committed files of HEAD.
+
+kanban-rememory.json is this repository's own configuration, so it stays out; VERSION carries the kit version."""
 
 import json
 from pathlib import Path
 import subprocess
 import sys
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[3]
-KIT_FILES = ("kanban-rememory", "kanban-rememory.json", "AGENTS.md", "CLAUDE.md", "GUARDRAILS.md")
+KIT_FILES = ("kanban-rememory", "AGENTS.md", "CLAUDE.md", "GUARDRAILS.md")
 
 
 def build(root, output=None):
@@ -18,6 +21,8 @@ def build(root, output=None):
     target.parent.mkdir(parents=True, exist_ok=True)
     subprocess.check_call(["git", "archive", "--format=zip", f"--prefix={folder}/", "-o", str(target),
                            "HEAD", "--", *KIT_FILES], cwd=root)
+    with zipfile.ZipFile(target, "a") as kit:
+        kit.writestr(f"{folder}/VERSION", f"{version}\n")
     return target
 
 

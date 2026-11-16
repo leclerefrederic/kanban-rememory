@@ -22,3 +22,5 @@ Le ZIP ne contient plus `kanban-rememory.json` : c'est la configuration de ce dÃ
 - `kr validate` passe.
 
 ## History
+
+- 2026-11-16T14:09:34+01:00 â€” Stage moved from `backlog` to `development`.
