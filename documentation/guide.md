@@ -13,7 +13,7 @@ Completed Cards are history. A correction or a new idea gets a new Card that ref
 
 ## Start a project
 
-Tell the agent which repository to use and that you want Kanban Rememory. It checks the prerequisites, Git and Python 3.9 or later. It asks, one question at a time, what it cannot infer: the modules, the workflow (short, standard, long or custom), the work-in-progress limit, what counts as delivered and the Git permissions. Developing, accepting a delivery and publishing are separate permissions; one instruction can grant several. The agent proposes the setup, applies it after your approval and checks it. If the repository already uses Kanban Rememory, the agent resumes instead.
+Tell the agent which repository to use and that you want Kanban Rememory. It checks the prerequisites, Git and Python 3.9 or later. It groups independent setup questions and suggests defaults. If one decision depends on another, it asks for the first decision before following up. Setup covers modules, workflow, the work-in-progress limit, the timezone, what counts as delivered and Git permissions. Developing, accepting a delivery and publishing are separate permissions; one instruction can grant several. The agent proposes the setup, applies it after your approval and checks it. If the repository already uses Kanban Rememory, the agent resumes instead.
 
 ## Give work
 

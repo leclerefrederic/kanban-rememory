@@ -5,7 +5,7 @@ Installing is approved work like any other: a copied file is not permission to e
 ## Agree
 
 1. Check Python 3.9+, Git, the target repository or the authorization to create one, its existing instructions and the `schema_version` of any installed `project/settings.json`.
-2. Agree on the modules, the workflow, the WIP limit, the timezone, what counts as delivered and the Git permissions. Ask only the unresolved questions, one at a time, and suggest answers from the project's actual flow. Module IDs are lowercase and include `misc`; a small project can use `misc` alone.
+2. Agree on the modules, the workflow, the WIP limit, the timezone, what counts as delivered and the Git permissions. Group unresolved independent questions and suggest defaults based on the project's actual flow. Ask dependent questions after the answers they rely on. Module IDs are lowercase and include `misc`; a small project can use `misc` alone.
 3. Present one proposal (files, settings, checks) and obtain approval before copying anything.
 
 | Workflow | Use when | Stages | Active |

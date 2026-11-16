@@ -37,7 +37,7 @@ Success means both that the test arrived and that the Terminal printed **Configu
 
 ## Remy during Card delivery
 
-Remy uses **Intervention required** when you need to unblock the work or approve a verified revision for merge into `main`. The merge alert includes any automatic production deployment that the merge or push will trigger. Reply in the original work chat. Remy uses **Work completed** once the agreed delivery is verified and includes where to find the result.
+Remy uses **Action required** when you need to unblock the work or approve a verified revision for merge into `main`. The merge alert includes any automatic production deployment that the merge or push will trigger. Reply in the original work chat. Remy uses **Work completed** once the agreed delivery is verified and includes where to find the result.
 
 ## Storage and later tests
 
