@@ -25,3 +25,7 @@ Script `kanban-rememory/orchestrator/tools/build-kit.py`, son test dans `test-kr
 ## History
 
 - 2026-11-16T14:04:03+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T14:05:45+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T14:05:45+01:00 — Merge approved for the verified candidate `8ca7d2d5be0adb04fd467d93554105e9c8574318`: “Oui, commit”.
