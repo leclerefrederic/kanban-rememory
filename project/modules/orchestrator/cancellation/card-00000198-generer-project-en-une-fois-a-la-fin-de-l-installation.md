@@ -29,3 +29,5 @@ Demande de l'utilisateur du 2026-11-16, successeur de CARD-00000197. Travail sur
 ## History
 
 - 2026-11-16T12:58:14+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:17:29+01:00 — Stage moved from `development` to `cancellation`.
