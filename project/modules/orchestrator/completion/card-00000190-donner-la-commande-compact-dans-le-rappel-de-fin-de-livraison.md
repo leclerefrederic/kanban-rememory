@@ -26,3 +26,7 @@ Demande de l'utilisateur du 2026-11-16, successeur de CARD-00000182 : modifier l
 ## History
 
 - 2026-11-16T08:50:22+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T08:51:07+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T08:51:07+01:00 — Merge approved for the verified candidate `76ac75192a47d0293d244205084ae297bb9f1e8d`: “Approuvé”.
