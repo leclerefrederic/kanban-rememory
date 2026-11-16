@@ -21,7 +21,11 @@ Describe the result, the constraints that matter and how to check success. Add a
 
 > Fix the broken links in the setup guide without changing the instructions. Check that every local link opens the right section. You can execute this and publish under the project's permissions.
 
-Say what you want next; the wording is free:
+Say what you want next, as listed in [what you can ask](#what-you-can-ask). The agent looks for an existing Card, records the scope and your decisions, and asks about any ambiguous behavior instead of inventing it. Every requirement should pass the [approval test](lean-specifications.md#the-approval-test).
+
+## What you can ask
+
+The wording is free; these are examples.
 
 | You want to… | You can say |
 | --- | --- |
@@ -29,8 +33,11 @@ Say what you want next; the wording is free:
 | Keep it for later | "Put this in the backlog; do not start it." |
 | Start agreed work | "Execute this within the agreed scope." |
 | Change priority | "Prioritize this and tell me what it means for the work in progress." |
-
-The agent looks for an existing Card, records the scope and your decisions, and asks about any ambiguous behavior instead of inventing it. Every requirement should pass the [approval test](lean-specifications.md#the-approval-test).
+| See where things stand | "What is in progress, what is waiting, and what is the next action?" |
+| Resume after a break | "Resume work in this repository." |
+| Report a defect | "This differs from what we agreed: …" |
+| List the published versions | "Which versions have been published?" |
+| Add a module | "Add a module `docs` for the documentation work." The agent adds it once you agree. |
 
 ## Review and approve
 
