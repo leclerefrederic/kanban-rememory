@@ -4,8 +4,8 @@ Installing is approved work like any other: a copied file is not permission to e
 
 ## Agree
 
-1. Check Python 3.9+, Git, the target repository or the authorization to create one, its existing instructions and any installed `project/settings.json`. Kanban Rememory needs a `main` branch with a first commit and a remote `origin` that holds `main`: `check` and `publish` fail without them. Ask for the remote URL, or for agreement to continue without publishing.
-2. Agree on the modules, the workflow, the WIP limit, the timezone, what counts as delivered and the Git permissions (such as committing on `main` or merging without asking). Group unresolved independent questions and suggest defaults based on the project's actual flow. Ask dependent questions after the answers they rely on. Module IDs are lowercase and include `misc`; a small project can use `misc` alone.
+1. Check that Python 3.9+ and Git are available and that the working directory is a Git repository. If it is not, ask for agreement to create one.
+2. Read the target's existing instructions and any installed `project/settings.json`. Agree on the modules, the workflow, the WIP limit, the timezone, what counts as delivered and the Git permissions (such as committing on `main` or merging without asking). Group unresolved independent questions and suggest defaults based on the project's actual flow. Ask dependent questions after the answers they rely on. Module IDs are lowercase and include `misc`; a small project can use `misc` alone.
 3. Present one proposal (files, settings, checks) and obtain approval before copying anything.
 
 | Workflow | Use when | Stages | Active |
