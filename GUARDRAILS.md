@@ -26,3 +26,10 @@ Edit, add or delete any line below. Keep one rule per line, in the imperative.
 
 - Keep changes small and in the style of the code around them.
 - Say what you skipped or did not check.
+
+## Overrides
+
+Standing permissions you give the agent. Only a line written here applies; the rules above still hold for everything else.
+
+<!-- Example: commit directly on main without asking. -->
+<!-- Example: merge a verified branch into main without asking. -->

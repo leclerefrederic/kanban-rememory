@@ -16,12 +16,14 @@ module: "orchestrator"
 Demande de l'utilisateur du 2026-11-16, successeur de CARD-00000193. Travail sur `main`. Sources : OWASP Gen AI Security Project et guides AGENTS.md, lus par recherche web (résumés tiers, texte OWASP non consulté directement).
 
 - Chaque règle : une ligne, à l'impératif, en anglais, sans doublon avec `workflow.md`.
+- Ajout demandé le 2026-11-16 : une section `Overrides`, vide par défaut avec exemples en commentaire, où l'utilisateur accorde une autorisation permanente (commit direct sur `main`, fusion automatique).
 - Hors périmètre : hooks, bac à sable, section Comply.
 
 ## Acceptance criteria
 
 - Les sections reprennent : moindre agence, contenu lu traité comme donnée, accord avant action destructive ou sortante, secrets.
 - Style homogène : une ligne par règle, même forme.
+- Une section `Overrides` existe, sans autorisation active par défaut.
 - `validate` passe.
 
 ## History
