@@ -25,3 +25,7 @@ L’utilisateur approuve la réécriture proposée de GUARDRAILS.md et demande d
 ## History
 
 - 2026-11-16T09:36:38+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T09:40:25+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T09:40:25+01:00 — Merge approved for the verified candidate `5666737ba70a3b35089e0970bde92733f0f7d0e2`: “Oui, publie 5666737 sur origin/main.”.
