@@ -157,7 +157,7 @@ class KrTests(unittest.TestCase):
         self.assertIn("dedicated branch", self.kr(root, "start", "CARD-00000001", "--release", expected=1))
         self.git(root, "switch", "-qc", "claude/phase-1")
         self.assertIn("from main", self.kr(root, "start", "CARD-00000001", "--main", expected=1))
-        self.kr(root, "start", "CARD-00000001", "--release", "--bump", "minor")
+        self.kr(root, "start", "CARD-00000001", "--release")
         self.commit(root, "Start")
         self.git(root, "switch", "-qc", "other", "main")
         self.assertIn("runs on claude/phase-1", self.kr(root, "start", "CARD-00000003", expected=1))
@@ -216,7 +216,7 @@ class KrTests(unittest.TestCase):
         self.assertIn("Phase: none", self.kr(root, "show"))
         self.assertRegex(self.kr(root, "versions"), r"Current version: 0\.1\.0\nv0\.1\.0 \| \d{4}-\d\d-\d\d \| Close ")
 
-    def test_phase_on_main_commits_there_and_publishes_without_a_tag(self):
+    def test_phase_on_main_commits_there_and_publishes_with_a_patch_tag(self):
         self.kr(self.root, "new", "Direct", "--module", "a")
         self.commit(self.root, "Add Card")
         root = self.root
@@ -229,9 +229,10 @@ class KrTests(unittest.TestCase):
         self.kr(root, "check")
         self.assertIn("Next: ask for approval, then publish", self.kr(root, "show"))
         output = self.kr(root, "publish", "--summary", "Direct.", "--approval", "Oui")
-        self.assertNotIn(" as v", output)
-        self.assertEqual(self.git(root, "tag", "--list"), "")
-        self.assertEqual(json.loads((root / "kanban-rememory.json").read_text())["version"], "0.0.0")
+        self.assertIn(" as v0.0.1", output)
+        self.assertEqual(self.git(root, "tag", "--list"), "v0.0.1")
+        self.assertEqual(self.git(root, "ls-remote", "origin", "refs/tags/v0.0.1").split()[0], self.git(root, "rev-parse", "v0.0.1"))
+        self.assertEqual(json.loads((root / "kanban-rememory.json").read_text())["version"], "0.0.1")
         self.assertEqual(self.git(root, "ls-remote", "origin", "refs/heads/main").split()[0],
                          self.git(root, "rev-parse", "HEAD"))
         self.assertEqual(self.git(root, "rev-parse", "HEAD~1"), candidate)

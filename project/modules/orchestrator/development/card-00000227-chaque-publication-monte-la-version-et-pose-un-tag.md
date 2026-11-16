@@ -20,3 +20,7 @@ Chaque `kr publish` monte `version` dans le commit de clôture, pose le tag `vX.
 - Une publication sur `main` monte le patch, tague et pousse le tag ; une release sans `--bump` monte le minor.
 - `kr versions` liste ces publications.
 - `test-kr.py`, `kr validate` passent ; le ZIP porte le nouveau numéro.
+
+## History
+
+- 2026-11-16T20:16:21+01:00 — Stage moved from `backlog` to `development`.

@@ -126,7 +126,7 @@ class Phase:
             if (branch == "main") != (mode == "main"):
                 raise ValueError("Work on main with --main from main; start a release on a dedicated branch.")
             state = {"module": module, "cards": [task_id], "branch": branch, "mode": mode,
-                     **({"bump": part} if mode == "release" else {}),
+                     "bump": part,
                      "started": self.project.now().isoformat(timespec="seconds"), "verified": None}
         else:
             if mode is not None:
@@ -219,7 +219,6 @@ class Phase:
         if alerting and not summary:
             raise ValueError("The delivery alert needs --summary: it is the text of the alert.")
         state = self.here()
-        release = state.get("mode", "release") == "release"
         require_clean(self.root)
         head, verified = git(self.root, "rev-parse", "HEAD"), state["verified"]
         if not verified or not is_ancestor(self.root, verified, head):
@@ -231,15 +230,14 @@ class Phase:
             if not summary or not approval:
                 raise ValueError("Give --summary and --approval to close the verified revision.")
             closed = self.close(state, head, summary, approval)
-            if release:
-                self.write_version(bump(self.project.version, state.get("bump", "patch")))
+            self.write_version(bump(self.project.version, state.get("bump", "patch")))
             git(self.root, "add", "--all", "--", *records(self.root), settings_path(self.root).as_posix())
             # The closing commit keeps the authorship trailers of the verified candidate.
             trailers = git(self.root, "log", "-1", "--format=%(trailers:key=Co-Authored-By)")
             git(self.root, "commit", "--quiet", "-m",
                 f"Close {', '.join(closed)} with recorded merge approval" + (f"\n\n{trailers}" if trailers else ""))
             head = git(self.root, "rev-parse", "HEAD")
-        allowed = records(self.root) + ((settings_path(self.root).as_posix(),) if release else ())
+        allowed = records(self.root) + (settings_path(self.root).as_posix(),)
         outside = [path for path in git(self.root, "diff", "--name-only", verified, head).splitlines()
                    if not path.startswith(allowed)]
         if outside:
@@ -256,18 +254,16 @@ class Phase:
         if validate(self.project):
             raise ValueError("Fix the findings, amend the closing commit, then publish again.")
         tag = f"v{load_project(self.root).version}"
-        if release:  # the version of the closing commit names the release
-            known = subprocess.run(["git", "rev-parse", "--quiet", "--verify", f"refs/tags/{tag}^{{commit}}"], cwd=self.root,
-                                   capture_output=True, text=True).stdout.strip()
-            if known and known != head:
-                raise ValueError(f"Tag {tag} already marks another revision: fix version in kanban-rememory.json.")
+        known = subprocess.run(["git", "rev-parse", "--quiet", "--verify", f"refs/tags/{tag}^{{commit}}"], cwd=self.root,
+                               capture_output=True, text=True).stdout.strip()  # the closing commit's version names the publication
+        if known and known != head:
+            raise ValueError(f"Tag {tag} already marks another revision: fix version in kanban-rememory.json.")
         if upstream != head:
             git(self.root, "push", "--quiet", "origin", "HEAD:refs/heads/main")
             if origin_main(self.root) != head:
                 raise ValueError("Could not confirm the publication on origin/main.")
-        if release:
-            git(self.root, "tag", "--force", tag, head)
-            git(self.root, "push", "--quiet", "origin", f"refs/tags/{tag}")
+        git(self.root, "tag", "--force", tag, head)
+        git(self.root, "push", "--quiet", "origin", f"refs/tags/{tag}")
         self.file.unlink()
         if state["branch"] != "main":
             git(self.root, "switch", "--quiet", "main")
@@ -277,7 +273,7 @@ class Phase:
                 raise ValueError(f"Published {head}, but main does not fast-forward to it: reconcile main, "
                                  f"then delete {state['branch']}.") from None
             git(self.root, "branch", "--quiet", "--delete", state["branch"])
-        print(f"Published {head} on origin/main" + (f" as {tag}" if release else "")
+        print(f"Published {head} on origin/main as {tag}"
               + "; main is up to date and the phase is over.")
         if alerting:
             alert = subprocess.run(

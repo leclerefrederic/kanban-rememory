@@ -132,7 +132,7 @@ Upgrade mode: skip this section.
 | Standard | backlog, development, code-review, completion, cancellation | development, code-review | backlog → development; development → code-review; code-review → completion, development |
 | Long | backlog, refinement, development, code-review, testing, deployment, completion, cancellation | development, code-review, testing, deployment | backlog → refinement; refinement → development; development → code-review; code-review → testing, development; testing → deployment, development; deployment → completion, development |
 
-`version` is the current release of the project: each published release raises it and tags `vX.Y.Z`.
+`version` is the current version of the project: each publication raises it and tags `vX.Y.Z`; the kit ZIP carries the version of the latest publication.
 
 ## 4. Application
 
