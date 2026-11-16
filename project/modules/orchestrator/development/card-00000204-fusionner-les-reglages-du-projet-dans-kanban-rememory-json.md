@@ -23,3 +23,7 @@ Un seul fichier de configuration à la racine, `kanban-rememory.json`, remplace 
 - Ce dépôt est migré sans perte ; `kr validate` passe.
 - `install.md`, `workflow.md` et le guide parlent de `kanban-rememory.json` ; l'installateur écrit `kit`.
 - Tests de `kr.py` et `kr validate` passent.
+
+## History
+
+- 2026-11-16T13:46:30+01:00 — Stage moved from `backlog` to `development`.

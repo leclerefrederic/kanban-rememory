@@ -260,7 +260,7 @@ class Phase:
             known = subprocess.run(["git", "rev-parse", "--quiet", "--verify", f"refs/tags/{tag}^{{commit}}"], cwd=self.root,
                                    capture_output=True, text=True).stdout.strip()
             if known and known != head:
-                raise ValueError(f"Tag {tag} already marks another revision: fix version in settings.json.")
+                raise ValueError(f"Tag {tag} already marks another revision: fix version in kanban-rememory.json.")
         if upstream != head:
             git(self.root, "push", "--quiet", "origin", "HEAD:refs/heads/main")
             if origin_main(self.root) != head:

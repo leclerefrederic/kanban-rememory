@@ -21,7 +21,7 @@ from kanban import report  # noqa: E402
 spec = importlib.util.spec_from_file_location("kr", KIT / "kanban-rememory/orchestrator/tools/kr.py")
 KR = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(KR)
-WORKFLOW = json.loads((KIT / "project/settings.json").read_text())["workflow"]
+WORKFLOW = json.loads((KIT / "kanban-rememory.json").read_text())["workflow"]
 
 
 class KrTests(unittest.TestCase):
@@ -88,9 +88,9 @@ class KrTests(unittest.TestCase):
         self.assertTrue((self.board("misc") / "backlog/card-00000002-default.md").read_text().endswith(
             "# CARD-00000002 — Default\n\n- Dependencies: None.\n\n## Acceptance criteria\n"))
         self.assertIn("empty Card body", self.kr(self.root, "new", "Empty", "--body", expected=1))
-        (self.root / "project/settings.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))
-        self.assertIn("Settings must contain exactly", self.kr(self.root, "new", "Refused", expected=1))
-        (self.root / "project/settings.json").write_text(json.dumps(self.settings))
+        (self.root / "kanban-rememory.json").write_text(json.dumps(dict(self.settings, last_card_id=40)))
+        self.assertIn("must contain", self.kr(self.root, "new", "Refused", expected=1))
+        (self.root / "kanban-rememory.json").write_text(json.dumps(self.settings))
         self.kr(self.root, "new", "Later", "--module", "b")
         self.assertTrue((self.board("b") / "backlog/card-00000003-later.md").is_file())
         shutil.copy(first, self.board("b") / "backlog" / first.name)
@@ -182,7 +182,7 @@ class KrTests(unittest.TestCase):
         self.assertIn("Co-Authored-By: Fixture Agent <agent@example.invalid>", self.git(root, "log", "-1", "--format=%B"))
         output = self.kr(root, "publish", "--summary", "Alpha and Beta.", "--notify", "Chat", "--language", "fr")
         self.assertIn(f"Published {closing} on origin/main as v0.1.0", output)
-        self.assertEqual(json.loads((root / "project/settings.json").read_text())["version"], "0.1.0")
+        self.assertEqual(json.loads((root / "kanban-rememory.json").read_text())["version"], "0.1.0")
         self.assertEqual(self.git(root, "rev-parse", "v0.1.0^{commit}"), closing)
         self.assertEqual(self.git(root, "ls-remote", "origin", "refs/tags/v0.1.0").split()[0], self.git(root, "rev-parse", "v0.1.0"))
         self.assertIn("nothing was sent", output)  # no Telegram configuration in this HOME: the publication stands
@@ -217,7 +217,7 @@ class KrTests(unittest.TestCase):
         output = self.kr(root, "publish", "--summary", "Direct.", "--approval", "Oui")
         self.assertNotIn(" as v", output)
         self.assertEqual(self.git(root, "tag", "--list"), "")
-        self.assertEqual(json.loads((root / "project/settings.json").read_text())["version"], "0.0.0")
+        self.assertEqual(json.loads((root / "kanban-rememory.json").read_text())["version"], "0.0.0")
         self.assertEqual(self.git(root, "ls-remote", "origin", "refs/heads/main").split()[0],
                          self.git(root, "rev-parse", "HEAD"))
         self.assertEqual(self.git(root, "rev-parse", "HEAD~1"), candidate)
@@ -298,21 +298,25 @@ class KrTests(unittest.TestCase):
             bad.write_text(json.dumps(dict(self.settings, **change)))
             self.assertIn(message, self.kr(fresh, "init", bad, expected=1))
         self.kr(fresh, "init", self.proposal, "--apply")
-        self.assertEqual((fresh / "project/settings.json").read_bytes(), self.proposal.read_bytes())
+        self.assertEqual((fresh / "kanban-rememory.json").read_bytes(), self.proposal.read_bytes())
         self.assertTrue((self.board("a", fresh) / "resources/.gitkeep").is_file())
         self.assertIn("already exist", self.kr(fresh, "init", self.proposal, "--apply", expected=1))
 
-    def test_config_file_picks_the_working_folder(self):
+    def test_config_file_holds_the_settings_and_picks_the_working_folder(self):
         fresh = self.repository("fresh")
-        (fresh / "kanban-rememory.json").write_text('{"directory": "work"}')
-        self.kr(fresh, "init", self.proposal, "--apply")
-        self.assertTrue((fresh / "work/settings.json").is_file())
+        work = self.base / "work.json"
+        work.write_text(json.dumps(dict(self.settings, directory="work", kit="0.3.0")))
+        self.kr(fresh, "init", work, "--apply")
+        self.assertEqual((fresh / "kanban-rememory.json").read_bytes(), work.read_bytes())
+        self.assertTrue((fresh / "work/rememory").is_dir())
         self.assertFalse((fresh / "project").exists())
         self.assertIn("Kanban validation passed", self.kr(fresh, "validate"))
-        for config in ('{"directory": "../x"}', '{"directory": "kanban-rememory"}', '{"directory": ".git"}', '{"directory": ""}',
-                       '{"dir": "x"}', '[]'):
-            (fresh / "kanban-rememory.json").write_text(config)
+        for change in ({"directory": "../x"}, {"directory": "kanban-rememory"}, {"directory": ".git"}, {"directory": ""},
+                       {"kit": "x"}, {"other": 1}):
+            (fresh / "kanban-rememory.json").write_text(json.dumps(dict(self.settings, **change)))
             self.assertIn("Invalid kanban-rememory.json", self.kr(fresh, "validate", expected=1))
+        (fresh / "kanban-rememory.json").write_text("[]")
+        self.assertIn("Invalid kanban-rememory.json", self.kr(fresh, "validate", expected=1))
 
 
 if __name__ == "__main__":

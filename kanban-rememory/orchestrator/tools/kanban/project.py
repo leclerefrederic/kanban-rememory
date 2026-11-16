@@ -14,6 +14,7 @@ CONFIG = "kanban-rememory.json"
 WORK = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 MISC = "misc"
 KEYS = ("name", "modules", "workflow", "version")
+OPTIONAL = ("directory", "kit")
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -26,15 +27,16 @@ class Project:
     modules: tuple
     workflow: dict
     version: str
+    directory: str = "project"
 
     def board(self, module):
         if module not in self.modules:
             raise ValueError(f"Unknown module: {module!r}.")
-        return self.root / modules_path(self.root) / module
+        return self.root / self.directory / "modules" / module
 
     @property
     def journal(self):
-        return self.root / journal_path(self.root)
+        return self.root / self.directory / "rememory"
 
     @property
     def frozen(self):
@@ -46,17 +48,20 @@ class Project:
 
 
 def workdir(root):
-    """The working folder, read from `kanban-rememory.json` at the root: {"directory": "project"} by default."""
+    """The working folder: `directory` in `kanban-rememory.json` at the root, `project` by default."""
     file = root / CONFIG
-    config = json.loads(file.read_text(encoding="utf-8")) if file.is_file() else {}
-    name = config.get("directory", "project") if isinstance(config, dict) and set(config) <= {"directory"} else None
+    try:
+        config = json.loads(file.read_text(encoding="utf-8")) if file.is_file() else {}
+    except ValueError:
+        config = None
+    name = config.get("directory", "project") if isinstance(config, dict) else None
     if not isinstance(name, str) or not WORK.fullmatch(name) or name == "kanban-rememory":
-        raise ValueError(f'Invalid {CONFIG}: use {{"directory": "<one plain folder name>"}}, not kanban-rememory.')
+        raise ValueError(f'Invalid {CONFIG}: "directory" must be one plain folder name, not kanban-rememory.')
     return name
 
 
 def settings_path(root):
-    return Path(workdir(root)) / "settings.json"
+    return Path(CONFIG)
 
 
 def modules_path(root):
@@ -85,7 +90,7 @@ def common_directory(root):
 def load_project(root):
     settings = root / settings_path(root)
     if settings.is_symlink() or not settings.is_file():
-        raise ValueError(f"Create {settings_path(root)} first: see kanban-rememory/orchestrator/install.md.")
+        raise ValueError(f"Create {CONFIG} first: see kanban-rememory/orchestrator/install.md.")
     return parse_settings(root, settings.read_bytes())
 
 
@@ -101,8 +106,13 @@ def unique_keys(pairs):
 def parse_settings(root, source):
     try:
         data = json.loads(source.decode("utf-8"), object_pairs_hook=unique_keys)
-        if not isinstance(data, dict) or set(data) != set(KEYS):
-            raise ValueError(f"Settings must contain exactly: {', '.join(KEYS)}.")
+        if not isinstance(data, dict) or not set(KEYS) <= set(data) <= set(KEYS + OPTIONAL):
+            raise ValueError(f"The file must contain {', '.join(KEYS)} and may add {', '.join(OPTIONAL)}.")
+        directory = data.get("directory", "project")
+        if not isinstance(directory, str) or not WORK.fullmatch(directory) or directory == "kanban-rememory":
+            raise ValueError("directory must be one plain folder name, not kanban-rememory.")
+        if "kit" in data and (not isinstance(data["kit"], str) or not VERSION.fullmatch(data["kit"])):
+            raise ValueError("kit must be a release number such as 0.1.0.")
         name = data["name"]
         if not isinstance(name, str) or not name.strip() or "\n" in name or "\r" in name:
             raise ValueError("name must be a single-line display name.")
@@ -115,9 +125,9 @@ def parse_settings(root, source):
         version = data["version"]
         if not isinstance(version, str) or not VERSION.fullmatch(version):
             raise ValueError("version must be a release number such as 0.1.0.")
-        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), version)
+        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), version, directory)
     except ValueError as error:
-        raise ValueError(f"Invalid project settings: {error}") from None
+        raise ValueError(f"Invalid kanban-rememory.json: {error}") from None
 
 
 def check_workflow(workflow):
@@ -161,10 +171,10 @@ def check_new_workflow(workflow):
 
 
 def init(root, proposal, apply):
-    """Create the settings and the empty boards from an approved proposal, once."""
+    """Create kanban-rememory.json and the empty boards from an approved proposal, once."""
     settings = root / settings_path(root)
     if settings.exists() or settings.is_symlink():
-        raise ValueError("Project settings already exist.")
+        raise ValueError("kanban-rememory.json already exists.")
     source = proposal.read_bytes()  # validate and write the same bytes
     project = parse_settings(root, source)
     check_new_workflow(project.workflow)
@@ -183,7 +193,7 @@ def init(root, proposal, apply):
         path.mkdir(parents=True, exist_ok=True)
         if not any(path.iterdir()):
             (path / ".gitkeep").touch()
-    with tempfile.NamedTemporaryFile(dir=settings.parent, prefix=".settings-", delete=False) as pending:
+    with tempfile.NamedTemporaryFile(dir=settings.parent, prefix=".kr-config-", delete=False) as pending:
         pending.write(source)
     try:
         os.link(pending.name, settings)  # refuses to replace a settings file created meanwhile
