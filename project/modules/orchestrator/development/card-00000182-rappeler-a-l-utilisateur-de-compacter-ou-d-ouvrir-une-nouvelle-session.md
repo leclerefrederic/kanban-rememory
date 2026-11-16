@@ -22,3 +22,7 @@ Demande de l'utilisateur du 2026-11-16 : règle dans `orchestrator/workflow.md`,
 
 - `workflow.md` contient la règle, dans la langue du fichier, en une phrase.
 - `validate` passe.
+
+## History
+
+- 2026-11-16T07:10:37+01:00 — Stage moved from `backlog` to `development`.
