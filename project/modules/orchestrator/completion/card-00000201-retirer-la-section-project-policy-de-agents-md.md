@@ -14,3 +14,7 @@ Critères :
 ## History
 
 - 2026-11-16T13:33:43+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T13:34:04+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T13:34:04+01:00 — Merge approved for the verified candidate `28bdddf9d6c76a2fe77a2aaf7b13dfedc8140723`: “Oui et commit”.
