@@ -41,7 +41,7 @@ Run each command. A result other than the expected one: STOP.
 | Python 3.9+ | `python3 -c "import sys; sys.exit(sys.version_info < (3, 9))"` | exit 0 |
 | Git repository | `git rev-parse --is-inside-work-tree` | prints `true` |
 | Branch | `git branch --show-current` | prints `main` |
-| Clean checkout | `git status --porcelain` | prints nothing |
+| Clean checkout | `git status --porcelain -- . ':(exclude)START.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
 | Remote readable | `git ls-remote origin main` | exit 0, prints one line |
 | Remote writable | `git push --dry-run origin main` | exit 0 |
 | KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f GUARDRAILS_TEMPLATE` | exit 0 |
@@ -139,7 +139,7 @@ Run each check. A failure: STOP. The commit stays; the user decides what to do w
 | Boards valid | `kr validate` | exit 0 |
 | Tools answer | `kr show` | exit 0 |
 | Guardrails | `test -f GUARDRAILS.md` | exit 0 |
-| Clean checkout | `git status --porcelain` | prints nothing |
+| Clean checkout | `git status --porcelain -- . ':(exclude)START.md' ':(exclude)kanban-rememory-kit-*.zip'` | prints nothing |
 
 Then:
 

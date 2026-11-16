@@ -22,3 +22,5 @@ Modèle `start.md`, `install.md` (prérequis et vérification « checkout propre
 - `kr validate` passe ici.
 
 ## History
+
+- 2026-11-16T14:52:43+01:00 — Stage moved from `backlog` to `development`.

@@ -310,7 +310,8 @@ class KrTests(unittest.TestCase):
         self.assertIn(prefix + "kanban-rememory/orchestrator/tools/kr.py", names)
         start = (archive.parent / "START.md").read_text()
         self.assertIn("kanban-rememory-kit-0.0.0.zip", start)
-        self.assertIn("/path/to/kanban-rememory-kit-0.0.0/kanban-rememory/orchestrator/install.md", start)
+        self.assertIn("mktemp -d", start)
+        self.assertIn("<that folder>/kanban-rememory-kit-0.0.0", start)
 
     def test_init_previews_then_creates_the_boards_once(self):
         fresh = self.repository("fresh")
