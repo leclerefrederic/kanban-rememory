@@ -11,7 +11,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else. Before section 4 nothing has changed.
 - ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
 - TARGET = the repository you run in. Run every command from its root.
-- KIT = the folder `kanban-rememory-kit-<version>` inside the folder created in section 0.
+- KIT = the absolute path of the folder `kanban-rememory-kit-<version>` inside the folder created in section 0. In every command, replace `KIT`, `DIR` and `KIT_VERSION` by their values: shell variables do not persist between commands.
 - KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
 - `init` = `python3 KIT/installer/init.py`, the installation script. It shares nothing with `kr`.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
@@ -87,7 +87,7 @@ Upgrade mode: skip this section.
    | Field | Allowed answer | Default |
    | --- | --- | --- |
    | `name` | one line of text | the name of TARGET's folder |
-   | `modules` | unique IDs of letters `a-z`, digits and single `-` or `_` between them; `misc` is always added | `misc` only |
+   | `modules` | unique IDs of letters `a-z`, digits and single `-` or `_` between them; `misc` is always added, as the last item | `misc` only |
    | workflow | `Short`, `Standard` or `Long` (table below). Ask what counts as delivered to choose: publication only fits Short or Standard; testing or deployment after publication fits Long | `Short` |
    | WIP limit | a positive integer | `1` |
    | timezone | an IANA name such as `Europe/Paris` | none: required |
@@ -102,7 +102,7 @@ Upgrade mode: skip this section.
      - Use this folder: list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
    - Repeat until a folder is accepted.
 4. Build the proposal:
-   - The CONFIG content, as JSON in this key order: `name`, `directory`, `modules`, `workflow`, `version`, `kit`. `version` = `0.0.0`. `kit` = KIT_VERSION. `workflow` = `stages`, `active`, `completed` = `completion`, `wip_limit`, `timezone`, `transitions`, from the table below; every transition list ends with `cancellation`. The first stage is `backlog`, and `cancellation` is the last stage and ends the board.
+   - The CONFIG content, as JSON in this key order: `name`, `directory`, `modules`, `workflow`, `version`, `kit`. `version` = `0.0.0`. `kit` = KIT_VERSION. `workflow` = an object with these keys in this order: `stages` (list), `active` (list), `completed` (the string `completion`), `wip_limit` (integer), `timezone` (string), `transitions` (object: stage → list of the stages it may move to), from the table below. Every list in `transitions` ends with `cancellation`. `completion` and `cancellation` have no key in `transitions`. The first stage is `backlog`, and `cancellation` is the last stage and ends the board.
    - The permission lines for `GUARDRAILS.md`.
    - The lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
 5. Write the CONFIG content to `proposal.json` in a new folder outside TARGET (`mktemp -d`). Run `init <that path>` from the root of TARGET: a preview that writes nothing. Expected: exit 0. A non-zero exit: show the message, ASK the user for a corrected answer to the field it names, rebuild the file and rerun the preview until it exits 0.
@@ -131,7 +131,7 @@ Run in this order. A failing command: STOP and report the command and its output
    Upgrade mode: then set `kit` in CONFIG to KIT_VERSION, adding the key after `version` if absent. Change nothing else in CONFIG.
 2. `AGENTS.md`: template rule, with `TEMPLATES/AGENTS.md`.
 3. `CLAUDE.md`: template rule, with `TEMPLATES/CLAUDE.md`.
-4. `GUARDRAILS.md`: copy `TEMPLATES/GUARDRAILS.md` to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line under `## Standing permissions`, after the comment block that follows that heading. If the file has no such heading, append the heading and the lines at the end.
+4. `GUARDRAILS.md`: copy `TEMPLATES/GUARDRAILS.md` to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line, with no bullet, under `## Standing permissions`: after the comment block that follows that heading, one blank line, then the lines. If the file has no such heading, append a blank line, the heading, a blank line and the lines at the end.
 5. `.gitignore`: template rule, with `TEMPLATES/.gitignore`.
 6. `.gitattributes`: template rule, with `TEMPLATES/.gitattributes`.
 7. Install mode: run `init <the path of proposal.json> --apply`. Expected: exit 0 and the last line `Project modules are ready.`
@@ -167,7 +167,8 @@ Then:
    ```
 
 3. ASK: `Delete INSTALL.md and the kit ZIP? yes / no`. `yes`: delete both files. `no`: leave both.
-4. Report to the user, in this order: MODE, KIT_VERSION, the files written, the commit hashes, and `Nothing is pushed`.
+4. Delete the two temporary folders this procedure created outside TARGET: the one of section 0 and the one of `proposal.json`.
+5. Report to the user, in this order: MODE, KIT_VERSION, the files written, the commit hashes, and `Nothing is pushed`.
 
 ## Option: Telegram
 

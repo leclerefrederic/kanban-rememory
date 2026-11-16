@@ -23,3 +23,7 @@ module: "orchestrator"
 - Le format d'une ligne de permission est donné.
 - Les dossiers temporaires sont supprimés à la fin.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T17:01:39+01:00 — Stage moved from `backlog` to `development`.
