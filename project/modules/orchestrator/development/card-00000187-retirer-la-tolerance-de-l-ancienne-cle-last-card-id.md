@@ -28,3 +28,5 @@ Hors périmètre : `schema_version` et la section « Upgrade » de `install.md`.
 ## History
 
 - 2026-11-16 — Décision de l'utilisateur : retirer la tolérance, exécuter la Card et fusionner dans `main`.
+
+- 2026-11-16T08:42:42+01:00 — Stage moved from `backlog` to `development`.
