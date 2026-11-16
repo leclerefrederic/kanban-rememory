@@ -25,3 +25,7 @@ Demande de l'utilisateur du 2026-11-16, après l'audit du dépôt : corriger la 
 - 2026-11-16 — Décision de l'utilisateur : travailler sur `main`.
 
 - 2026-11-16T07:27:05+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T07:31:28+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T07:31:28+01:00 — Merge approved for the verified candidate `a0e2e44fb8cbd241e75db028e7ae85da04ade08c`: “Oui, publie”.
