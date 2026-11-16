@@ -20,3 +20,7 @@ module: "orchestrator"
 - Le test du builder prouve qu'un second script de `dist/installer/` est dans le ZIP et qu'un `test-*` n'y est pas.
 - Le ZIP reconstruit contient `installer/init.py` et pas `installer/test-init.py`.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T16:24:36+01:00 — Stage moved from `backlog` to `development`.
