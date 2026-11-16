@@ -20,3 +20,7 @@ module: "orchestrator"
 - Le plan de la section 2 ne peut plus afficher `kanban-rememory/ replaced` en mode install.
 - Un dossier de travail qui ferait échouer `kr validate` est refusé avant toute écriture.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T17:22:32+01:00 — Stage moved from `backlog` to `development`.

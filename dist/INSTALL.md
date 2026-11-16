@@ -68,10 +68,10 @@ Run each command. A result other than the expected one: STOP.
 
 ## 2. Diagnosis
 
-1. Set MODE.
+1. Set MODE. Install mode and `kanban-rememory/` exists: STOP and tell the user it is not from this kit, to move or remove it themselves.
 2. Show the plan, with exactly these lines:
    - `MODE`, and `KIT_VERSION`; in upgrade mode also the installed `kit` from CONFIG, or `none` when CONFIG has no `kit`.
-   - `kanban-rememory/`: `replaced` if it exists, `created` if not.
+   - `kanban-rememory/`: `replaced` in upgrade mode, `created` in install mode.
    - For each of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`: `created` if absent, `kept, lines appended` if it exists (`kept` alone for `GUARDRAILS.md` in upgrade mode).
    - Install mode: `CONFIG and DIR created after your answers`. Upgrade mode: `CONFIG: only kit changes; DIR left as it is`.
    - `One commit on main. Nothing is pushed.`
@@ -99,7 +99,14 @@ Upgrade mode: skip this section.
    - It exists as a file: refuse it, ASK for another name.
    - It exists as a folder: ASK `Use another name, or use this folder and keep its content?`.
      - Another name: ASK for the name, then check it again here.
-     - Use this folder: list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
+     - Use this folder: run the four checks below from the root of TARGET. Any output is a path that `kr validate` would reject: show the paths, then treat the answer as `Another name`. With no output, list the folders that will be created in it (`rememory/`, and for every module and stage `modules/<module>/<stage>/`, plus `modules/<module>/resources/`), then ASK `Confirm? yes / no`. `yes`: accept. `no`: ASK `Which folder name?` and check it again here.
+
+       | Check | Command (`DIR` = the folder; list the allowed names in the `-name` tests) | Expected |
+       | --- | --- | --- |
+       | Only chosen modules | `find DIR/modules -mindepth 1 -maxdepth 1 -not -name '.*' -not -name <module> ...` | no output |
+       | Only stages and `resources` | `find DIR/modules -mindepth 2 -maxdepth 2 -not -name '.*' -not -name <stage> ... -not -name resources` | no output |
+       | No Markdown file in a stage | `find DIR/modules -mindepth 3 -maxdepth 3 -name '*.md'` | no output |
+       | No symbolic link | `find DIR -type l` | no output |
    - Repeat until a folder is accepted.
 4. Build the proposal:
    - The CONFIG content, as JSON in this key order: `name`, `directory`, `modules`, `workflow`, `version`, `kit`. `version` = `0.0.0`. `kit` = KIT_VERSION. `workflow` = an object with these keys in this order: `stages` (list), `active` (list), `completed` (the string `completion`), `wip_limit` (integer), `timezone` (string), `transitions` (object: stage → list of the stages it may move to), from the table below. Every list in `transitions` ends with `cancellation`. `completion` and `cancellation` have no key in `transitions`. The first stage is `backlog`, and `cancellation` is the last stage and ends the board.
