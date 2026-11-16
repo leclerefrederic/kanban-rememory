@@ -24,3 +24,7 @@ Modèle `kanban-rememory/orchestrator/templates/start.md`, `build-kit.py`, son t
 ## History
 
 - 2026-11-16T14:42:15+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T14:43:14+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T14:43:14+01:00 — Merge approved for the verified candidate `e1cd9a855c4df0518c5e322d20ebc83d593d29d5`: “Oui, commit”.
