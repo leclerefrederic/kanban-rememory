@@ -73,7 +73,7 @@ Run each command. A result other than the expected one: STOP.
 2. Show the plan, with exactly these lines:
    - `MODE`, and `KIT_VERSION`; in upgrade mode also the installed `kit` from CONFIG, or `none` when CONFIG has no `kit`.
    - `kanban-rememory/`: `replaced` in upgrade mode, `created` in install mode.
-   - For each of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`: `created` if absent, `kept` if it exists. Add `, N lines appended` when the template rule appends N lines. `GUARDRAILS.md` is `kept`; in install mode add `, permission lines added after your answers`.
+   - For each of `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`: `created` if absent, `kept` if it exists. Add `, N lines appended` when the template rule appends N non-blank lines. `GUARDRAILS.md` takes no `N`; in install mode add `, permission lines added after your answers` to its `created` or `kept`.
    - Install mode: `CONFIG and DIR created after your answers`. Upgrade mode: `CONFIG: only kit changes; DIR left as it is`.
    - `One commit on main. Nothing is pushed.`
 3. ASK: `Approve this plan? yes / no`. `yes`: continue. `no`: STOP.
@@ -136,7 +136,7 @@ Run in this order. A failing command: STOP and report the command and its output
    find kanban-rememory -name __pycache__ -type d -prune -exec rm -rf {} +
    ```
 
-   Upgrade mode: then set `kit` in CONFIG to KIT_VERSION, adding the key after `version` if absent. Change nothing else in CONFIG.
+   Upgrade mode: then set `kit` in CONFIG to KIT_VERSION, adding the key after `version` if absent. Edit the text in place: insert or replace that one line and keep every other byte of CONFIG, formatting included. Do not parse and rewrite the file.
 2. `AGENTS.md`: template rule, with `TEMPLATES/AGENTS.md`.
 3. `CLAUDE.md`: template rule, with `TEMPLATES/CLAUDE.md`.
 4. `GUARDRAILS.md`: copy `TEMPLATES/GUARDRAILS.md` to `GUARDRAILS.md` if absent. Install mode, when the user approved Git permissions: add each as one line, with no bullet, under `## Standing permissions`: after the comment block that follows that heading, one blank line, then the lines. If the file has no such heading, append a blank line, the heading, a blank line and the lines at the end.
@@ -166,7 +166,7 @@ Run each check. A failure: STOP. The commit stays; the user decides what to do w
 Then:
 
 1. ASK: `Open a fresh chat in TARGET. Does it name the Orchestrator, the boards and the next authorized action? yes / no`. `no`: STOP.
-2. Journal: in `DIR/rememory/<date>.md`, `<date>` = today in the project timezone (`YYYY-MM-DD`), add the entry below under the date heading, above older entries. Create the file with the heading `# <date> (<timezone>)` if absent. Commit it with `Record the Kanban Rememory installation`; do not push.
+2. Journal: in `DIR/rememory/<date>.md`, `<date>` = today (`YYYY-MM-DD`) and `HH:MM` = now (24 hours), both in the project timezone: `TZ=<timezone> date +%F` and `TZ=<timezone> date +%H:%M`, add the entry below under the date heading, above older entries. Create the file with the heading `# <date> (<timezone>)` if absent. Commit it with `Record the Kanban Rememory installation`; do not push.
 
    ```markdown
    ## HH:MM — Kanban Rememory KIT_VERSION installed
