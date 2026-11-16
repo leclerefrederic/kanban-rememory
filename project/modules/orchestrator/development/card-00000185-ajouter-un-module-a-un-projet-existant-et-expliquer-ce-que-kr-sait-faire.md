@@ -35,3 +35,5 @@ Card créée dans le backlog sur demande explicite, sans démarrage.
 
 - 2026-11-16 — Décision de l'utilisateur : ne pas faire proposer le module par l'Orchestrator, et laisser la Card dans le backlog.
 - 2026-11-16 — Décision de l'utilisateur : retirer `kr module add` après l'essai sur une copie, la Card devient de la documentation seule.
+
+- 2026-11-16T08:21:41+01:00 — Stage moved from `backlog` to `development`.
