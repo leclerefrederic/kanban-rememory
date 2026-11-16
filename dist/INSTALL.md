@@ -9,7 +9,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - Run sections 0 to 5 in order. Finish a section before starting the next. Do not skip, merge or reorder steps.
 - A step with no ASK has no choice: do what it says. Never ask the user something the step does not ask.
 - STOP = end the installation, tell the user which check failed and what to fix, ask them to rerun it. Do nothing else except delete the temporary folders this procedure created. Before section 4 nothing in TARGET has changed.
-- ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn.
+- ASK = put the question to the user and wait. Never answer for them. An answer that is not one of the allowed answers is no answer: ask again, once per turn. When several answers of one message are invalid, ask again for all of them in one message.
 - TARGET = the repository you run in. Run every command from its root.
 - KIT = the absolute path of the folder `kanban-rememory-kit-<version>` inside the folder created in section 0. In every command, replace `KIT`, `DIR` and `KIT_VERSION` by their values: shell variables do not persist between commands.
 - KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
@@ -53,7 +53,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 
 ## 1. Prerequisites
 
-Run each command. A result other than the expected one: STOP.
+Run every command, in order, even after a failure: they only read. If any result differs from the expected one: STOP, and list every failing check with its fix below.
 
 | Check | Command | Expected |
 | --- | --- | --- |
@@ -66,6 +66,16 @@ Run each command. A result other than the expected one: STOP.
 | KIT is a kit | `test -f KIT/kanban-rememory/orchestrator/tools/kr.py && test -f KIT/kanban-rememory/VERSION && test -f KIT/installer/init.py && test -f KIT/kanban-rememory/orchestrator/templates/GUARDRAILS.md` | exit 0 |
 | KIT is not TARGET | `test "$(cd KIT && pwd -P)" != "$(pwd -P)"` | exit 0 |
 | No foreign `kanban-rememory/` | `test -e kanban-rememory.json \|\| test ! -e kanban-rememory` | exit 0. Otherwise STOP and say: `kanban-rememory/` is not from this kit; move or remove it yourself, commit that, and rerun |
+
+Fixes to give the user, one per failing check:
+
+- Python: install Python 3.9 or later.
+- Git repository: run the installation in a Git repository.
+- Branch: switch to `main`.
+- Clean checkout: commit or stash your changes.
+- Remote readable or writable: fix the access to `origin` and the branch `main` there.
+- KIT checks: unpack a valid kit ZIP.
+- No foreign `kanban-rememory/`: the message in its row.
 
 ## 2. Diagnosis
 

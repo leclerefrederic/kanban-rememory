@@ -19,3 +19,7 @@ module: "orchestrator"
 
 - Les trois points sont écrits sans équivoque.
 - `kr validate` passe.
+
+## History
+
+- 2026-11-16T18:52:24+01:00 — Stage moved from `backlog` to `development`.
