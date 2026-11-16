@@ -56,7 +56,7 @@ Skip this step when CONFIG exists.
    - Group independent questions. Suggest defaults from the project's real flow. Ask a dependent question after the answer it depends on.
    - Module IDs: lowercase, `misc` always included; `misc` alone is valid.
    - WIP limit: 1 Card per module for solo work.
-   - Working folder (`directory`): propose `project`. When `project/` or the chosen folder already exists, ASK the user to decide: another name, or that folder, with its content kept.
+   - Working folder (`directory`): propose `project`. When `project/` or the chosen folder already exists, ASK the user to decide: another name, or that folder, with its content kept. For a merge, first list the folders that will be created in it (`rememory/`, and `modules/<module>/<stage>/` plus `resources/` per module), then ASK to confirm. Repeat until the user names the folder.
 3. Present one proposal: the CONFIG content, with `kit` = the `version` in KIT's CONFIG and `directory`, plus the lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
 4. ASK for approval of the proposal. No approval: STOP.
 
