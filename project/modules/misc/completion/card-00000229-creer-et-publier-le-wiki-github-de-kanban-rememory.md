@@ -42,3 +42,7 @@ Première page initialisée dans la session GitHub du navigateur, puis ensemble 
 - Demande complémentaire de l’utilisateur : « Tu gardes notre style d’écriture hein :D C’est important :) ». Conserver le ton anglais incisif et accessible du README, avec humour et instructions précises.
 
 - 2026-11-16T20:50:56+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-16T20:55:43+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-16T20:55:43+01:00 — Merge approved for the verified candidate `f4c75dfe662c3cacd7e7e081eb518b9ac9dd63f8`: “Vas y fait le alors :)”.
