@@ -21,3 +21,5 @@ Recevoir les alertes Remy dans le salon Slack personnel choisi avec un webhook e
 ## History
 
 - 2026-11-17T11:25:01+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-17T11:39:29+01:00 — Stage moved from `development` to `completion`.
