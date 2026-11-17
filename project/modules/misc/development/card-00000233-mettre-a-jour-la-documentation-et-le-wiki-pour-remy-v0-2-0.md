@@ -10,7 +10,7 @@ module: "misc"
 
 ## Résultat attendu
 
-Le wiki GitHub et la documentation du dépôt décrivent le kit v0.2.0 et les réglages actuels de Remy. Cette carte est créée à la demande de l’utilisateur pour un traitement ultérieur.
+Le wiki GitHub et la documentation du dépôt décrivent le kit v0.2.0 et les réglages actuels de Remy.
 
 ## Critères d’acceptation
 
@@ -24,3 +24,11 @@ Le wiki GitHub et la documentation du dépôt décrivent le kit v0.2.0 et les r�
 - [Wiki GitHub](https://github.com/leclerefrederic/kanban-rememory/wiki)
 - [Procédure d’installation](../../../../dist/INSTALL.md)
 - [Guide utilisateur](../../../../kanban-rememory/documentation/guide.md)
+
+## Vérification
+
+Révision locale du wiki : `b12141a4acb1da43f16f024f2414d05aa398dce4`. Les 41 liens internes et cibles du dépôt, le ZIP, les commandes et l’exemple JSON ont été vérifiés. La publication du wiki reste à faire.
+
+## History
+
+- 2026-11-17T11:52:01+01:00 — Stage moved from `backlog` to `development`.

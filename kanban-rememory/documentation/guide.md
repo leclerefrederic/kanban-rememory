@@ -61,7 +61,7 @@ Tell the agent when delivered behavior differs from what was agreed: the version
 
 Both use the same records: Codex reads `AGENTS.md`, and Claude Code reads it through `CLAUDE.md`. A conversation does not carry from one application to another, so name the repository and, if known, the Card, and ask the new session to resume. No host enforces these instructions: they rely on the agent and on each product's own sandbox and approvals.
 
-## Telegram alerts
+## Slack and Telegram alerts
 
 Slack and Telegram are optional. Remy sends **Action required** when the agent needs you, including for a merge approval, and **Work completed** once the agreed outcome is verified, nothing else. Each alert names the project, the Card and the chat to return to. You answer in that chat. Set it up with the [Slack guide](slack-setup.md) or the [Telegram guide](telegram-setup.md).
 

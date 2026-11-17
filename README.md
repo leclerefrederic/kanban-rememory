@@ -141,7 +141,7 @@ check what has really been verified and continue the next authorized
 action. Ask me only for missing decisions.
 ```
 
-Want an alert when your attention is needed or the work is delivered? **Remy**, the optional Slack or Telegram notifier, can send you back to the right chat. Follow the [Slack setup guide](kanban-rememory/documentation/slack-setup.md) or the [Telegram setup guide](kanban-rememory/documentation/telegram-setup.md).
+Want an alert when your attention is needed or the work is delivered? **Remy**, the optional Slack or Telegram notifier, can send you back to the right chat. Choose one or both destinations per repository in `kanban-rememory.json`. Follow the [Slack setup guide](kanban-rememory/documentation/slack-setup.md) or the [Telegram setup guide](kanban-rememory/documentation/telegram-setup.md).
 
 ## 📚 Go deeper
 
