@@ -27,8 +27,12 @@ Le wiki GitHub et la documentation du dépôt décrivent le kit v0.2.0 et les r�
 
 ## Vérification
 
-Révision locale du wiki : `b12141a4acb1da43f16f024f2414d05aa398dce4`. Les 41 liens internes et cibles du dépôt, le ZIP, les commandes et l’exemple JSON ont été vérifiés. La publication du wiki reste à faire.
+Révision publiée du wiki : `b12141a4acb1da43f16f024f2414d05aa398dce4`. Les 41 liens internes et cibles du dépôt, le ZIP, les commandes et l’exemple JSON ont été vérifiés. La révision a été confirmée sur le dépôt GitHub du wiki.
 
 ## History
 
 - 2026-11-17T11:52:01+01:00 — Stage moved from `backlog` to `development`.
+
+- 2026-11-17T11:55:12+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-17T11:55:12+01:00 — Merge approved for the verified candidate `cf4898fda0ef70b430276045f7ce77be3955508c`: “publie”.
