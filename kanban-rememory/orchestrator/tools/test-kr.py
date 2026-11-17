@@ -228,7 +228,26 @@ class KrTests(unittest.TestCase):
         self.assertIn("Next: run check", self.kr(root, "show"))
         self.kr(root, "check")
         self.assertIn("Next: ask for approval, then publish", self.kr(root, "show"))
-        output = self.kr(root, "publish", "--summary", "Direct.", "--approval", "Oui")
+        from telegram import config_path
+
+        slack_path = config_path().with_name("slack.json")
+        slack_path.parent.mkdir(parents=True, exist_ok=True)
+        slack_path.touch()
+        run = subprocess.run
+        notifications = []
+
+        def simulate_notification(args, **kwargs):
+            if len(args) > 1 and Path(args[1]).name == "telegram.py":
+                notifications.append(args[2:])
+                return subprocess.CompletedProcess(args, 0, "Slack: confirmed delivery.\n", "")
+            return run(args, **kwargs)
+
+        with mock.patch.object(subprocess, "run", side_effect=simulate_notification):
+            output = self.kr(root, "publish", "--summary", "Direct.", "--approval", "Oui")
+        self.assertEqual(len(notifications), 1)
+        self.assertEqual(notifications[0][:7],
+                         ["completed", "--card", "CARD-00000001", "--id", "delivery", "--text", "Direct."])
+        self.assertIn("Slack: confirmed delivery.", output)
         self.assertIn(" as v0.0.1", output)
         self.assertEqual(self.git(root, "tag", "--list"), "v0.0.1")
         self.assertEqual(self.git(root, "ls-remote", "origin", "refs/tags/v0.0.1").split()[0], self.git(root, "rev-parse", "v0.0.1"))

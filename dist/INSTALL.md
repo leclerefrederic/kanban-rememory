@@ -190,4 +190,4 @@ Then:
 
 ## Option: Telegram
 
-Only if the project approves: give the user `kanban-rememory/documentation/telegram-setup.md`.
+Only if the project approves: give the user the Slack or Telegram setup guide in `kanban-rememory/documentation/`.

@@ -1,8 +1,9 @@
-"""Remy, the optional Telegram alerts: private setup, status, test, and the attention and completed alerts."""
+"""Remy sends optional Slack or Telegram alerts for Kanban Rememory."""
 
 import argparse
 import csv
 import getpass
+import hashlib
 import io
 import json
 import os
@@ -15,11 +16,12 @@ import subprocess
 import sys
 import tempfile
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 import warnings
 
 ROOT = Path(__file__).resolve().parents[3]
 TOKEN = re.compile(r"[0-9]+:[A-Za-z0-9_-]+")
+SLACK_WEBHOOK = re.compile(r"https://hooks\.slack\.com/services/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+")
 TEST = "Remy: Kanban Rememory setup test."
 UNCERTAIN = "Delivery uncertain. Check Telegram before sending again."
 OFFLINE = "Connection failed. Check your network and try again."
@@ -37,11 +39,11 @@ LABELS = {
            "reference": "Référence", "summary": "Résumé", "next_action": "Prochaine action"},
 }
 STATUS = {
-    "sent": ("Telegram: confirmed delivery.", 0),
-    "duplicate": ("Telegram: already confirmed; not sent again.", 0),
-    "unconfirmed": ("Telegram: delivery not confirmed and the outcome is unknown. Check the chat, then rerun "
+    "sent": ("confirmed delivery.", 0),
+    "duplicate": ("already confirmed; not sent again.", 0),
+    "unconfirmed": ("delivery not confirmed and the outcome is unknown. Check the destination, then rerun "
                     "with --confirm-retry to send again.", 2),
-    "failed": ("Telegram: not sent, the request was refused. Retrying is safe.", 1),
+    "failed": ("not sent, the request was refused. Retrying is safe.", 1),
 }
 
 
@@ -60,6 +62,41 @@ def config_path(platform=None, environ=None, home=None):
     if platform == "win32":
         return Path(environ.get("LOCALAPPDATA") or home / "AppData" / "Local") / "KanbanRememory" / "telegram.json"
     return home / ".config" / "kanban-rememory" / "telegram.json"
+
+
+def active_config(telegram_path=None):
+    telegram_path = config_path() if telegram_path is None else telegram_path
+    slack_path = telegram_path.with_name("slack.json")
+    if slack_path.exists() or slack_path.is_symlink():
+        return "Slack", slack_path
+    return "Telegram", telegram_path
+
+
+class NoWebhookRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def send_slack(webhook, message):
+    escaped = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    payload = {"text": escaped, "mrkdwn": False, "unfurl_links": False, "unfurl_media": False}
+    request = Request(webhook, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
+    uncertain = "Slack did not confirm delivery. Check the Slack channel before sending again."
+    try:
+        with build_opener(NoWebhookRedirect()).open(request, timeout=20) as response:
+            if response.status == 200 and response.read(16).strip() == b"ok":
+                return
+    except HTTPError as error:
+        if error.code == 408 or error.code >= 500:
+            raise TelegramError(uncertain, definite=False) from None
+        raise TelegramError(f"Slack refused the request (HTTP {error.code}).") from None
+    except URLError as error:
+        if isinstance(error.reason, (socket.gaierror, ConnectionRefusedError)):
+            raise TelegramError(OFFLINE) from None
+        raise TelegramError(uncertain, definite=False) from None
+    except (OSError, ValueError):
+        raise TelegramError(uncertain, definite=False) from None
+    raise TelegramError(uncertain, definite=False)
 
 
 def api(token, method, **parameters):
@@ -93,14 +130,23 @@ def check_config(config):
     return config
 
 
-def load_config(path):
+def check_slack_config(config):
+    if (not isinstance(config, dict) or config.get("version") != 1
+            or not isinstance(config.get("webhook"), str) or not SLACK_WEBHOOK.fullmatch(config["webhook"])):
+        raise TelegramError("Invalid Slack webhook. Use the Incoming Webhooks URL from your Slack app.")
+    return config
+
+
+def load_config(path, check=check_config):
     try:
         if path.is_symlink():
             raise TelegramError("The configuration file must not be a symbolic link.")
         if sys.platform != "win32" and path.stat().st_mode & 0o077:
             raise TelegramError("Configuration file permissions are too broad. Restore them with chmod 600.")
-        return check_config(json.loads(path.read_text(encoding="utf-8")))
+        return check(json.loads(path.read_text(encoding="utf-8")))
     except FileNotFoundError:
+        if check is check_slack_config:
+            raise TelegramError("Slack is not configured; nothing was sent. Run setup-slack.") from None
         raise TelegramError("Telegram is not configured; nothing was sent. "
                             "Set it up with: python3 kanban-rememory/orchestrator/tools/telegram.py") from None
     except (OSError, ValueError):
@@ -123,12 +169,12 @@ def protect_file(path, platform=None):
         raise TelegramError("Could not secure the Windows file. No token was saved.") from None
 
 
-def save_config(path, config):
-    check_config(config)
+def save_config(path, config, check=check_config):
+    check(config)
     if path.is_symlink():
         raise TelegramError("Cannot replace a configuration file that is a symbolic link.")
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary = tempfile.mkstemp(prefix=".telegram-", dir=path.parent)
+    descriptor, temporary = tempfile.mkstemp(prefix=f".{path.stem}-", dir=path.parent)
     os.close(descriptor)
     temporary = Path(temporary)
     try:
@@ -145,6 +191,15 @@ def save_config(path, config):
 
 def yes(prompt, ask):
     return ask(prompt + " [y/N] ").strip().lower() in ("o", "oui", "y", "yes")
+
+
+def setup_slack(path):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", getpass.GetPassWarning)
+        webhook = getpass.getpass("Slack Incoming Webhook URL (hidden input): ").strip()
+    save_config(path, {"version": 1, "webhook": webhook}, check_slack_config)
+    print("Slack configuration saved. Run test --send to verify that the alert reaches the channel.")
+    return 0
 
 
 def private_matches(updates, challenge):
@@ -262,17 +317,24 @@ def alert(args, path, call=api):
     if not args.send:
         print(f"Preview, not sent (add --send):\n\n{message}")
         return 0
-    config = load_config(path)
-    key = (config["chat_id"], project.name, args.command, json.dumps([module, args.card, args.id], ensure_ascii=False))
+    service, target = active_config(path)
+    if service == "Slack":
+        webhook = load_config(target, check_slack_config)["webhook"]
+        recipient = hashlib.sha256(webhook.encode()).hexdigest()
+        send = lambda: send_slack(webhook, message)
+    else:
+        config = load_config(target)
+        recipient = config["chat_id"]
+        send = lambda: call(config["token"], "sendMessage", chat_id=recipient, text=message)
+    key = (recipient, project.name, args.command, json.dumps([module, args.card, args.id], ensure_ascii=False))
     try:
-        outcome = deliver(common_directory(ROOT) / "telegram-notifications.sqlite3", key,
-                          lambda: call(config["token"], "sendMessage", chat_id=config["chat_id"], text=message),
+        outcome = deliver(common_directory(ROOT) / f"{service.lower()}-notifications.sqlite3", key, send,
                           args.confirm_retry)
     except (OSError, sqlite3.Error):
-        print("Telegram: delivery could not be confirmed. Check the chat before any retry.", file=sys.stderr)
+        print(f"{service}: delivery could not be confirmed. Check the destination before any retry.", file=sys.stderr)
         return 2
     text, code = STATUS[outcome]
-    print(text, file=sys.stderr if code else sys.stdout)
+    print(f"{service}: {text}", file=sys.stderr if code else sys.stdout)
     return code
 
 
@@ -280,7 +342,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("setup", help="interactive private setup (default)")
-    sub.add_parser("status", help="show the bot and the recipient, never the token")
+    sub.add_parser("setup-slack", help="privately configure a Slack incoming webhook")
+    sub.add_parser("status", help="show the active service without revealing credentials")
     test = sub.add_parser("test", help="preview or send a test message")
     test.add_argument("--send", action="store_true")
     for event, purpose in (("attention", "a decision, an action or a merge approval is needed"),
@@ -310,15 +373,27 @@ def main():
             parser.error("--link must be a full address such as https://example.invalid/chat.")
     path = config_path()
     try:
-        if args.command in (None, "setup"):
+        if args.command in (None, "setup", "setup-slack"):
             if not sys.stdin.isatty():
                 raise TelegramError("Run this file in an interactive terminal: python3 kanban-rememory/orchestrator/tools/telegram.py "
                                     "on macOS, py -3 kanban-rememory/orchestrator/tools/telegram.py on Windows. "
                                     "Piped input and python - are unsupported.")
+            if args.command == "setup-slack":
+                return setup_slack(path.with_name("slack.json"))
             return setup(path)
         if args.command in ICONS:
             return alert(args, path)
-        config = load_config(path)
+        service, target = active_config(path)
+        if service == "Slack":
+            config = load_config(target, check_slack_config)
+            print(f"Configuration: Slack, file {target}")
+            if args.command == "test" and args.send:
+                send_slack(config["webhook"], TEST)
+                print("Slack confirmed the send. Check the configured channel for the test.")
+            elif args.command == "test":
+                print("Preview only. Add --send to send the test.")
+            return 0
+        config = load_config(target)
         print(f"Configuration: @{config.get('bot_username', '?')}, recipient {config['chat_id']}, file {path}")
         if args.command == "test":
             if not args.send:

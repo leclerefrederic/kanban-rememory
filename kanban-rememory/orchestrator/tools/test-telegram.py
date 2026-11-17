@@ -21,6 +21,7 @@ spec = importlib.util.spec_from_file_location("telegram", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
 TOKEN = "123456789:PRIVATE_TEST_TOKEN"
+WEBHOOK = "https://hooks.slack.com/services/T123/B123/PRIVATE_TEST_WEBHOOK"
 CONFIG = {"version": 1, "token": TOKEN, "chat_id": "42", "bot_username": "RememoryNotifyBot"}
 
 
@@ -173,8 +174,8 @@ class TelegramTests(unittest.TestCase):
         card = root / "project/modules/a/backlog/card-00000001-export.md"
         card.parent.mkdir(parents=True)
         card.write_text('---\nid: "CARD-00000001"\nmodule: "a"\n---\n')
-        settings = json.loads((KIT / "project/settings.json").read_text())
-        (root / "project/settings.json").write_text(json.dumps(dict(settings, name="Example", modules=["a", "misc"])))
+        settings = json.loads((KIT / "kanban-rememory.json").read_text())
+        (root / "kanban-rememory.json").write_text(json.dumps(dict(settings, name="Example", modules=["a", "misc"])))
         environment = {**os.environ, "HOME": str(self.base / "home"), "LOCALAPPDATA": str(self.base / "home")}
 
         def run(*args):
@@ -203,9 +204,46 @@ class TelegramTests(unittest.TestCase):
         self.assertEqual(len(sent), 1)
         self.assertEqual(sent[0]["chat_id"], "42")
         self.assertIn("Référence: a / CARD-00000001\n", sent[0]["text"])
+        slack_path = self.path.with_name("slack.json")
+        m.save_config(slack_path, {"version": 1, "webhook": WEBHOOK}, m.check_slack_config)
+        with patch.object(m, "ROOT", root), patch.object(m, "send_slack") as send_slack, \
+                contextlib.redirect_stdout(io.StringIO()):
+            for command in ("attention", "completed"):
+                args.command = command
+                for _ in range(2):
+                    self.assertEqual(m.alert(args, self.path, call=self.api), 0)
+            self.assertEqual(send_slack.call_count, 2)
+            self.assertEqual(send_slack.call_args.args[0], WEBHOOK)
+            self.assertIn("Référence: a / CARD-00000001\n", send_slack.call_args.args[1])
+            self.assertEqual(self.calls, [])
         piped = subprocess.run([sys.executable, str(SCRIPT)], input=b"", capture_output=True)
         self.assertEqual(piped.returncode, 1)
         self.assertIn(b"interactive terminal", piped.stderr)
+
+    def test_slack_uses_a_private_webhook_and_handles_uncertain_delivery(self):
+        slack_path = self.path.with_name("slack.json")
+        output = io.StringIO()
+        with patch.object(m.getpass, "getpass", return_value=WEBHOOK), contextlib.redirect_stdout(output):
+            self.assertEqual(m.setup_slack(slack_path), 0)
+        self.assertNotIn(WEBHOOK, output.getvalue())
+        if sys.platform != "win32":
+            self.assertEqual(slack_path.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(m.active_config(self.path), ("Slack", slack_path))
+        with patch.object(m, "build_opener") as opener:
+            request = opener.return_value.open
+            response = request.return_value.__enter__.return_value
+            response.status = 200
+            response.read.return_value = b"ok"
+            m.send_slack(WEBHOOK, "Remy <@example>")
+            payload = json.loads(request.call_args.args[0].data)
+            self.assertEqual(payload["text"], "Remy &lt;@example&gt;")
+            for status in (302, 403, 408, 500):
+                with self.subTest(status=status):
+                    request.side_effect = HTTPError(WEBHOOK, status, WEBHOOK, {}, None)
+                    with self.assertRaises(m.TelegramError) as failure:
+                        m.send_slack(WEBHOOK, "Remy")
+                    self.assertEqual(failure.exception.definite, status in (302, 403))
+                    self.assertNotIn(WEBHOOK, str(failure.exception))
 
     @unittest.skipIf(sys.platform == "win32", "real POSIX terminal; Windows needs live acceptance")
     def test_real_terminal_hides_the_token(self):

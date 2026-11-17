@@ -63,4 +63,4 @@ Both use the same records: Codex reads `AGENTS.md`, and Claude Code reads it thr
 
 ## Telegram alerts
 
-Telegram is optional. Remy sends **Action required** when the agent needs you, including for a merge approval, and **Work completed** once the agreed outcome is verified, nothing else. Each alert names the project, the Card and the chat to return to. You answer in that chat, never in Telegram. Set it up with the [Telegram guide](telegram-setup.md).
+Slack and Telegram are optional. Remy sends **Action required** when the agent needs you, including for a merge approval, and **Work completed** once the agreed outcome is verified, nothing else. Each alert names the project, the Card and the chat to return to. You answer in that chat. Set it up with the [Slack guide](slack-setup.md) or the [Telegram guide](telegram-setup.md).
