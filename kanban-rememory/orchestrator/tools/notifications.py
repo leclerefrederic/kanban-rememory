@@ -19,6 +19,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 import warnings
 
+from kanban.project import NOTIFICATION_SERVICES, common_directory, load_project
+
 ROOT = Path(__file__).resolve().parents[3]
 TOKEN = re.compile(r"[0-9]+:[A-Za-z0-9_-]+")
 SLACK_WEBHOOK = re.compile(r"https://hooks\.slack\.com/services/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+/[A-Za-z0-9_-]+")
@@ -47,7 +49,7 @@ STATUS = {
 }
 
 
-class TelegramError(Exception):
+class NotificationError(Exception):
     """A failed request; definite is false when the message may still have been delivered."""
 
     def __init__(self, message, definite=True):
@@ -64,12 +66,17 @@ def config_path(platform=None, environ=None, home=None):
     return home / ".config" / "kanban-rememory" / "telegram.json"
 
 
-def active_config(telegram_path=None):
-    telegram_path = config_path() if telegram_path is None else telegram_path
-    slack_path = telegram_path.with_name("slack.json")
-    if slack_path.exists() or slack_path.is_symlink():
-        return "Slack", slack_path
-    return "Telegram", telegram_path
+def notification_settings(project, path):
+    if project.notifications is not None:
+        return project.notifications
+    telegram = path.exists() or path.is_symlink()
+    return {"slack": {"configured": False, "active": False},
+            "telegram": {"configured": telegram, "active": telegram}}
+
+
+def active_services(project, path=None):
+    settings = notification_settings(project, config_path() if path is None else path)
+    return [service for service in NOTIFICATION_SERVICES if settings[service]["active"]]
 
 
 class NoWebhookRedirect(HTTPRedirectHandler):
@@ -88,15 +95,15 @@ def send_slack(webhook, message):
                 return
     except HTTPError as error:
         if error.code == 408 or error.code >= 500:
-            raise TelegramError(uncertain, definite=False) from None
-        raise TelegramError(f"Slack refused the request (HTTP {error.code}).") from None
+            raise NotificationError(uncertain, definite=False) from None
+        raise NotificationError(f"Slack refused the request (HTTP {error.code}).") from None
     except URLError as error:
         if isinstance(error.reason, (socket.gaierror, ConnectionRefusedError)):
-            raise TelegramError(OFFLINE) from None
-        raise TelegramError(uncertain, definite=False) from None
+            raise NotificationError(OFFLINE) from None
+        raise NotificationError(uncertain, definite=False) from None
     except (OSError, ValueError):
-        raise TelegramError(uncertain, definite=False) from None
-    raise TelegramError(uncertain, definite=False)
+        raise NotificationError(uncertain, definite=False) from None
+    raise NotificationError(uncertain, definite=False)
 
 
 def api(token, method, **parameters):
@@ -109,16 +116,16 @@ def api(token, method, **parameters):
             result = json.load(response)
     except HTTPError as error:
         if sending and error.code >= 500:
-            raise TelegramError(UNCERTAIN, definite=False) from None
-        raise TelegramError(HTTP.get(error.code, f"Telegram rejected the request (HTTP {error.code}).")) from None
+            raise NotificationError(UNCERTAIN, definite=False) from None
+        raise NotificationError(HTTP.get(error.code, f"Telegram rejected the request (HTTP {error.code}).")) from None
     except URLError as error:
         if sending and not isinstance(error.reason, (socket.gaierror, ConnectionRefusedError)):
-            raise TelegramError(UNCERTAIN, definite=False) from None
-        raise TelegramError(OFFLINE) from None
+            raise NotificationError(UNCERTAIN, definite=False) from None
+        raise NotificationError(OFFLINE) from None
     except (OSError, ValueError):  # timeout or unreadable reply: a message may have been delivered
-        raise TelegramError(UNCERTAIN if sending else OFFLINE, definite=not sending) from None
+        raise NotificationError(UNCERTAIN if sending else OFFLINE, definite=not sending) from None
     if not isinstance(result, dict) or result.get("ok") is not True or "result" not in result:
-        raise TelegramError("Telegram did not confirm the request.")
+        raise NotificationError("Telegram did not confirm the request.")
     return result["result"]
 
 
@@ -126,31 +133,31 @@ def check_config(config):
     if (not isinstance(config, dict) or config.get("version") != 1
             or not isinstance(config.get("token"), str) or not TOKEN.fullmatch(config["token"])
             or not isinstance(config.get("chat_id"), str) or not re.fullmatch(r"[0-9]+", config["chat_id"])):
-        raise TelegramError("Invalid configuration. Run the setup again to replace it.")
+        raise NotificationError("Invalid configuration. Run the setup again to replace it.")
     return config
 
 
 def check_slack_config(config):
     if (not isinstance(config, dict) or config.get("version") != 1
             or not isinstance(config.get("webhook"), str) or not SLACK_WEBHOOK.fullmatch(config["webhook"])):
-        raise TelegramError("Invalid Slack webhook. Use the Incoming Webhooks URL from your Slack app.")
+        raise NotificationError("Invalid Slack webhook. Use the Incoming Webhooks URL from your Slack app.")
     return config
 
 
 def load_config(path, check=check_config):
     try:
         if path.is_symlink():
-            raise TelegramError("The configuration file must not be a symbolic link.")
+            raise NotificationError("The configuration file must not be a symbolic link.")
         if sys.platform != "win32" and path.stat().st_mode & 0o077:
-            raise TelegramError("Configuration file permissions are too broad. Restore them with chmod 600.")
+            raise NotificationError("Configuration file permissions are too broad. Restore them with chmod 600.")
         return check(json.loads(path.read_text(encoding="utf-8")))
     except FileNotFoundError:
         if check is check_slack_config:
-            raise TelegramError("Slack is not configured; nothing was sent. Run setup-slack.") from None
-        raise TelegramError("Telegram is not configured; nothing was sent. "
+            raise NotificationError("Slack is not configured; nothing was sent. Run setup-slack.") from None
+        raise NotificationError("Telegram is not configured; nothing was sent. "
                             "Set it up with: python3 kanban-rememory/orchestrator/tools/notifications.py") from None
     except (OSError, ValueError):
-        raise TelegramError("Could not read the configuration. Run the setup again.") from None
+        raise NotificationError("Could not read the configuration. Run the setup again.") from None
 
 
 def protect_file(path, platform=None):
@@ -166,13 +173,13 @@ def protect_file(path, platform=None):
         subprocess.run(["icacls", str(path), "/inheritance:r", "/grant:r", f"*{sid}:F"],
                        check=True, capture_output=True, text=True)
     except (OSError, ValueError, IndexError, StopIteration, subprocess.CalledProcessError):
-        raise TelegramError("Could not secure the Windows file. No token was saved.") from None
+        raise NotificationError("Could not secure the Windows file. No token was saved.") from None
 
 
 def save_config(path, config, check=check_config):
     check(config)
     if path.is_symlink():
-        raise TelegramError("Cannot replace a configuration file that is a symbolic link.")
+        raise NotificationError("Cannot replace a configuration file that is a symbolic link.")
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=f".{path.stem}-", dir=path.parent)
     os.close(descriptor)
@@ -198,13 +205,13 @@ def setup_slack(path):
         warnings.simplefilter("error", getpass.GetPassWarning)
         webhook = getpass.getpass("Slack Incoming Webhook URL (hidden input): ").strip()
     save_config(path, {"version": 1, "webhook": webhook}, check_slack_config)
-    print("Slack configuration saved. Run test --send to verify that the alert reaches the channel.")
+    print("Slack configuration saved. Run test --service slack --send to verify that the alert reaches the channel.")
     return 0
 
 
 def private_matches(updates, challenge):
     if not isinstance(updates, list):
-        raise TelegramError("Invalid Telegram update list. No settings were saved.")
+        raise NotificationError("Invalid Telegram update list. No settings were saved.")
     chats = {}
     for update in updates:
         message = update.get("message", {})
@@ -224,16 +231,16 @@ def setup(path, ask=input, secret=getpass.getpass, call=api):
         warnings.simplefilter("error", getpass.GetPassWarning)
         token = secret("Bot API token (hidden input): ").strip()
     if not TOKEN.fullmatch(token):
-        raise TelegramError("Invalid token format. Enter the API token from BotFather.")
+        raise NotificationError("Invalid token format. Enter the API token from BotFather.")
     bot = call(token, "getMe")
     if not isinstance(bot, dict) or not bot.get("is_bot") or not re.fullmatch(r"[A-Za-z0-9_]+", bot.get("username", "")):
-        raise TelegramError("Could not identify the bot. No settings were saved.")
+        raise NotificationError("Could not identify the bot. No settings were saved.")
     print(f"Verified bot: {bot.get('first_name', '')} — @{bot['username']}")
     webhook = call(token, "getWebhookInfo")
     if not isinstance(webhook, dict):
-        raise TelegramError("Invalid Telegram response. No settings were saved.")
+        raise NotificationError("Invalid Telegram response. No settings were saved.")
     if webhook.get("url"):
-        raise TelegramError("This bot uses a webhook. Use a dedicated notification bot. The webhook was preserved.")
+        raise NotificationError("This bot uses a webhook. Use a dedicated notification bot. The webhook was preserved.")
     challenge = "/setup_" + secrets.token_hex(4)
     print(f"1. Open https://t.me/{bot['username']} and press Start if needed.")
     print(f"2. Send this exact message to the bot: {challenge}")
@@ -243,13 +250,13 @@ def setup(path, ask=input, secret=getpass.getpass, call=api):
         updates = call(token, "getUpdates", timeout=5, limit=100)
         chats = private_matches(updates, challenge)
         if len(chats) > 1:
-            raise TelegramError("Multiple chats sent this code. Run the setup again to get a new code.")
+            raise NotificationError("Multiple chats sent this code. Run the setup again to get a new code.")
         if chats:
             chat_id, chat = next(iter(chats.items()))
             break
         print("Code not found. Check the bot link and the text you sent. No chat ID lookup is needed.")
         if len(updates) >= 100:
-            raise TelegramError("This bot has too many pending messages. Use a dedicated bot. No messages were deleted.")
+            raise NotificationError("This bot has too many pending messages. Use a dedicated bot. No messages were deleted.")
         if not yes("Try again after sending the code in this chat?", ask):
             print("Canceled. Previous configuration kept.")
             return 0
@@ -294,7 +301,7 @@ def deliver(ledger, key, send, confirm_retry=False):
         connection.execute("BEGIN IMMEDIATE")
         try:
             send()
-        except TelegramError as failure:
+        except NotificationError as failure:
             if failure.definite:
                 connection.execute("DELETE FROM alerts WHERE (chat,project,kind,ident) = (?,?,?,?)", key)
                 connection.commit()
@@ -306,9 +313,7 @@ def deliver(ledger, key, send, confirm_retry=False):
 
 
 def alert(args, path, call=api):
-    sys.path.insert(0, str(ROOT / "kanban-rememory/orchestrator/tools"))
     from kanban.board import find_card
-    from kanban.project import common_directory, load_project
 
     project = load_project(ROOT)
     module = find_card(project, args.card)[0]
@@ -317,25 +322,55 @@ def alert(args, path, call=api):
     if not args.send:
         print(f"Preview, not sent (add --send):\n\n{message}")
         return 0
-    service, target = active_config(path)
-    if service == "Slack":
-        webhook = load_config(target, check_slack_config)["webhook"]
-        recipient = hashlib.sha256(webhook.encode()).hexdigest()
-        send = lambda: send_slack(webhook, message)
-    else:
-        config = load_config(target)
-        recipient = config["chat_id"]
-        send = lambda: call(config["token"], "sendMessage", chat_id=recipient, text=message)
+    services = active_services(project, path)
+    if not services:
+        print("No active notification service in this repository; nothing was sent.", file=sys.stderr)
+        return 1
+    results = [deliver_alert(service, path, project, module, args, message, call) for service in services]
+    return max(results)
+
+
+def deliver_alert(service, path, project, module, args, message, call):
+    name = service.capitalize()
+    target = path.with_name(f"{service}.json")
+    try:
+        if service == "slack":
+            webhook = load_config(target, check_slack_config)["webhook"]
+            recipient = hashlib.sha256(webhook.encode()).hexdigest()
+            send = lambda: send_slack(webhook, message)
+        else:
+            config = load_config(target)
+            recipient = config["chat_id"]
+            send = lambda: call(config["token"], "sendMessage", chat_id=recipient, text=message)
+    except NotificationError as error:
+        print(f"{name}: {error}", file=sys.stderr)
+        return 1
     key = (recipient, project.name, args.command, json.dumps([module, args.card, args.id], ensure_ascii=False))
     try:
-        outcome = deliver(common_directory(ROOT) / f"{service.lower()}-notifications.sqlite3", key, send,
+        outcome = deliver(common_directory(ROOT) / f"{service}-notifications.sqlite3", key, send,
                           args.confirm_retry)
     except (OSError, sqlite3.Error):
-        print(f"{service}: delivery could not be confirmed. Check the destination before any retry.", file=sys.stderr)
+        print(f"{name}: delivery could not be confirmed. Check the destination before any retry.", file=sys.stderr)
         return 2
     text, code = STATUS[outcome]
-    print(f"{service}: {text}", file=sys.stderr if code else sys.stdout)
+    print(f"{name}: {text}", file=sys.stderr if code else sys.stdout)
     return code
+
+
+def test_service(service, path):
+    name = service.capitalize()
+    target = path.with_name(f"{service}.json")
+    try:
+        if service == "slack":
+            send_slack(load_config(target, check_slack_config)["webhook"], TEST)
+        else:
+            config = load_config(target)
+            api(config["token"], "sendMessage", chat_id=config["chat_id"], text=TEST)
+    except NotificationError as error:
+        print(f"{name}: {error}", file=sys.stderr)
+        return 1 if error.definite else 2
+    print(f"{name}: test delivery confirmed. Check the configured destination.")
+    return 0
 
 
 def main():
@@ -343,9 +378,10 @@ def main():
     sub = parser.add_subparsers(dest="command")
     sub.add_parser("setup", help="interactive private setup (default)")
     sub.add_parser("setup-slack", help="privately configure a Slack incoming webhook")
-    sub.add_parser("status", help="show the active service without revealing credentials")
+    sub.add_parser("status", help="show repository flags and whether local configuration files are present")
     test = sub.add_parser("test", help="preview or send a test message")
     test.add_argument("--send", action="store_true")
+    test.add_argument("--service", choices=NOTIFICATION_SERVICES, help="test one local destination explicitly")
     for event, purpose in (("attention", "a decision, an action or a merge approval is needed"),
                            ("completed", "the agreed delivery is verified")):
         work = sub.add_parser(event, help=purpose)
@@ -375,7 +411,7 @@ def main():
     try:
         if args.command in (None, "setup", "setup-slack"):
             if not sys.stdin.isatty():
-                raise TelegramError("Run this file in an interactive terminal: python3 kanban-rememory/orchestrator/tools/notifications.py "
+                raise NotificationError("Run this file in an interactive terminal: python3 kanban-rememory/orchestrator/tools/notifications.py "
                                     "on macOS, py -3 kanban-rememory/orchestrator/tools/notifications.py on Windows. "
                                     "Piped input and python - are unsupported.")
             if args.command == "setup-slack":
@@ -383,30 +419,27 @@ def main():
             return setup(path)
         if args.command in ICONS:
             return alert(args, path)
-        service, target = active_config(path)
-        if service == "Slack":
-            config = load_config(target, check_slack_config)
-            print(f"Configuration: Slack, file {target}")
-            if args.command == "test" and args.send:
-                send_slack(config["webhook"], TEST)
-                print("Slack confirmed the send. Check the configured channel for the test.")
-            elif args.command == "test":
-                print("Preview only. Add --send to send the test.")
+        project = load_project(ROOT)
+        if args.command == "status":
+            settings = notification_settings(project, path)
+            for service, flags in settings.items():
+                target = path.with_name(f"{service}.json")
+                local = target.is_file() and not target.is_symlink()
+                print(f"{service.capitalize()}: configured={str(flags['configured']).lower()}, "
+                      f"active={str(flags['active']).lower()}, local file={'present' if local else 'missing'}")
             return 0
-        config = load_config(target)
-        print(f"Configuration: @{config.get('bot_username', '?')}, recipient {config['chat_id']}, file {path}")
-        if args.command == "test":
-            if not args.send:
-                print("Preview only. Add --send to send the test.")
-                return 0
-            api(config["token"], "sendMessage", chat_id=config["chat_id"], text=TEST)
-            print("Telegram confirmed the send. Check your Telegram chat for the test.")
-        return 0
+        services = [args.service] if args.service else active_services(project, path)
+        if not services:
+            raise NotificationError("No active notification service in this repository; nothing was sent.")
+        if not args.send:
+            print(f"Preview for {', '.join(map(str.capitalize, services))}: {TEST}")
+            return 0
+        return max([test_service(service, path) for service in services])
     except (KeyboardInterrupt, EOFError):
         print("\nInput interrupted. Previous configuration kept.", file=sys.stderr)
     except getpass.GetPassWarning:
         print("Hidden input unavailable. Open a regular terminal and try again.", file=sys.stderr)
-    except (TelegramError, ValueError, subprocess.CalledProcessError) as error:
+    except (NotificationError, ValueError, subprocess.CalledProcessError) as error:
         print(str(error), file=sys.stderr)
     except OSError:
         print("Local file or permission error. Use status to check the saved configuration.", file=sys.stderr)

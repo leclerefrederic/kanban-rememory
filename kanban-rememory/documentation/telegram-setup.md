@@ -33,7 +33,7 @@ py -3 kanban-rememory/orchestrator/tools/notifications.py
 4. The tool shows the detected person's name and numeric chat ID. Answer `y` only if this is the intended recipient. This authorizes the test and future alerts through this configuration.
 5. The tool sends a test. Check that it arrived in that Telegram conversation, then answer `y` to confirm receipt. Only then is configuration saved. If replacing existing settings, cancellation or a failed test leaves the previous settings intact.
 
-Success means both that the test arrived and that the Terminal printed **Configuration saved**. This confirms the Telegram configuration and test delivery.
+Success means both that the test arrived and that the Terminal printed **Configuration saved**. This confirms the Telegram configuration and test delivery. To enable automatic Telegram alerts for this repository, set `notifications.telegram.configured` and `notifications.telegram.active` to `true` in the root `kanban-rememory.json`. Set `active` to `false` to pause alerts and keep your Telegram credentials.
 
 ## Remy during Card delivery
 
@@ -52,7 +52,7 @@ Display configuration status without exposing the key, or send another test:
 
 ```sh
 python3 kanban-rememory/orchestrator/tools/notifications.py status
-python3 kanban-rememory/orchestrator/tools/notifications.py test --send
+python3 kanban-rememory/orchestrator/tools/notifications.py test --service telegram --send
 ```
 
 On Windows, replace `python3` with `py -3`. `test` without `--send` displays the destination and sends nothing. To change the bot or recipient, run the initial setup again. The tool asks before replacing existing configuration.

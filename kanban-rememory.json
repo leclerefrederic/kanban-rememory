@@ -31,5 +31,15 @@
     }
   },
   "version": "0.1.49",
-  "kit": "0.1.0"
+  "kit": "0.1.0",
+  "notifications": {
+    "slack": {
+      "configured": true,
+      "active": true
+    },
+    "telegram": {
+      "configured": true,
+      "active": false
+    }
+  }
 }

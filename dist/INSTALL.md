@@ -15,7 +15,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 - KIT_VERSION = the content of `KIT/kanban-rememory/VERSION`, one release number.
 - `init` = `python3 KIT/installer/init.py`, the installation script. It shares nothing with `kr`.
 - `kr` = `python3 kanban-rememory/orchestrator/tools/kr.py`.
-- CONFIG = `kanban-rememory.json` at the root of TARGET. It holds `name`, `directory`, `modules`, `workflow`, `version` and, installed by this procedure, `kit`.
+- CONFIG = `kanban-rememory.json` at the root of TARGET. It holds `name`, `directory`, `modules`, `workflow`, `version` and, installed by this procedure, `kit` and `notifications`.
 - DIR = the `directory` in CONFIG; in install mode, the working folder chosen in step 3.
 - MODE = `install` when CONFIG is absent, `upgrade` when it exists.
 - Write only: `kanban-rememory/`, CONFIG, DIR, `AGENTS.md`, `CLAUDE.md`, `GUARDRAILS.md`, `.gitignore`, `.gitattributes`.
@@ -28,7 +28,7 @@ User: put this file and `kanban-rememory-kit-<version>.zip` in the root of your 
 
 | Item | Role | Install action |
 | --- | --- | --- |
-| `kanban-rememory/` | procedure, tools, templates, user guide, lean principles, Telegram guide | replace with the folder from KIT |
+| `kanban-rememory/` | procedure, tools, templates, user guide, lean principles, Slack and Telegram guides | replace with the folder from KIT |
 | `AGENTS.md` | agent entry point | template rule |
 | `CLAUDE.md` | Claude Code bridge to `AGENTS.md` | template rule |
 | `GUARDRAILS.md` | user rules for the agent | copy the template if absent |
@@ -120,7 +120,7 @@ Upgrade mode: skip this section.
        | No symbolic link | `find DIR -type l` | no output |
    - Repeat until a folder is accepted.
 4. Build the proposal:
-   - The CONFIG content, as JSON in this key order: `name`, `directory`, `modules`, `workflow`, `version`, `kit`. `version` = `0.0.0`. `kit` = KIT_VERSION. `workflow` = an object with these keys in this order: `stages` (list), `active` (list), `completed` (the string `completion`), `wip_limit` (integer), `timezone` (string), `transitions` (object: stage → list of the stages it may move to), from the table below. Every list in `transitions` ends with `cancellation`. `completion` and `cancellation` have no key in `transitions`. The first stage is `backlog`, and `cancellation` is the last stage and ends the board.
+   - The CONFIG content, as JSON in this key order: `name`, `directory`, `modules`, `workflow`, `version`, `kit`, `notifications`. `notifications` = `{"slack":{"configured":false,"active":false},"telegram":{"configured":false,"active":false}}`. `version` = `0.0.0`. `kit` = KIT_VERSION. `workflow` = an object with these keys in this order: `stages` (list), `active` (list), `completed` (the string `completion`), `wip_limit` (integer), `timezone` (string), `transitions` (object: stage → list of the stages it may move to), from the table below. Every list in `transitions` ends with `cancellation`. `completion` and `cancellation` have no key in `transitions`. The first stage is `backlog`, and `cancellation` is the last stage and ends the board.
    - The permission lines for `GUARDRAILS.md`.
    - The lines added to `.gitignore` (`__pycache__/`) and `.gitattributes` (`* text=auto`).
 5. Write the CONFIG content to `proposal.json` in a new folder outside TARGET (`mktemp -d`). Run `init <that path>` from the root of TARGET: a preview that writes nothing. Expected: exit 0. A non-zero exit: show the message, ASK the user for a corrected answer to the field it names, rebuild the file and rerun the preview until it exits 0.
@@ -188,6 +188,6 @@ Then:
 4. Delete the two temporary folders this procedure created outside TARGET: the one of section 0 and the one of `proposal.json`.
 5. Report to the user, in this order: MODE, KIT_VERSION, the files written, the commit hashes, and `Nothing is pushed`.
 
-## Option: Telegram
+## Optional notifications
 
 Only if the project approves: give the user the Slack or Telegram setup guide in `kanban-rememory/documentation/`.

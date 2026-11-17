@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 
 CONFIG = "kanban-rememory.json"
 KEYS = ("name", "modules", "workflow", "version", "directory")
-OPTIONAL = ("kit",)
+OPTIONAL = ("kit", "notifications")
 WORK = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
@@ -51,9 +51,23 @@ def check(data):
         raise ValueError("modules must include misc.")
     if not isinstance(data["version"], str) or not VERSION.fullmatch(data["version"]):
         raise ValueError("version must be a release number such as 0.1.0.")
+    if "notifications" in data:
+        check_notifications(data["notifications"])
     stages = check_workflow(data["workflow"])
     return [Path(directory) / "rememory"] + [Path(directory) / "modules" / module / stage
                                              for module in modules for stage in (*stages, "resources")]
+
+
+def check_notifications(settings):
+    if not isinstance(settings, dict) or set(settings) != {"slack", "telegram"}:
+        raise ValueError("notifications must contain slack and telegram settings.")
+    for service, flags in settings.items():
+        if (not isinstance(flags, dict) or set(flags) != {"configured", "active"}
+                or not all(isinstance(flag, bool) for flag in flags.values())):
+            raise ValueError(f"notifications.{service} must contain boolean configured and active flags.")
+        if flags["active"] and not flags["configured"]:
+            raise ValueError(f"notifications.{service} must be configured before it can be active.")
+    return settings
 
 
 def check_workflow(workflow):

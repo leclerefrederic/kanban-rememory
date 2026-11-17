@@ -224,15 +224,13 @@ class KrTests(unittest.TestCase):
         self.kr(root, "start", "CARD-00000001", "--main")
         self.assertIn("Next: commit the changes", self.kr(root, "show"))
         (root / "src.txt").write_text("change\n")
+        config = root / "kanban-rememory.json"
+        flags = {"slack": {"configured": True, "active": True}, "telegram": {"configured": True, "active": False}}
+        config.write_text(json.dumps(dict(self.settings, notifications=flags)))
         candidate = self.commit(root, "Implement on main")
         self.assertIn("Next: run check", self.kr(root, "show"))
         self.kr(root, "check")
         self.assertIn("Next: ask for approval, then publish", self.kr(root, "show"))
-        from notifications import config_path
-
-        slack_path = config_path().with_name("slack.json")
-        slack_path.parent.mkdir(parents=True, exist_ok=True)
-        slack_path.touch()
         run = subprocess.run
         notifications = []
 

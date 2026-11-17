@@ -12,9 +12,9 @@
 4. Send a setup test and check that it appears in the selected Slack channel:
 
    ```sh
-   python3 kanban-rememory/orchestrator/tools/notifications.py test --send
+   python3 kanban-rememory/orchestrator/tools/notifications.py test --service slack --send
    ```
 
-Run `notifications.py status` to check the active service and the location of the configuration. Remy stores the webhook in `slack.json` alongside the Telegram configuration, outside the repository. Slack takes precedence while that file is present. To return to a previously configured Telegram destination, remove `slack.json` locally. The next status check should show Telegram.
+Remy stores the webhook in `slack.json` alongside the Telegram configuration, outside the repository. Once the test arrives, set `notifications.slack.configured` and `notifications.slack.active` to `true` in the root `kanban-rememory.json`. Set `active` to `false` whenever you want to pause Slack alerts and keep the webhook. Run `notifications.py status` to review both services.
 
 Remy posts requests for attention and delivery confirmations in the chosen Slack channel. Make decisions and grant approvals in the conversation named in the alert.

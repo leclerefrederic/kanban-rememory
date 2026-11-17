@@ -64,3 +64,16 @@ Both use the same records: Codex reads `AGENTS.md`, and Claude Code reads it thr
 ## Telegram alerts
 
 Slack and Telegram are optional. Remy sends **Action required** when the agent needs you, including for a merge approval, and **Work completed** once the agreed outcome is verified, nothing else. Each alert names the project, the Card and the chat to return to. You answer in that chat. Set it up with the [Slack guide](slack-setup.md) or the [Telegram guide](telegram-setup.md).
+
+Each repository selects its alert destinations in `kanban-rememory.json`. Set `configured` to `true` after preparing and testing a destination. Set `active` to `true` for each destination that should receive alerts. For example, this enables Slack and pauses Telegram while preserving both configurations.
+
+```json
+{
+  "notifications": {
+    "slack": {"configured": true, "active": true},
+    "telegram": {"configured": true, "active": false}
+  }
+}
+```
+
+Edit the `notifications` entry alongside the other repository settings. Set both `active` flags to `true` to send to both services, or both to `false` to pause all alerts. Credentials stay in private files outside the repository. `notifications.py status` shows the flags and local file presence. When upgrading a repository with no `notifications` entry, an existing local Telegram configuration continues to drive alerts until you add the entry.

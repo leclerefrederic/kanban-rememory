@@ -214,9 +214,8 @@ class Phase:
         """Close the verified Cards, commit, push to origin/main, return to an up-to-date main and end the phase."""
         if any(text is not None and (not text.strip() or "\n" in text or "\r" in text) for text in (summary, approval)):
             raise ValueError("Give --summary and --approval as nonempty single lines.")
-        from notifications import active_config
-        _, notification_path = active_config()
-        alerting = bool(notify) or notification_path.exists() or notification_path.is_symlink()
+        from notifications import active_services
+        alerting = bool(notify or active_services(self.project))
         if alerting and not summary:
             raise ValueError("The delivery alert needs --summary: it is the text of the alert.")
         state = self.here()

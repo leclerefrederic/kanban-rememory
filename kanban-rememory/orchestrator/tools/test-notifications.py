@@ -17,6 +17,7 @@ from urllib.error import HTTPError, URLError
 
 KIT = Path(__file__).resolve().parents[3]
 SCRIPT = KIT / "kanban-rememory/orchestrator/tools/notifications.py"
+sys.path.insert(0, str(SCRIPT.parent))
 spec = importlib.util.spec_from_file_location("notifications", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -68,12 +69,12 @@ class TelegramTests(unittest.TestCase):
         self.wizard(["y", "", "y", "n"])  # receipt not confirmed
         self.assertEqual(self.calls.count("sendMessage"), 1)
         self.updates = [message(), message(43)]
-        with self.assertRaisesRegex(m.TelegramError, "Multiple"):
+        with self.assertRaisesRegex(m.NotificationError, "Multiple"):
             self.wizard(["y", ""])
 
         def webhook(token, method, **values):
             return {"url": "https://example.invalid/hook"} if method == "getWebhookInfo" else self.api(token, method)
-        with self.assertRaisesRegex(m.TelegramError, "webhook was preserved"):
+        with self.assertRaisesRegex(m.NotificationError, "webhook was preserved"):
             self.wizard(["y"], webhook)
         self.assertEqual(self.path.read_bytes(), original)
 
@@ -101,23 +102,23 @@ class TelegramTests(unittest.TestCase):
         empty = self.base / "empty"
         empty.touch()
         with patch.object(m.subprocess, "run", side_effect=subprocess.CalledProcessError(1, "whoami")):
-            with self.assertRaisesRegex(m.TelegramError, "No token was saved"):
+            with self.assertRaisesRegex(m.NotificationError, "No token was saved"):
                 m.protect_file(empty, "win32")
 
     @unittest.skipIf(sys.platform == "win32", "POSIX file modes")
     def test_unsafe_or_malformed_configs_are_refused_without_the_token(self):
         m.save_config(self.path, CONFIG)
         self.path.chmod(0o644)
-        with self.assertRaisesRegex(m.TelegramError, "too broad"):
+        with self.assertRaisesRegex(m.NotificationError, "too broad"):
             m.load_config(self.path)
         link = self.path.with_name("link.json")
         link.symlink_to(self.path)
-        with self.assertRaisesRegex(m.TelegramError, "symbolic"):
+        with self.assertRaisesRegex(m.NotificationError, "symbolic"):
             m.load_config(link)
         for content in (TOKEN, json.dumps({**CONFIG, "chat_id": 42}), json.dumps({**CONFIG, "token": None})):
             self.path.write_text(content)
             self.path.chmod(0o600)
-            with self.assertRaises(m.TelegramError) as error:
+            with self.assertRaises(m.NotificationError) as error:
                 m.load_config(self.path)
             self.assertNotIn(TOKEN, str(error.exception))
 
@@ -126,17 +127,17 @@ class TelegramTests(unittest.TestCase):
         for code, expected, definite in ((401, "Token rejected", True), (409, "another reader", True),
                                          (429, "rate limiting", True), (500, "uncertain", False)):
             with self.subTest(code=code), patch.object(m, "urlopen", side_effect=HTTPError(url, code, TOKEN, {}, None)):
-                with self.assertRaises(m.TelegramError) as error:
+                with self.assertRaises(m.NotificationError) as error:
                     m.api(TOKEN, "sendMessage", chat_id="42")
                 self.assertIn(expected, str(error.exception))
                 self.assertEqual(error.exception.definite, definite)
                 self.assertNotIn(TOKEN, str(error.exception))
         for failure, definite in ((URLError(TOKEN), False), (TimeoutError(TOKEN), False)):
-            with patch.object(m, "urlopen", side_effect=failure), self.assertRaises(m.TelegramError) as error:
+            with patch.object(m, "urlopen", side_effect=failure), self.assertRaises(m.NotificationError) as error:
                 m.api(TOKEN, "sendMessage")
             self.assertEqual(error.exception.definite, definite)
             self.assertNotIn(TOKEN, str(error.exception))
-        with patch.object(m, "urlopen", return_value=io.BytesIO(b'{"ok":false}')), self.assertRaises(m.TelegramError):
+        with patch.object(m, "urlopen", return_value=io.BytesIO(b'{"ok":false}')), self.assertRaises(m.NotificationError):
             m.api(TOKEN, "sendMessage")
         with patch.object(m, "urlopen", return_value=io.BytesIO(b'{"ok":true,"result":{"id":7}}')) as opened:
             self.assertEqual(m.api(TOKEN, "getUpdates", limit=100), {"id": 7})
@@ -155,7 +156,7 @@ class TelegramTests(unittest.TestCase):
 
         def failing(definite):
             def send():
-                raise m.TelegramError("failed", definite)
+                raise m.NotificationError("failed", definite)
             return send
         good = lambda: sent.append(1)
         self.assertEqual(m.deliver(ledger, ("42", "Demo", "attention", "r1"), good), "sent")
@@ -175,7 +176,10 @@ class TelegramTests(unittest.TestCase):
         card.parent.mkdir(parents=True)
         card.write_text('---\nid: "CARD-00000001"\nmodule: "a"\n---\n')
         settings = json.loads((KIT / "kanban-rememory.json").read_text())
-        (root / "kanban-rememory.json").write_text(json.dumps(dict(settings, name="Example", modules=["a", "misc"])))
+        settings.pop("notifications", None)  # start with a legacy repository
+        settings.update(name="Example", modules=["a", "misc"])
+        settings_file = root / "kanban-rememory.json"
+        settings_file.write_text(json.dumps(settings))
         environment = {**os.environ, "HOME": str(self.base / "home"), "LOCALAPPDATA": str(self.base / "home")}
 
         def run(*args):
@@ -206,8 +210,12 @@ class TelegramTests(unittest.TestCase):
         self.assertIn("Référence: a / CARD-00000001\n", sent[0]["text"])
         slack_path = self.path.with_name("slack.json")
         m.save_config(slack_path, {"version": 1, "webhook": WEBHOOK}, m.check_slack_config)
+        flags = {"slack": {"configured": True, "active": True}, "telegram": {"configured": True, "active": False}}
+        settings["notifications"] = flags
+        settings_file.write_text(json.dumps(settings))
+        self.assertIn("Telegram: configured=true, active=false", run("status").stdout)
         with patch.object(m, "ROOT", root), patch.object(m, "send_slack") as send_slack, \
-                contextlib.redirect_stdout(io.StringIO()):
+                contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             for command in ("attention", "completed"):
                 args.command = command
                 for _ in range(2):
@@ -216,6 +224,24 @@ class TelegramTests(unittest.TestCase):
             self.assertEqual(send_slack.call_args.args[0], WEBHOOK)
             self.assertIn("Référence: a / CARD-00000001\n", send_slack.call_args.args[1])
             self.assertEqual(self.calls, [])
+            flags["telegram"]["active"] = True
+            settings_file.write_text(json.dumps(settings))
+            args.id = "both"
+            for _ in range(2):
+                self.assertEqual(m.alert(args, self.path, call=self.api), 0)
+            self.assertEqual(send_slack.call_count, 3)
+            self.assertEqual(self.calls, ["sendMessage"])
+
+            slack_path.unlink()  # a missing Slack credential must not stop Telegram
+            args.id = "partial"
+            self.assertEqual(m.alert(args, self.path, call=self.api), 1)
+            self.assertEqual(self.calls, ["sendMessage", "sendMessage"])
+
+            flags["slack"]["active"] = flags["telegram"]["active"] = False
+            settings_file.write_text(json.dumps(settings))
+            args.id = "disabled"
+            self.assertEqual(m.alert(args, self.path, call=self.api), 1)
+            self.assertEqual(self.calls, ["sendMessage", "sendMessage"])
         piped = subprocess.run([sys.executable, str(SCRIPT)], input=b"", capture_output=True)
         self.assertEqual(piped.returncode, 1)
         self.assertIn(b"interactive terminal", piped.stderr)
@@ -228,7 +254,6 @@ class TelegramTests(unittest.TestCase):
         self.assertNotIn(WEBHOOK, output.getvalue())
         if sys.platform != "win32":
             self.assertEqual(slack_path.stat().st_mode & 0o777, 0o600)
-        self.assertEqual(m.active_config(self.path), ("Slack", slack_path))
         with patch.object(m, "build_opener") as opener:
             request = opener.return_value.open
             response = request.return_value.__enter__.return_value
@@ -240,7 +265,7 @@ class TelegramTests(unittest.TestCase):
             for status in (302, 403, 408, 500):
                 with self.subTest(status=status):
                     request.side_effect = HTTPError(WEBHOOK, status, WEBHOOK, {}, None)
-                    with self.assertRaises(m.TelegramError) as failure:
+                    with self.assertRaises(m.NotificationError) as failure:
                         m.send_slack(WEBHOOK, "Remy")
                     self.assertEqual(failure.exception.definite, status in (302, 403))
                     self.assertNotIn(WEBHOOK, str(failure.exception))
@@ -252,7 +277,8 @@ class TelegramTests(unittest.TestCase):
         import time
         harness = self.base / "interactive.py"
         harness.write_text(
-            "import importlib.util\nfrom pathlib import Path\n"
+            "import importlib.util\nimport sys\nfrom pathlib import Path\n"
+            f"sys.path.insert(0, {str(SCRIPT.parent)!r})\n"
             f"s = importlib.util.spec_from_file_location('m', {str(SCRIPT)!r})\n"
             "m = importlib.util.module_from_spec(s); s.loader.exec_module(m)\n"
             f"m.config_path = lambda: Path({str(self.path)!r})\n"

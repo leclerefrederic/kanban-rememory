@@ -1,6 +1,6 @@
 # Notify the user with Remy
 
-Use Remy only when `python3 kanban-rememory/orchestrator/tools/notifications.py status` shows a configuration. Alerts point back to the original chat for answers, permissions and acceptance. Keep secrets and unnecessary personal data out of alerts.
+Use Remy when `python3 kanban-rememory/orchestrator/tools/notifications.py status` shows an active service for the repository. Alerts point back to the original chat for answers, permissions and acceptance. Keep secrets and unnecessary personal data out of alerts.
 
 ## When
 
@@ -28,7 +28,7 @@ python3 kanban-rememory/orchestrator/tools/notifications.py attention --card CAR
 | --- | --- |
 | `confirmed delivery` | The notification service accepted it; this does not prove that someone read it. |
 | `already confirmed` | Nothing new was sent. |
-| `nothing was sent` | No notification service is configured: keep the request in the chat and say that no alert was sent. |
+| `nothing was sent` | No notification service is active, or an active service has no local credentials: keep the request in the chat and say that no alert was sent. |
 | `not sent, the request was refused` | Fix the cause, then retry. |
 | `delivery not confirmed and the outcome is unknown` | Tell the user. Resend with `--confirm-retry` only once it is known that the alert did not arrive. |
 
@@ -36,4 +36,4 @@ The alert ledger keeps the results; do not copy them to the Card. A missing conf
 
 ## Setup
 
-The user configures Remy privately using the [Slack guide](../documentation/slack-setup.md) or the [Telegram guide](../documentation/telegram-setup.md). One active configuration outside the repository serves every project of the operating-system account. Slack takes precedence when both services are configured. Keep credentials out of the chat, command arguments and repository. When a sandbox blocks the configuration file or the network, request only that permission. `notifications.py test` previews a test message and `test --send` sends one to the active service.
+The user configures Remy privately using the [Slack guide](../documentation/slack-setup.md) or the [Telegram guide](../documentation/telegram-setup.md). Each repository selects its active services in [its settings](../documentation/guide.md). Both services can be active. The operating-system account stores credentials outside the repository. Keep credentials out of the chat, command arguments and repository. When a sandbox blocks the configuration file or the network, request only that permission. `notifications.py test` previews a test message and `test --send` sends one to each active service. Use `test --service slack --send` or `test --service telegram --send` to test just one local destination, including during setup.

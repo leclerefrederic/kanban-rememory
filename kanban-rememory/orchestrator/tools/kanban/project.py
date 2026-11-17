@@ -12,7 +12,8 @@ CONFIG = "kanban-rememory.json"
 WORK = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 MISC = "misc"
 KEYS = ("name", "modules", "workflow", "version", "directory")
-OPTIONAL = ("kit",)
+OPTIONAL = ("kit", "notifications")
+NOTIFICATION_SERVICES = ("slack", "telegram")
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
 MODULE = re.compile(r"[a-z0-9]+(?:[-_][a-z0-9]+)*")
 STAGE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
@@ -26,6 +27,7 @@ class Project:
     workflow: dict
     version: str
     directory: str = "project"
+    notifications: dict = None
 
     def board(self, module):
         if module not in self.modules:
@@ -123,9 +125,22 @@ def parse_settings(root, source):
         version = data["version"]
         if not isinstance(version, str) or not VERSION.fullmatch(version):
             raise ValueError("version must be a release number such as 0.1.0.")
-        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), version, directory)
+        notifications = check_notifications(data["notifications"]) if "notifications" in data else None
+        return Project(root, name, tuple(modules), check_workflow(data["workflow"]), version, directory, notifications)
     except ValueError as error:
         raise ValueError(f"Invalid kanban-rememory.json: {error}") from None
+
+
+def check_notifications(settings):
+    if not isinstance(settings, dict) or set(settings) != set(NOTIFICATION_SERVICES):
+        raise ValueError("notifications must contain slack and telegram settings.")
+    for service, flags in settings.items():
+        if (not isinstance(flags, dict) or set(flags) != {"configured", "active"}
+                or not all(isinstance(flag, bool) for flag in flags.values())):
+            raise ValueError(f"notifications.{service} must contain boolean configured and active flags.")
+        if flags["active"] and not flags["configured"]:
+            raise ValueError(f"notifications.{service} must be configured before it can be active.")
+    return settings
 
 
 def check_workflow(workflow):

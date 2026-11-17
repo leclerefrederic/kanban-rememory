@@ -27,7 +27,9 @@ class InitTests(unittest.TestCase):
         self.root = self.base / "repo"
         self.root.mkdir()
         self.settings = {"name": "Fixture", "directory": "work", "modules": ["a", "misc"], "workflow": WORKFLOW,
-                         "version": "0.0.0", "kit": "0.1.0"}
+                         "version": "0.0.0", "kit": "0.1.0",
+                         "notifications": {"slack": {"configured": False, "active": False},
+                                           "telegram": {"configured": False, "active": False}}}
         self.proposal = self.base / "proposal.json"
         self.proposal.write_text(json.dumps(self.settings))
 
@@ -56,6 +58,9 @@ class InitTests(unittest.TestCase):
                                 ({"workflow": dict(WORKFLOW, active=["backlog"])}, "active")):
             bad.write_text(json.dumps(dict(self.settings, **change)))
             self.assertIn(message, self.init(bad, expected=1))
+        invalid = dict(self.settings["notifications"], slack={"configured": False, "active": True})
+        bad.write_text(json.dumps(dict(self.settings, notifications=invalid)))
+        self.assertIn("configured before it can be active", self.init(bad, expected=1))
         bad.write_text('{"name": "a", "name": "b"}')
         self.assertIn("Duplicate key", self.init(bad, expected=1))
         self.assertEqual(list(self.root.iterdir()), [])
