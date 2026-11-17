@@ -74,7 +74,7 @@ The installer checks these prerequisites. It does not create the repository, bra
 Download these files from this repository and put them **at the root of the repo you want to equip**:
 
 - [**INSTALL.md**](dist/INSTALL.md) — the procedure your agent follows. Save the file contents as `INSTALL.md`.
-- [**kanban-rememory-kit-0.1.49.zip**](dist/kanban-rememory-kit-0.1.49.zip) — the installation kit.
+- [**kanban-rememory-kit-0.2.0.zip**](dist/kanban-rememory-kit-0.2.0.zip) — the installation kit.
 
 Your target repository should look like this:
 
@@ -82,7 +82,7 @@ Your target repository should look like this:
 your-repo/
 ├── .git/
 ├── INSTALL.md
-├── kanban-rememory-kit-0.1.49.zip
+├── kanban-rememory-kit-0.2.0.zip
 └── … your existing project files
 ```
 
