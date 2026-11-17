@@ -17,3 +17,5 @@ module: "notifications"
 - 2026-11-17T11:39:29+01:00 — Stage moved from `backlog` to `development`.
 
 - 2026-11-17T11:39:47+01:00 — Stage moved from `development` to `completion`.
+
+- 2026-11-17T11:43:18+01:00 — Merge approved for the verified candidate `b7ec7864917d79b945634cf2653b0b550ff27023`: “Cré les cartes et delivre.”.
