@@ -1,4 +1,4 @@
-"""Risky behavior of telegram.py, with fake credentials and no network: secret handling, setup, alerts."""
+"""Risky behavior of notifications.py, with fake credentials and no network: secret handling, setup, alerts."""
 
 import argparse
 import contextlib
@@ -16,8 +16,8 @@ from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
 KIT = Path(__file__).resolve().parents[3]
-SCRIPT = KIT / "kanban-rememory/orchestrator/tools/telegram.py"
-spec = importlib.util.spec_from_file_location("telegram", SCRIPT)
+SCRIPT = KIT / "kanban-rememory/orchestrator/tools/notifications.py"
+spec = importlib.util.spec_from_file_location("notifications", SCRIPT)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
 TOKEN = "123456789:PRIVATE_TEST_TOKEN"
@@ -179,7 +179,7 @@ class TelegramTests(unittest.TestCase):
         environment = {**os.environ, "HOME": str(self.base / "home"), "LOCALAPPDATA": str(self.base / "home")}
 
         def run(*args):
-            return subprocess.run([sys.executable, "kanban-rememory/orchestrator/tools/telegram.py", *args], cwd=root,
+            return subprocess.run([sys.executable, "kanban-rememory/orchestrator/tools/notifications.py", *args], cwd=root,
                                   env=environment, capture_output=True, text=True)
         full = ("completed", "--card", "card-00000001", "--id", "delivery", "--text", "Export vérifié.",
                 "--next-action", "Aucune action requise.", "--chat-name", "Codex · Export", "--language", "fr")

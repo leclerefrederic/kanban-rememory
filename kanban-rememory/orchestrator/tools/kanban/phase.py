@@ -214,7 +214,7 @@ class Phase:
         """Close the verified Cards, commit, push to origin/main, return to an up-to-date main and end the phase."""
         if any(text is not None and (not text.strip() or "\n" in text or "\r" in text) for text in (summary, approval)):
             raise ValueError("Give --summary and --approval as nonempty single lines.")
-        from telegram import active_config
+        from notifications import active_config
         _, notification_path = active_config()
         alerting = bool(notify) or notification_path.exists() or notification_path.is_symlink()
         if alerting and not summary:
@@ -278,7 +278,7 @@ class Phase:
               + "; main is up to date and the phase is over.")
         if alerting:
             alert = subprocess.run(
-                [sys.executable, str(self.root / "kanban-rememory/orchestrator/tools/telegram.py"), "completed", "--card",
+                [sys.executable, str(self.root / "kanban-rememory/orchestrator/tools/notifications.py"), "completed", "--card",
                  state["cards"][0], "--id", "delivery", "--text", summary, "--next-action", NO_ACTION[language],
                  "--chat-name", notify or self.project.name, "--language", language, "--send"],
                 cwd=self.root, capture_output=True, text=True)

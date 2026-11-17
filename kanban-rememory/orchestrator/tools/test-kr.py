@@ -228,7 +228,7 @@ class KrTests(unittest.TestCase):
         self.assertIn("Next: run check", self.kr(root, "show"))
         self.kr(root, "check")
         self.assertIn("Next: ask for approval, then publish", self.kr(root, "show"))
-        from telegram import config_path
+        from notifications import config_path
 
         slack_path = config_path().with_name("slack.json")
         slack_path.parent.mkdir(parents=True, exist_ok=True)
@@ -237,7 +237,7 @@ class KrTests(unittest.TestCase):
         notifications = []
 
         def simulate_notification(args, **kwargs):
-            if len(args) > 1 and Path(args[1]).name == "telegram.py":
+            if len(args) > 1 and Path(args[1]).name == "notifications.py":
                 notifications.append(args[2:])
                 return subprocess.CompletedProcess(args, 0, "Slack: confirmed delivery.\n", "")
             return run(args, **kwargs)

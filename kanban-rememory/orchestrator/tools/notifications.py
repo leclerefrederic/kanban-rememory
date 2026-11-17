@@ -148,7 +148,7 @@ def load_config(path, check=check_config):
         if check is check_slack_config:
             raise TelegramError("Slack is not configured; nothing was sent. Run setup-slack.") from None
         raise TelegramError("Telegram is not configured; nothing was sent. "
-                            "Set it up with: python3 kanban-rememory/orchestrator/tools/telegram.py") from None
+                            "Set it up with: python3 kanban-rememory/orchestrator/tools/notifications.py") from None
     except (OSError, ValueError):
         raise TelegramError("Could not read the configuration. Run the setup again.") from None
 
@@ -265,7 +265,7 @@ def setup(path, ask=input, secret=getpass.getpass, call=api):
         return 0
     save_config(path, {"version": 1, "token": token, "chat_id": chat_id, "bot_username": bot["username"]})
     print(f"Configuration saved: {path}")
-    print("Ready. Agents send alerts with telegram.py attention or completed.")
+    print("Ready. Agents send alerts with notifications.py attention or completed.")
     return 0
 
 
@@ -375,8 +375,8 @@ def main():
     try:
         if args.command in (None, "setup", "setup-slack"):
             if not sys.stdin.isatty():
-                raise TelegramError("Run this file in an interactive terminal: python3 kanban-rememory/orchestrator/tools/telegram.py "
-                                    "on macOS, py -3 kanban-rememory/orchestrator/tools/telegram.py on Windows. "
+                raise TelegramError("Run this file in an interactive terminal: python3 kanban-rememory/orchestrator/tools/notifications.py "
+                                    "on macOS, py -3 kanban-rememory/orchestrator/tools/notifications.py on Windows. "
                                     "Piped input and python - are unsupported.")
             if args.command == "setup-slack":
                 return setup_slack(path.with_name("slack.json"))

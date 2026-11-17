@@ -1,6 +1,6 @@
 # Notify the user with Remy
 
-Use Remy only when `python3 kanban-rememory/orchestrator/tools/telegram.py status` shows a configuration. Alerts point back to the original chat for answers, permissions and acceptance. Keep secrets and unnecessary personal data out of alerts.
+Use Remy only when `python3 kanban-rememory/orchestrator/tools/notifications.py status` shows a configuration. Alerts point back to the original chat for answers, permissions and acceptance. Keep secrets and unnecessary personal data out of alerts.
 
 ## When
 
@@ -17,7 +17,7 @@ Send nothing else: no progress, routine results, recoverable errors or reminders
 ## Send
 
 ```sh
-python3 kanban-rememory/orchestrator/tools/telegram.py attention --card CARD-00000042 --id intervention-1 --text "The report is ready; choose its format." --next-action "Choose PDF or CSV in the original chat." --chat-name "Claude Code · Report" --send
+python3 kanban-rememory/orchestrator/tools/notifications.py attention --card CARD-00000042 --id intervention-1 --text "The report is ready; choose its format." --next-action "Choose PDF or CSV in the original chat." --chat-name "Claude Code · Report" --send
 ```
 
 `--text` holds at most two sentences. `--next-action` starts with a verb and says where to act, or says that no action is required. `--chat-name` names the actual chat and its application. Add `--link` only when the environment provides one. Labels exist in English and in French (`--language fr`); the tool does not translate free text. Without `--send` the command only previews. The module and the project name come from the Card and the settings. Keep the same `--card` and `--id` for a resend, a rewording or a resumption in another chat; a new request gets a new ID.
@@ -36,4 +36,4 @@ The alert ledger keeps the results; do not copy them to the Card. A missing conf
 
 ## Setup
 
-The user configures Remy privately using the [Slack guide](../documentation/slack-setup.md) or the [Telegram guide](../documentation/telegram-setup.md). One active configuration outside the repository serves every project of the operating-system account. Slack takes precedence when both services are configured. Keep credentials out of the chat, command arguments and repository. When a sandbox blocks the configuration file or the network, request only that permission. `telegram.py test` previews a test message and `test --send` sends one to the active service.
+The user configures Remy privately using the [Slack guide](../documentation/slack-setup.md) or the [Telegram guide](../documentation/telegram-setup.md). One active configuration outside the repository serves every project of the operating-system account. Slack takes precedence when both services are configured. Keep credentials out of the chat, command arguments and repository. When a sandbox blocks the configuration file or the network, request only that permission. `notifications.py test` previews a test message and `test --send` sends one to the active service.
